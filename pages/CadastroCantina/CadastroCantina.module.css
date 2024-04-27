@@ -1,0 +1,39 @@
+.buttonContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: fixed;
+    top: 37%;
+    left: 977px;
+  }
+  
+  /* Opcional: Estilos adicionais para os botões, se necessário */
+  .container button {
+    margin-bottom: 10px; /* Adiciona um espaço entre os botões */
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    position: fixed;
+    top: 250px;
+    left: 575px;
+    width: 50%;
+  }
+  
+  .headerContainer {
+    margin-bottom: 20px; /* Adiciona espaço entre o título/linha e os botões */
+  }
+  
+  .title {
+    font-size: 24px;
+    text-align: center;
+  }
+  
+  .line {
+    width: 100vh;
+    border-bottom: 0.1px black;
+    position: 200vh;
+  }
