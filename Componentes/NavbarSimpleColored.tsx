@@ -7,12 +7,14 @@ import {
   IconReceipt2,
   IconSwitchHorizontal,
   IconLogout,
+  IconList,
 } from '@tabler/icons-react';
 import classes from './NavbarSimpleColored.module.css';
 
 const data = [
   { link: '', label: 'Página inicial', icon: IconBellRinging },
   { link: '', label: 'Produtos', icon: IconReceipt2 },
+  { link: '', label: 'Categorias', icon: IconList },
   { link: '', label: 'Funcionários', icon: IconFingerprint },
   { link: '', label: 'Unidades', icon: IconKey },
 ];
