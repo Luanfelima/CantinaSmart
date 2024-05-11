@@ -8,16 +8,15 @@ export function ButtonCantinas() {
       <div className={styles.input}> {/*Adiciona a classe input */}
         <div className={styles.ColunaEsquerda}> {/*Adiciona div para coluna esquerda*/}
           <input type='text' id='texto' placeholder='Nome Unidade'></input>
-          <input type='text' id='texto' placeholder='Endereço Unidade'></input>
-          <input type='text' id='texto' placeholder='Complemento'></input>
+          <input type='text' id='texto' placeholder='CEP'></input>
           <input type='text' id='texto' placeholder='Cidade'></input>
-          <input type='text' id='texto' placeholder='Telefone'></input>
+          <input type='text' id='texto' placeholder='Número'></input>
         </div>
           <div className={styles.ColunaDireita}> {/*Adiciona div para coluna direita*/}
             <input type='text' id='texto' placeholder='CNPJ'></input>
-            <input type='text' id='texto' placeholder='Número'></input>
-            <input type='text' id='texto' placeholder='CEP'></input>
+            <input type='text' id='texto' placeholder='Endereço Unidade'></input>
             <input type='text' id='texto' placeholder='Estado'></input>
+            <input type='text' id='texto' placeholder='Complemento'></input>
           </div>
       </div>
 

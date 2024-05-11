@@ -1,8 +1,16 @@
 import React from 'react';
 import { Button } from '@mantine/core';
+import { useRouter } from 'next/router';
 import styles from './GerenciamentoCadastroUnidades.module.css'; // Importe o arquivo CSS
 
 export function ButtonCantinas() {
+
+  const router = useRouter(); // o useRouter é um metodo fornecido pelo next, para montar a rota até algo
+
+  const cliqueAqui = () => {
+    router.push('/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes');
+  };
+
   return (
     <div className={styles.centeredContainer}>
       <div className={styles.contentCadastro}>
@@ -11,7 +19,8 @@ export function ButtonCantinas() {
         </div>
         <hr className={styles.lineCadastroUnidades} /> {/* Linha abaixo do "Cadastro de Unidades"*/}
         <div className={styles.buttonContainerCadastroUnidades}>
-          <Button>Inserir Dados</Button>
+           {/* o evento onClick ele faz com que seja chamada a const cliqueAqui, que puxa a pagina desejada */}
+          <Button onClick={cliqueAqui}>Inserir Dados</Button>
         </div>
       </div>
       <div className={styles.divider}></div> {/*Linha vertical de divisão*/}
