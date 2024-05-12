@@ -4,6 +4,13 @@ import styles from './CadastroUnidadesInformacoes.module.css'; // Importe o arqu
 import Layout from '../../componentes/Layout'; // Caminho de importação do layout/barra lateral
 
 export function ButtonCantinas() {
+  const limparCampos = () => {
+    const campos = document.querySelectorAll<HTMLInputElement>('input[type="text"]');
+    campos.forEach((campo) => {
+      campo.value = '';
+    });
+  };
+  
   return (
   <Layout>
     <div className={styles.container}> {/* Adiciona a classe container */}
@@ -24,7 +31,7 @@ export function ButtonCantinas() {
 
           <div className={styles.buttonContainer}> {/* Container para os botões */}
             <Button>Cadastrar</Button>
-            <Button>Limpar</Button>
+            <Button onClick={limparCampos}>Limpar</Button>
           </div>
     </div>
   </Layout>
