@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavbarSimpleColored } from '../Componentes/NavbarSimpleColored';
+import { NavbarSimpleColored } from '../componentes/NavbarSimpleColored';
 import { ButtonCantinas } from './GerenciamentoCadastroUnidades/GerenciamentoCadastroUnidades'; {/*Aq que altera a pagina que irá aparecer*/}
 
 function cadastroCantinaInicio() {

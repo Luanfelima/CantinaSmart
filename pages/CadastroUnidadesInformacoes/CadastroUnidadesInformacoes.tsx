@@ -1,9 +1,11 @@
 import React from 'react';
 import { Button } from '@mantine/core';
 import styles from './CadastroUnidadesInformacoes.module.css'; // Importe o arquivo CSS
+import Layout from '../componentes/Layout'; // Corrigido o caminho de importação
 
 export function ButtonCantinas() {
   return (
+  <Layout>
     <div className={styles.container}> {/* Adiciona a classe container */}
       <div className={styles.input}> {/*Adiciona a classe input */}
         <div className={styles.ColunaEsquerda}> {/*Adiciona div para coluna esquerda*/}
@@ -25,6 +27,7 @@ export function ButtonCantinas() {
             <Button>Limpar</Button>
           </div>
     </div>
+  </Layout>
   );
 }
 

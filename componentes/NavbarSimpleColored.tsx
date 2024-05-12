@@ -44,7 +44,7 @@ export function NavbarSimpleColored() {
         <Group className={classes.header} justify="space-between">
           <span>CantinaSmart</span>
           <Code fw={700} className={classes.version}>
-            v0.0.0,2
+            v0.0.0,3
           </Code>
         </Group>
         {links}
