@@ -2,10 +2,12 @@ import React from 'react';
 import { Button, stylesToString } from '@mantine/core';
 import styles from './GerenciamentoUnidadeEscolhida.module.css'; // Importe o arquivo CSS
 import Image from 'next/image';
+import Layout from '../../componentes/Layout'; // Caminho de importação do layout/barra lateral
 
 export function ButtonCantinas() {
 
   return (
+    <Layout>
     <div className={styles.container}> {/* Adiciona a classe container */}
       <div className={styles.consultaUnidades}>
         <text>Consulta de Unidades</text>  {/*Adiciona a classe texto do titulo da pagina no topo */}
@@ -25,6 +27,7 @@ export function ButtonCantinas() {
         <Button>Administrar Venda</Button>
       </div>
     </div>
+    </Layout>
   );
 }
 export default ButtonCantinas;

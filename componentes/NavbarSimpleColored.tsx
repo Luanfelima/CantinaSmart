@@ -1,37 +1,36 @@
 import React, { useState } from 'react';
 import { Group, Code } from '@mantine/core';
+import Link from 'next/link';
 import {
-  IconBellRinging,
+  //Aqui coloque todos os icons e dps coloque eles no icon abaixo      Pode olhar neste site para buscar icon: https://tabler.io/icons -- Size 24 e Stroke 2
+  IconHome,
   IconFingerprint,
-  IconKey,
   IconReceipt2,
-  IconSwitchHorizontal,
+  IconSettings,
   IconLogout,
   IconList,
+  IconBuildingCommunity,
 } from '@tabler/icons-react';
 import classes from './NavbarSimpleColored.module.css';
 
 const data = [
-  { link: '', label: 'Página inicial', icon: IconBellRinging },
+  { link: '', label: 'Página inicial', icon: IconHome }, //icons ficam aqui e os links tbm
   { link: '', label: 'Produtos', icon: IconReceipt2 },
   { link: '', label: 'Categorias', icon: IconList },
   { link: '', label: 'Funcionários', icon: IconFingerprint },
-  { link: '', label: 'Unidades', icon: IconKey },
+  { link: '/GerenciamentoCadastroUnidades/GerenciamentoCadastroUnidades', label: 'Unidades', icon: IconBuildingCommunity },
 ];
 
 export function NavbarSimpleColored() {
-  const [active, setActive] = useState('Billing');
+  const [active, setActive] = useState('Página inicial');
 
   const links = data.map((item) => (
-    <a
+    <a // Usando a tag <a> para criar links clicáveis
+      href={item.link}
       className={classes.link}
       data-active={item.label === active || undefined}
-      href={item.link}
       key={item.label}
-      onClick={(event) => {
-        event.preventDefault();
-        setActive(item.label);
-      }}
+      onClick={() => setActive(item.label)}
     >
       <item.icon className={classes.linkIcon} stroke={1.5} />
       <span>{item.label}</span>
@@ -52,7 +51,7 @@ export function NavbarSimpleColored() {
 
       <div className={classes.footer}>
         <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
-          <IconSwitchHorizontal className={classes.linkIcon} stroke={1.5} />
+          <IconSettings className={classes.linkIcon} stroke={1.5} />
           <span>Configurações</span>
         </a>
 
@@ -63,4 +62,4 @@ export function NavbarSimpleColored() {
       </div>
     </nav>
   );
-}
+}	

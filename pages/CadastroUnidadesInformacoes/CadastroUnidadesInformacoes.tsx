@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@mantine/core';
 import styles from './CadastroUnidadesInformacoes.module.css'; // Importe o arquivo CSS
-import Layout from '../componentes/Layout'; // Corrigido o caminho de importação
+import Layout from '../../componentes/Layout'; // Caminho de importação do layout/barra lateral
 
 export function ButtonCantinas() {
   return (
