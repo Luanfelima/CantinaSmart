@@ -1,0 +1,60 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  position: fixed;
+  top: 250px;
+  left: 575px;
+  width: 50%;
+}
+
+.consultaUnidades text {
+  display: flex;
+  padding: 10px;
+  margin-right: 160vh; /*So para alinhar o texto do consulta unidades no topo kkk*/
+  margin-left: 200px; /*tbm para alinhar o texto no topo :D*/
+  width: 180px;
+  margin-top: -13%;
+}
+
+.textUnidade text {
+  display: flex;
+  padding: 10px;
+  margin-bottom: 20%; /*Tudo isso só para alinhar :D*/
+  margin-top: -60%; /*Isso tbm*/
+  margin-left: -45vh;
+  margin-right: -45vh;
+  border: 0.25px solid #00000048;
+  justify-content: center; /* Centraliza horizontalmente*/
+  align-items: center; /* Centraliza verticalmente */
+}
+
+.textUnidade {
+  width: 30%;
+}
+
+.botaoRelatorio Button{
+  display: flex;
+  margin-left: 104.5vh;
+  height: 50px;
+  top: -6vh;
+  width: 18vh;
+}
+
+.img {
+  display: flex;
+  margin-right: 4px;
+  margin-left: -7px;
+}
+
+.botoesGerenciamento Button {
+  display: flex;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  margin-right: 70px;
+  margin-left: -45px;
+  height: 50px;
+  width: 300px;
+  border-radius: 20px;
+}

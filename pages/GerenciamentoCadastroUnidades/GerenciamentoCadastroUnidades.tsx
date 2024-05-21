@@ -12,8 +12,16 @@ export function ButtonCantinas() {
     router.push('/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes');
   };
 
-  const unidade1 = () => {
-    router.push('/GerenciamentoUnidadeEscolhida/GerenciamentoUnidadeEscolhida');
+  const unidadeCentro = () => {
+    router.push('/GerenciamentoUnidadeEscolhida/GerenciamentoUnidadeEscolhidaCentro');
+  };
+
+  const unidadeConceicao = () => {
+    router.push('/GerenciamentoUnidadeEscolhida/GerenciamentoUnidadeEscolhidaConceicao');
+  };
+
+  const unidadeBarcelona = () => {
+    router.push('/GerenciamentoUnidadeEscolhida/GerenciamentoUnidadeEscolhidaBarcelona');
   };
 
   return (
@@ -35,9 +43,9 @@ export function ButtonCantinas() {
           <h2>Lista de Unidades</h2>
           <hr className={styles.lineListaUnidades} /> {/* Linha abaixo do "Lista de Unidades" */}
           <div className={styles.unitButton}>
-            <Button onClick={unidade1}>Centro</Button>
-            <Button>Conceição</Button>
-            <Button>Barcelona</Button>
+            <Button onClick={unidadeCentro}>Centro</Button>
+            <Button onClick={unidadeConceicao}>Conceição</Button>
+            <Button onClick={unidadeBarcelona}>Barcelona</Button>
           </div>
         </div>
       </div>
