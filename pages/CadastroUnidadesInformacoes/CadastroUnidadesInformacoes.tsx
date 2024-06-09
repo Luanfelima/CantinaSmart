@@ -49,7 +49,7 @@ export function ButtonCantinas() {
             <input type='text' id='cnpj' placeholder='*CNPJ'></input>
             <input type='text' id='enderecoUnidade' placeholder='*Endereço Unidade'></input>
             <input type='text' id='estado' placeholder='*Estado'></input>
-            <input type='text' id='complemento' placeholder='Complemento'></input>
+            <input type='text' id='complemento' placeholder='Complemento (Opcional)'></input>
           </div>
         </div>
 
