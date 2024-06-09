@@ -79,3 +79,5 @@ export function FormLogin() {
     </Container>
   );
 }
+
+export default FormLogin;
