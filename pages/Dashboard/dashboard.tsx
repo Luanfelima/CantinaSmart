@@ -9,8 +9,8 @@ export function LeadGrid() {
     <Layout>
         <Grid grow gutter="xs">
         <Grid.Col span={6}><ListaTarefas /></Grid.Col>
-        <Grid.Col span={4}><Calendario /></Grid.Col>
-        <Grid.Col span={4}><Grafico /></Grid.Col>
+        <Grid.Col span={6}><Calendario /></Grid.Col>
+        <Grid.Col span={12}><Grafico /></Grid.Col>
         </Grid>
     </Layout>
   );
