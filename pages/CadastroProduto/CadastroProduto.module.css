@@ -73,3 +73,7 @@ margin-left: -68.6vh;
 height: 12vh;
 width: 67.5vh;
 }
+
+.erro {
+  border: 1px solid rgb(214, 69, 69); /* Adiciona uma borda vermelha para indicar erro */
+}
