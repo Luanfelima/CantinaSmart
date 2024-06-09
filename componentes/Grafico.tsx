@@ -1,9 +1,12 @@
 import { LineChart } from '@mantine/charts';
 import { dados } from './Dados';
+import { Container } from '@mantine/core';
+import '@mantine/charts/styles.css';
 
 function Grafico() {
     return (
-      <LineChart
+      <Container size='responsive'>
+        <LineChart
         h={300}
         data={dados}
         dataKey="date"
@@ -14,6 +17,7 @@ function Grafico() {
         ]}
         series={[{ name: 'Maças', color: 'indigo.6' }]}
       />
+      </Container>
     );
   }
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Group, Code } from '@mantine/core';
 import Link from 'next/link';
 import {
-  //Aqui coloque todos os icons e dps coloque eles no icon abaixo      Pode olhar neste site para buscar icon: https://tabler.io/icons -- Size 24 e Stroke 2
+  
   IconHome,
   IconFingerprint,
   IconReceipt2,
@@ -14,7 +14,7 @@ import {
 import classes from './NavbarSimpleColored.module.css';
 
 const data = [
-  { link: '', label: 'Página inicial', icon: IconHome }, //icons ficam aqui e os links tbm
+  { link: '/Dashboard/dashboard', label: 'Página inicial', icon: IconHome }, //icons ficam aqui e os links tbm
   { link: '', label: 'Produtos', icon: IconReceipt2 },
   { link: '', label: 'Categorias', icon: IconList },
   { link: '', label: 'Funcionários', icon: IconFingerprint },
@@ -43,7 +43,7 @@ export function NavbarSimpleColored() {
         <Group className={classes.header} justify="space-between">
           <span>CantinaSmart</span>
           <Code fw={700} className={classes.version}>
-            v0.0.1
+            v1.0
           </Code>
         </Group>
         {links}
@@ -55,7 +55,7 @@ export function NavbarSimpleColored() {
           <span>Configurações</span>
         </a>
 
-        <a href="#" className={classes.link} onClick={(event) => event.preventDefault()}>
+        <a href="/FormulárioLogin/login" className={classes.link} onClick={(event) => event.preventDefault()}>
           <IconLogout className={classes.linkIcon} stroke={1.5} />
           <span>Sair</span>
         </a>

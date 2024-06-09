@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Checkbox, Combobox, Group, TextInput, useCombobox } from '@mantine/core';
 import classes from './Tarefas.module.css';
+import { Container } from '@mantine/core';
+import { Title } from '@mantine/core';
+import { Space } from '@mantine/core';
 
-const groceries = ['🍎 Revisão dos itens em falta', '🍌 Vericação do iventário', '🥦 Realizar novas compras', '🥕 Placeholder', '🍫 Placeholder'];
+const groceries = ['📄 TarefaPlaceholder1', '📄 TarefaPlaceholder2', '📄 TarefaPlaceholder3', '📄 TarefaPlaceholder4', '📄 TarefaPlaceholder5'];
 
 export function ListaTarefas() {
   const combobox = useCombobox();
@@ -38,25 +41,31 @@ export function ListaTarefas() {
     ));
 
   return (
-    <Combobox store={combobox} onOptionSubmit={handleValueSelect}>
-      <Combobox.EventsTarget>
+    <Container size='responsive'>
+      <Title order={2}>
+        5 tarefas ativas
+      </Title>
+      <Space h="xs" />
+      <Combobox store={combobox} onOptionSubmit={handleValueSelect}>
+        <Combobox.EventsTarget>
         <TextInput
-          placeholder="Search groceries"
-          classNames={{ input: classes.input }}
-          value={search}
-          onChange={(event) => {
-            setSearch(event.currentTarget.value);
-            combobox.updateSelectedOptionIndex();
-          }}
-        />
+        placeholder="Pesquisar tarefas"
+        classNames={{ input: classes.input }}
+        value={search}
+        onChange={(event) => {
+          setSearch(event.currentTarget.value);
+          combobox.updateSelectedOptionIndex();
+        }}
+      />
       </Combobox.EventsTarget>
 
-      <div className={classes.list}>
-        <Combobox.Options>
-          {options.length > 0 ? options : <Combobox.Empty>Nothing found....</Combobox.Empty>}
-        </Combobox.Options>
+     <div className={classes.list}>
+      <Combobox.Options>
+        {options.length > 0 ? options : <Combobox.Empty>Nenhum resultado</Combobox.Empty>}
+      </Combobox.Options>
       </div>
     </Combobox>
+  </Container>      
   );
 }
 
