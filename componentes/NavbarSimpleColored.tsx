@@ -15,7 +15,7 @@ import classes from './NavbarSimpleColored.module.css';
 
 const data = [
   { link: '/Dashboard/dashboard', label: 'Página inicial', icon: IconHome }, //icons ficam aqui e os links tbm
-  { link: '', label: 'Produtos', icon: IconReceipt2 },
+  { link: '/CadastroProduto/CadastroProduto', label: 'Produtos', icon: IconReceipt2 },
   { link: '', label: 'Categorias', icon: IconList },
   { link: '', label: 'Funcionários', icon: IconFingerprint },
   { link: '/GerenciamentoCadastroUnidades/GerenciamentoCadastroUnidades', label: 'Unidades', icon: IconBuildingCommunity },

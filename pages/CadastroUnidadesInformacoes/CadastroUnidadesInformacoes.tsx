@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@mantine/core';
 import styles from './CadastroUnidadesInformacoes.module.css'; // Importe o arquivo CSS
 import Layout from '../../componentes/Layout'; // Caminho de importação do layout/barra lateral
 
 export function ButtonCantinas() {
+
   const limparCampos = () => {
     const campos = document.querySelectorAll<HTMLInputElement>('input[type="text"]');
     campos.forEach((campo) => {
