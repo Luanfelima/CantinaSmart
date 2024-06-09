@@ -1,18 +1,15 @@
 import React from 'react';
 import { NavbarSimpleColored } from '../componentes/NavbarSimpleColored';
-import { ButtonCantinas } from './GerenciamentoCadastroUnidades/GerenciamentoCadastroUnidades'; {/*Aq que altera a pagina que irá aparecer*/}
+import { FormLogin } from './FormulárioLogin/login';
 
-function cadastroCantinaInicio() {
+function HomePage() {
   return (
-    <><div className='container-principal'>
-        <div>
-          <NavbarSimpleColored /> 
-        </div>
-        <div className='container-central'>
-          <ButtonCantinas />
-        </div>
-      </div></>
+    <>
+      <div>
+        <FormLogin />
+      </div>
+    </>
   );
 }
 
-export default cadastroCantinaInicio;
+export default HomePage;
