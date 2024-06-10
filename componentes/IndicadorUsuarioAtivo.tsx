@@ -1,4 +1,4 @@
-import { Avatar, Text, Group } from '@mantine/core';
+import { Text, Group } from '@mantine/core';
 import { IconPhoneCall, IconAt } from '@tabler/icons-react';
 import classes from './IndicadorUsuarioAtivo.module.css';
 import { Skeleton } from '@mantine/core';
@@ -14,7 +14,7 @@ export function InfoUsuario() {
           </Text>
 
           <Text fz="lg" fw={500} className={classes.name}>
-            Nome Sobrenome
+            Lucca Mrachna
           </Text>
 
           <Group wrap="nowrap" gap={10} mt={3}>
