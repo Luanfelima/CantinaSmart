@@ -1,12 +1,19 @@
 import React from 'react';
-import { Card, Text, Group } from '@mantine/core';
+import { Stack, Text, Button } from '@mantine/core';
 
 const Eventos = () => {
   return(
-    <Text fz='lg' ta='center' fw='700'>
+    <Stack
+    h={300}
+    bg="var(--mantine-color-body)"
+    justify="space-around"
+    gap="xl"
+    >
+      <Text fz='lg' ta='center' fw='700'>
         Próximos eventos
-    </Text>
-    
+      </Text>
+      <Text ta='center' c="dimmed">Nenhum evento agendado</Text>
+    </Stack>
   );
 };
 

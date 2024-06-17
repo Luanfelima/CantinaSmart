@@ -5,7 +5,7 @@ import { Container } from '@mantine/core';
 import { Title } from '@mantine/core';
 import { Space } from '@mantine/core';
 
-const groceries = ['📄 TarefaPlaceholder1', '📄 TarefaPlaceholder2', '📄 TarefaPlaceholder3', '📄 TarefaPlaceholder4', '📄 TarefaPlaceholder5'];
+const groceries = ['📄 Revisão dos itens em falta', '📄 Verificação do inventário', '📄 Realizar novas compras', '📄 Balanço', '📄 Adicionar novos funcionários'];
 
 export function ListaTarefas() {
   const combobox = useCombobox();
