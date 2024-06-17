@@ -49,7 +49,7 @@
 .ColunaEsquerda {
   flex-direction: column;
   padding: 10px;
-  margin-left: 254vh; /* Juntando a div Coluna esquerda com a parte de baixo "Descrição" */ 
+  margin-left: 255vh; /* Juntando a div Coluna esquerda com a parte de baixo "Descrição" */ 
   margin-bottom: 190vh;  
 }
 
