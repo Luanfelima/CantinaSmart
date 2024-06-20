@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import { Alert, Button } from '@mantine/core';
-import styles from './CadastroProduto.module.css'; // Importe o arquivo CSS
-import Layout from '../../componentes/Layout'; // Caminho de importação do layout/barra lateral
+import styles from './CadastroProduto.module.css';
+import Layout from '../../componentes/Layout';
 
 export function ButtonCantinas() {
-  // Estados para armazenar os valores dos campos
   const [nome, setNome] = useState('');
   const [quantidade, setQuantidade] = useState('');
   const [descricao, setDescricao] = useState('');
   const [perecivel, setPerecivel] = useState('');
   const [preco, setPreco] = useState('');
-  const [erro, setErro] = useState(''); // Estado para mensagem de erro
+  const [erro, setErro] = useState('');
+  const [sucesso, setSucesso] = useState(''); // Novo estado para mensagem de sucesso
 
-  // Manipuladores de eventos para atualizar os estados dos campos
   const handleNomeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNome(event.target.value);
   };
@@ -33,53 +32,135 @@ export function ButtonCantinas() {
     setDescricao(event.target.value);
   };
 
-  // Função para limpar todos os campos
   const limparCampos = () => {
     setNome('');
     setQuantidade('');
     setPreco('');
     setPerecivel('');
     setDescricao('');
-    setErro(''); // Limpar mensagem de erro
+    setErro('');
+    setSucesso('');
   };
 
-  // Função que cadastra os campos
   const cadastrarCampos = () => {
-    // Verifica se todos os campos estão preenchidos
-    if (!nome.trim() && !quantidade.trim() && !preco.trim() && !perecivel.trim() && !descricao.trim()) {
-      setErro('Todos os campos devem ser preenchidos.');
-      return;
+    const campos = { nome, quantidade, preco, perecivel, descricao };
+    let todosPreenchidos = true;
+
+    for (const [key, value] of Object.entries(campos)) {
+      if (!value.trim()) {
+        todosPreenchidos = false;
+        setErro('Todos os campos devem ser preenchidos.');
+        setSucesso('');
+        return;
+      }
+      
+      // Fazer o alerta de erro desaparecer após 6 segundos
+      setTimeout(() => {
+        setErro('');
+      }, 6000);
     }
 
-    const verificarCampos = () => {
-      const campos = document.querySelectorAll<HTMLInputElement>('input[type="text"]');
-      let todosPreenchidos = true;}
+    if (todosPreenchidos) {
+      limparCampos();
+      setSucesso('Produto Cadastrado com Sucesso!');
+      setErro(''); // Limpar qualquer mensagem de erro
 
-    // Limpa os campos após o cadastro
-    limparCampos();
-    alert('Produto Cadastrado com Sucesso!');
+      // Fazer o alerta de sucesso desaparecer após 3.5 segundos
+      setTimeout(() => {
+        setSucesso('');
+      }, 3500);
+    }
   };
+
+  const isCampoVazio = (valor: string) => !valor.trim();
 
   return (
     <Layout>
       <div className={styles.container}>
         <p className={styles.texto}>Produtos &gt; Cadastrar produto</p>
-
+        {erro && (
+          <Alert
+            title="Erro"
+            color="red"
+            styles={(theme) => ({
+              root: {
+                marginBottom: theme.spacing.sm,
+                bottom: 150,
+                left: 250,
+              },
+              title: {
+                color: theme.colors.red[6],
+              },
+            })}
+          >
+            {erro}
+          </Alert>
+        )}
+        {sucesso && (
+          <Alert
+            title="Sucesso"
+            color="green"
+            styles={(theme) => ({
+              root: {
+                marginBottom: theme.spacing.sm,
+                bottom: 150,
+                left: 250,
+              },
+              title: {
+                color: theme.colors.green[6],
+              },
+            })}
+          >
+            {sucesso}
+          </Alert>
+        )}
         <div className={styles.input}>
           <div className={styles.ColunaEsquerda}>
-            <input type='text' value={nome} onChange={handleNomeChange} id='texto' placeholder='*Nome'/>
             <input
-              type='text' value={quantidade} onChange={handleQuantidadeChange} id='texto' placeholder='*Quantidade'/>
+              type='text'
+              value={nome}
+              onChange={handleNomeChange}
+              id='texto'
+              placeholder='*Nome'
+              className={isCampoVazio(nome) && erro ? styles.erro : ''}
+            />
+            <input
+              type='text'
+              value={quantidade}
+              onChange={handleQuantidadeChange}
+              id='texto'
+              placeholder='*Quantidade'
+              className={isCampoVazio(quantidade) && erro ? styles.erro : ''}
+            />
           </div>
-          
+
           <div className={styles.ColunaDireita}>
-            <input type='text' value={perecivel} onChange={handlePerecivelChange} id='texto' placeholder='*É perecível?'/>
             <input
-              type='text' value={preco} onChange={handlePrecoChange} id='texto' placeholder='*Preço'/>
+              type='text'
+              value={perecivel}
+              onChange={handlePerecivelChange}
+              id='texto'
+              placeholder='*É perecível?'
+              className={isCampoVazio(perecivel) && erro ? styles.erro : ''}
+            />
+            <input
+              type='text'
+              value={preco}
+              onChange={handlePrecoChange}
+              id='texto'
+              placeholder='*Preço'
+              className={isCampoVazio(preco) && erro ? styles.erro : ''}
+            />
           </div>
           <div>
             <input
-              className={styles.descricao} value={descricao} onChange={handleDescricaoChange} type='text' id='texto' placeholder='*Descrição'/>
+              className={`${styles.descricao} ${isCampoVazio(descricao) && erro ? styles.erro : ''}`}
+              value={descricao}
+              onChange={handleDescricaoChange}
+              type='text'
+              id='texto'
+              placeholder='*Descrição'
+            />
           </div>
         </div>
         <div className={styles.buttonContainer}>
