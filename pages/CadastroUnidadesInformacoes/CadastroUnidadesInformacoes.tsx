@@ -1,9 +1,64 @@
 import React, { useState } from 'react';
-import { Button } from '@mantine/core';
+import { Alert, Button } from '@mantine/core';
 import styles from './CadastroUnidadesInformacoes.module.css'; // Importe o arquivo CSS
 import Layout from '../../componentes/Layout'; // Caminho de importação do layout/barra lateral
 
 export function ButtonCantinas() {
+  const [nome, setNome] = useState('');
+  const [cpnj, setCnpj] = useState('');
+  const [cep, setCep] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
+  const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
+  const [erro, setErro] = useState('');
+  const [sucesso, setSucesso] = useState(''); // Novo estado para mensagem de sucesso
+
+  const handleNomeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNome(event.target.value);
+  };
+
+  const handleCnpjChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCnpj(event.target.value);
+  };
+
+  const handleCepChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCep(event.target.value);
+  };
+
+  const handleEnderecoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEndereco(event.target.value);
+  };
+
+  const handleCidadeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCidade(event.target.value);
+  };
+
+  const handleNumeroChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNumero(event.target.value);
+  };
+
+  const handleComplementoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setComplemento(event.target.value);
+  };
+
+  const handleEstadoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setEstado(event.target.value);
+  };
+
+  /*const limparCampos = () => {
+    setNome('');
+    setCnpj('');
+    setCep('');
+    setEndereco('');
+    setCidade('');
+    setEstado('');
+    setNumero('');
+    setComplemento('');
+    setErro('');
+    setSucesso('');
+  };*/
 
   const limparCampos = () => {
     const campos = document.querySelectorAll<HTMLInputElement>('input[type="text"]');
