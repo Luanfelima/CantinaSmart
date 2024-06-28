@@ -1,7 +1,7 @@
 import { useForm } from '@mantine/form';
 import { Container, Box, TextInput, NumberInput, Button, Group, Radio, Title } from '@mantine/core';
 
-function formProduto() {
+function FormProduto() {
     const form = useForm<{ nome: string; quantidade: number; preco: number; perecivel: boolean | undefined ; descricao: string | undefined }>({
       mode: 'uncontrolled',
       initialValues: { nome: '', quantidade: 0, preco: 0, perecivel: undefined , descricao: ''},
@@ -89,4 +89,4 @@ function formProduto() {
     );
   }
 
-export default formProduto;
+export default FormProduto;
