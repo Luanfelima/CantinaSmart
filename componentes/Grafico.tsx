@@ -1,22 +1,26 @@
-import { LineChart } from '@mantine/charts';
-import { dados } from './Dados';
-import { Container } from '@mantine/core';
+import { BarChart } from '@mantine/charts';
+import { data } from './Data';
+import { Container, Title } from '@mantine/core';
 import '@mantine/charts/styles.css';
 
 function Grafico() {
     return (
-      <Container size='responsive'>
-        <LineChart
-        h={300}
-        data={dados}
-        dataKey="date"
-        yAxisProps={{ domain: [0, 100] }}
-        referenceLines={[
-          { y: 40, label: 'Média de vendas', color: 'red.6' },
-          { x: 'Mar 25', label: 'Relatório' },
-        ]}
-        series={[{ name: 'Maças', color: 'indigo.6' }]}
-      />
+      <Container size="responsive">
+        <Title order={2}>
+          Resumo de vendas
+        </Title>
+        <BarChart
+      h={300}
+      data={data}
+      dataKey="month"
+      series={[
+        { name: 'Smartphones', color: 'violet.6' },
+        { name: 'Laptops', color: 'blue.6' },
+        { name: 'Tablets', color: 'teal.6' },
+      ]}
+      tickLine="none"
+      gridAxis="xy"
+    />
       </Container>
     );
   }
