@@ -32,7 +32,7 @@ function FormProduto() {
     });
   
     return (
-    <Container size='responsive'>
+    <Container fluid>
         
         <Box mx="500">
         <Title>Cadastro de Produtos</Title>
@@ -85,7 +85,8 @@ function FormProduto() {
             <Button type="submit">Cadastrar</Button>
           </Group>
         </form>
-    </Box></Container>
+    </Box>
+    </Container>
     );
   }
 
