@@ -60,7 +60,7 @@ function FormProduto() {
         <Title>Cadastro de Unidade</Title>
         <form onSubmit={form.onSubmit((values) => console.log(values))}>
           <TextInput
-            label="Nome da Unidade"
+            label="Nome"
             placeholder="Nome da Unidade"
             key={form.key('nomeUnidade')}
             {...form.getInputProps('nomeUnidade')}
@@ -91,7 +91,7 @@ function FormProduto() {
           />
           <TextInput
             mt="sm"
-            label="Complemento da Unidade"
+            label="Complemento"
             placeholder="Complemento da Unidade"
             key={form.key('complemento')}
             {...form.getInputProps('complemento')}
@@ -106,7 +106,7 @@ function FormProduto() {
           />
           <TextInput
             mt="sm"
-            label="Rua da Unidade"
+            label="Rua"
             placeholder="Rua da Unidade"
             key={form.key('rua')}
             {...form.getInputProps('rua')}
@@ -114,7 +114,7 @@ function FormProduto() {
           />
           <TextInput
             mt="sm"
-            label="Estado da Unidade"
+            label="Estado"
             placeholder="Estado da Unidade"
             key={form.key('estado')}
             {...form.getInputProps('estado')}
