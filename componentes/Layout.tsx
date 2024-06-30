@@ -30,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Autocomplete
           placeholder="🔍 Pesquisa"
           data={[
-            { group: 'Unidades', items: ['Gerenciar estoque', 'Gerenciar fluxo de caixa'] },
+            { group: 'Unidades', items: ['Gerenciar estoque', 'Gerenciar fluxo de caixa', 'Cadastrar nova unidade'] },
             { group: 'Funcionários', items: ['Cadastrar funcionário'] },
             { group: 'Produtos', items: ['Cadastrar produto', 'Gerenciar produtos'] }
       ]}
@@ -46,6 +46,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       >
         <NavLink href="#required-for-focus" label="Gerenciar estoque" />
         <NavLink label="Gerenciar fluxo de caixa" href="#required-for-focus" />
+        <NavLink href="/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes" label="Cadastrar nova unidade" />
         
       </NavLink>
       <NavLink
