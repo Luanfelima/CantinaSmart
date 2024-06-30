@@ -1,5 +1,8 @@
 import { useForm } from '@mantine/form';
 import { Container, Box, TextInput, NumberInput, Button, Group, Radio, Title } from '@mantine/core';
+import Layout from '../../componentes/Layout'; // Caminho de importação do layout/barra lateral
+
+
 
 function FormProduto() {
     const form = useForm<{ nome: string; quantidade: number; preco: number; perecivel: boolean | undefined ; descricao: string | undefined }>({
@@ -32,6 +35,7 @@ function FormProduto() {
     });
   
     return (
+      <Layout>
     <Container size='responsive'>
         
         <Box mx="500">
@@ -86,6 +90,7 @@ function FormProduto() {
           </Group>
         </form>
     </Box></Container>
+    </Layout>
     );
   }
 
