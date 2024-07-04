@@ -29,7 +29,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { type User, fakeData, categoriasPreDefinidas, unidadesMedidaPreDefinidas, perecivelPreDefinidas } from './makeDataProduto';
+import { type User, fakeData, PolosPreDefinidos } from './makeDataCadastroUnidade';
 
 const Example = () => {
   const [validationErrors, setValidationErrors] = useState<
@@ -38,66 +38,77 @@ const Example = () => {
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
-      
-      
+        {
+            accessorKey: 'polo',
+            header: 'Polo',
+            editVariant: 'select',
+            mantineEditSelectProps: {
+              data: PolosPreDefinidos,
+              required: true,
+            },
+          },
 
       {
-        accessorKey: 'nomeProduto',
-        header: 'Nome do produto',
+        accessorKey: 'nomeUnidade',
+        header: 'Nome da Unidade',
         mantineEditTextInputProps: {
           type: 'email',
           required: true,
-          error: validationErrors?.nomeProduto,
+          error: validationErrors?.nomeUnidade,
           //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              nomeProduto: undefined,
+              nomeUnidade: undefined,
             }),
         },
       },
-      {
-        accessorKey: 'categoria',
-        header: 'Categoria',
-        editVariant: 'select',
+      { 
+        accessorKey: 'cep',
+        header: 'CEP',
         mantineEditSelectProps: {
-          data: categoriasPreDefinidas,
-          required: true,
-        },
-      },
-      {
-        accessorKey: 'unidadeMedida',
-        header: 'Unidade de medida',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: unidadesMedidaPreDefinidas,
-          required: true,
-        },
-      },
-      {
-        accessorKey: 'preco',
-        header: 'Preço',
-        mantineEditTextInputProps: {
           type: 'number',
-          required: true,          
-        },
-      },
-      {
-        accessorKey: 'perecivel',
-        header: 'Perecível',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: perecivelPreDefinidas,
           required: true,
         },
       },
-      {
-        accessorKey: 'descricao',
-        header: 'Descrição',
+      { // Este campo deveria ser ReadOnly devido ao CEP
+        accessorKey: 'cidade',
+        header: 'Cidade da Unidade',
+        mantineEditSelectProps: {
+          type: 'text',
+          required: true,
+        },
+      },
+      { 
+        accessorKey: 'numero',
+        header: 'Número da Unidade',
+        mantineEditSelectProps: {
+          type: 'number',
+          required: true,
+        },
+      },
+      { // Campo não obrigatório
+        accessorKey: 'complemento',
+        header: 'Complemento da Unidade',
+        mantineEditSelectProps: {
+          type: 'text',
+          required: false,
+        },
+      },
+      { // Este campo deveria ser ReadOnly devido ao CEP
+        accessorKey: 'rua',
+        header: 'Rua da Unidade',
+        mantineEditTextInputProps: {
+          type: 'text',
+          required: false,   
+        },
+      },
+      { // Este campo deveria ser ReadOnly devido ao CEP
+        accessorKey: 'estado',
+        header: 'Estado da Unidade',
         mantineEditTextInputProps: {
           type: 'text',
           required: false,
-                  
         },
       },
     ],
@@ -157,7 +168,7 @@ const Example = () => {
       title: 'Tem certeza que você quer excluir esse produto?',
       children: (
         <Text>
-          Tem certeza que você quer excluir {row.original.nomeProduto}?
+          Tem certeza que você quer excluir {row.original.nomeUnidade}?
           Essa ação não pode ser desfeita.
         </Text>
       ),
@@ -190,7 +201,7 @@ const Example = () => {
     onEditingRowSave: handleSaveUser,
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
-        <Title order={3}>Cadastrar novo produto</Title>
+        <Title order={3}>Cadastrar nova unidade</Title>
         {internalEditComponents}
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -199,7 +210,7 @@ const Example = () => {
     ),
     renderEditRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
-        <Title order={3}>Editar produto</Title>
+        <Title order={3}>Editar unidade</Title>
         {internalEditComponents}
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -232,7 +243,7 @@ const Example = () => {
           // );
         }}
       >
-        Cadastrar novo produto
+        Cadastrar nova unidade
       </Button>
     ),
     state: {
@@ -344,8 +355,8 @@ const validateRequired = (value: any) => !!value.length;
 
 function validateUser(user: User) {
   return {
-    nomeProduto: !validateRequired(user.nomeProduto)
-      ? 'É necessário inserir o nome do produto'
+    nomeUnidade: !validateRequired(user.nomeUnidade)
+      ? 'É necessário inserir o nome da unidade'
       : '',
   };
 }
