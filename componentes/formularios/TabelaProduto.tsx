@@ -42,10 +42,9 @@ const Example = () => {
         accessorKey: 'nomeProduto',
         header: 'Nome do produto',
         mantineEditTextInputProps: {
-          type: 'email',
+          type: 'text',
           required: true,
           error: validationErrors?.nomeProduto,
-          //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
@@ -60,6 +59,12 @@ const Example = () => {
         mantineEditSelectProps: {
           data: categoriasPreDefinidas,
           required: true,
+          error: validationErrors?.categoria,
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              categoria: undefined,
+            }),
         },
       },
       {
@@ -69,6 +74,12 @@ const Example = () => {
         mantineEditSelectProps: {
           data: unidadesMedidaPreDefinidas,
           required: true,
+          error: validationErrors?.unidadeMedida,
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              unidadeMedida: undefined,
+            }),
         },
       },
       {
@@ -76,7 +87,13 @@ const Example = () => {
         header: 'Preço',
         mantineEditTextInputProps: {
           type: 'number',
-          required: true,          
+          required: true,
+          error: validationErrors?.preco,
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              preco: undefined,
+            }),          
         },
       },
       {
@@ -86,6 +103,12 @@ const Example = () => {
         mantineEditSelectProps: {
           data: perecivelPreDefinidas,
           required: true,
+          error: validationErrors?.perecivel,
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              perecivel: undefined,
+            }),
         },
       },
       {
@@ -343,6 +366,22 @@ function validateUser(user: User) {
   return {
     nomeProduto: !validateRequired(user.nomeProduto)
       ? 'É necessário inserir o nome do produto'
+      : user.nomeProduto.length <= 2
+        ? 'O nome do produto precisa conter mais do que 2 caracteres'
+        : '',
+    categoria: !validateRequired(user.categoria)
+      ? 'É necessário selecionar uma categoria para o produto'
+      : '',
+    unidadeMedida: !validateRequired(user.unidadeMedida)
+      ? 'É necessário selecionar uma unidade de medida para o produto'
+      : '',
+    preco: !validateRequired(user.preco)
+      ? 'É necessário inserir um preço para o produto'
+      : user.preco <= 0
+        ? 'Preço não pode ser menor ou igual a 0 (Zero)'
+        : '',
+    perecivel: !validateRequired(user.perecivel)
+      ? 'É necessário selecionar uma das opções '
       : '',
   };
 }

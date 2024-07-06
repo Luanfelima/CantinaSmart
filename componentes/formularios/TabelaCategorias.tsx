@@ -20,6 +20,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { ModalsProvider, modals } from '@mantine/modals';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import {
@@ -38,32 +39,19 @@ const Example = () => {
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
-      
-      
-
       {
         accessorKey: 'nomeCategoria',
         header: 'Nome da categoria',
         mantineEditTextInputProps: {
           type: 'text',
           required: true,
-          error: !!validationErrors.nomeCategoria,
-          helperText: validationErrors.nomeCategoria,
-          onFocus: (event) => {
-            const value = event.target.value;
+          error: validationErrors?.nomeCategoria,
 
-            if(!value) {
-                setValidationErrors((prev) => ({ ...prev, age: 'É necessário inserir o nome da categoria'}));
-            } else if(value.length < 2) {
-                setValidationErrors({
-                    ...validationErrors,
-                    nomeCategoria: 'O nome da categoria deve conter ao menos 2 caracteres'
-                });
-            } else {
-                delete validationErrors.nomeCategoria;
-                setValidationErrors({ ...validationErrors });
-            }
-          }
+          onFocus: () => 
+            setValidationErrors({
+              ...validationErrors,
+              nomeCategoria: undefined,
+            })
         },
       },
       {
@@ -314,13 +302,15 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => !!value.length;
+const validateRequired = (value: string) => !!value.length;
 
 
 function validateUser(user: User) {
   return {
     nomeCategoria: !validateRequired(user.nomeCategoria)
       ? 'É necessário inserir o nome da categoria'
-      : '',
+      : user.nomeCategoria.length <= 2
+        ? 'O nome da categoria precisar ter mais do que 2 caracteres'
+        : '',
   };
 }
