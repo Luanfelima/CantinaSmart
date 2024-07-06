@@ -38,9 +38,6 @@ const Example = () => {
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
-      
-      
-
       {
         accessorKey: 'nomeProduto',
         header: 'Nome do produto',
