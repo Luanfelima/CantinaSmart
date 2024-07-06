@@ -38,21 +38,27 @@ const Example = () => {
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
-        {
-            accessorKey: 'polo',
-            header: 'Polo',
-            editVariant: 'select',
-            mantineEditSelectProps: {
-              data: PolosPreDefinidos,
-              required: true,
-            },
+      {
+        accessorKey: 'polo',
+        header: 'Polo',
+        editVariant: 'select',
+        mantineEditSelectProps: {
+          data: PolosPreDefinidos,
+          required: true,
+          error: validationErrors?.polo,
+        //remove any previous validation errors when user focuses on the input
+        onFocus: () =>
+          setValidationErrors({
+            ...validationErrors,
+            polo: undefined,
+          }),
           },
-
+        },
       {
         accessorKey: 'nomeUnidade',
         header: 'Nome da Unidade',
         mantineEditTextInputProps: {
-          type: 'email',
+          type: 'text',
           required: true,
           error: validationErrors?.nomeUnidade,
           //remove any previous validation errors when user focuses on the input
@@ -66,33 +72,25 @@ const Example = () => {
       { 
         accessorKey: 'cep',
         header: 'CEP',
-        mantineEditSelectProps: {
-          type: 'number',
-          required: true,
+        mantineEditTextInputProps: {
+          type: 'text',
+          required: true, 
+          error: validationErrors?.cep,
+          //remove any previous validation errors when user focuses on the input
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              cep: undefined,
+            }),
         },
       },
       { // Este campo deveria ser ReadOnly devido ao CEP
         accessorKey: 'cidade',
         header: 'Cidade da Unidade',
-        mantineEditSelectProps: {
+        mantineEditTextInputProps: {
           type: 'text',
-          required: true,
-        },
-      },
-      { 
-        accessorKey: 'numero',
-        header: 'Número da Unidade',
-        mantineEditSelectProps: {
-          type: 'number',
-          required: true,
-        },
-      },
-      { // Campo não obrigatório
-        accessorKey: 'complemento',
-        header: 'Complemento da Unidade',
-        mantineEditSelectProps: {
-          type: 'text',
-          required: false,
+          required: true, 
+          disabled: true,
         },
       },
       { // Este campo deveria ser ReadOnly devido ao CEP
@@ -100,7 +98,8 @@ const Example = () => {
         header: 'Rua da Unidade',
         mantineEditTextInputProps: {
           type: 'text',
-          required: false,   
+          required: true, 
+          disabled: true,
         },
       },
       { // Este campo deveria ser ReadOnly devido ao CEP
@@ -108,7 +107,30 @@ const Example = () => {
         header: 'Estado da Unidade',
         mantineEditTextInputProps: {
           type: 'text',
-          required: false,
+          required: true, 
+          disabled: true,
+        },
+      },
+      { 
+        accessorKey: 'numero',
+        header: 'Número da Unidade',
+        mantineEditTextInputProps: {
+          type: 'number',
+          required: true,
+          error: validationErrors?.numero,
+          //remove any previous validation errors when user focuses on the input
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              numero: undefined,
+            }),
+        },
+      },
+      { // Campo não obrigatório
+        accessorKey: 'complemento',
+        header: 'Complemento da Unidade',
+        mantineEditTextInputProps: {
+          type: 'text',
         },
       },
     ],
@@ -165,10 +187,10 @@ const Example = () => {
   //DELETE action
   const openDeleteConfirmModal = (row: MRT_Row<User>) =>
     modals.openConfirmModal({
-      title: 'Tem certeza que você quer excluir esse produto?',
+      title: 'Tem certeza que você quer excluir essa unidade?',
       children: (
         <Text>
-          Tem certeza que você quer excluir {row.original.nomeUnidade}?
+          Tem certeza que você quer excluir a unidade {row.original.nomeUnidade}?
           Essa ação não pode ser desfeita.
         </Text>
       ),
@@ -350,13 +372,26 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => !!value.length;
-
+const validateRequired = (value: any) => !!value.length; //Validate de todos os campos
+const validateCep = (cep: string) => //Regex do CEP
+  !!cep.length &&
+  cep
+  .toLowerCase()
+  .match(/^\d{5}-?\d{3}$/);
 
 function validateUser(user: User) {
   return {
+    polo: !validateRequired(user.polo)
+    ? 'É necessário selecionar o polo da unidade'
+    : '',
     nomeUnidade: !validateRequired(user.nomeUnidade)
       ? 'É necessário inserir o nome da unidade'
       : '',
+      cep: !validateCep(user.cep)
+      ? 'CEP Invalido'
+      : '',
+      numero: !validateRequired(user.numero)
+      ? 'É necessário inserir o número da unidade'
+      : '',   
   };
 }

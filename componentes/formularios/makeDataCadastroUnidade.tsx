@@ -4,10 +4,10 @@ export type User = {
     nomeUnidade: string;
     cep: string;
     cidade: string;
-    numero: number;
-    complemento: string;
     rua: string;
     estado: string;
+    numero: number;
+    complemento: string;
   };
   
   export const fakeData: User[] = [
@@ -17,10 +17,10 @@ export type User = {
       nomeUnidade: 'RangoBravo',
       cep: '09530-060',
       cidade: 'São Caetano do Sul',
-      numero: 321,
-      complemento: 'Proximo do Atacadão',
       rua: 'R. Conceição, Santo Antônio',
       estado: 'São Paulo',
+      numero: 321,
+      complemento: 'Proximo do Atacadão',
     },
     {
       id: '4fds4a',
@@ -28,10 +28,10 @@ export type User = {
       nomeUnidade: 'ComFomeNovamente',
       cep: '09550-051',
       cidade: 'São Caetano do Sul',
-      numero: 3400,
-      complemento: 'Ao lado a um monte de bar, um monte mesmo',
       rua: 'Av. Goiás, Barcelona',
       estado: 'São Paulo',
+      numero: 3400,
+      complemento: 'Ao lado a um monte de bar, um monte mesmo',
     },
     {
       id: '123asb',
@@ -39,10 +39,10 @@ export type User = {
       nomeUnidade: 'MataFome',
       cep: '09521-160',
       cidade: 'São Caetano do Sul',
-      numero: 50,
-      complemento: 'Próximo da Estaçao de SCS',
       rua: 'R. Santo Antonio, Centro',
       estado: 'São Paulo',
+      numero: 50,
+      complemento: 'Próximo da Estaçao de SCS',
     },
     {
       id: '999hhh',
@@ -50,10 +50,10 @@ export type User = {
       nomeUnidade: 'FinalizaApetite',
       cep: '01327-000',
       cidade: 'São Paulo',
-      numero: 681,
-      complemento: '',
       rua: 'Rua Treze de Maio, Bela Vista',
       estado: 'São Paulo',
+      numero: 681,
+      complemento: '',
     },
     {
         id: '9s69gi',
@@ -61,10 +61,10 @@ export type User = {
         nomeUnidade: 'FomeSemFim',
         cep: '09530-060',
         cidade: 'São Caetano do Sul',
-        numero: 321,
-        complemento: 'Proximo do Atacadão',
         rua: 'R. Conceição, Santo Antônio',
         estado: 'São Paulo',
+        numero: 321,
+        complemento: 'Proximo do Atacadão',
       },
   ];
 
