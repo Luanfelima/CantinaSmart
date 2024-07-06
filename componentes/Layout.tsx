@@ -30,6 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Autocomplete
           placeholder="🔍 Pesquisa"
           data={[
+            { group: 'Dashboard', items: ['Tela Inicial'] },
             { group: 'Unidades', items: ['Gerenciar estoque', 'Gerenciar fluxo de caixa', 'Cadastrar nova unidade'] },
             { group: 'Funcionários', items: ['Cadastrar funcionário'] },
             { group: 'Produtos', items: ['Cadastrar produto', 'Gerenciar produtos'] }
@@ -40,6 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </AppShell.Header>
 
         <AppShell.Navbar p="md" > 
+        <NavLink href="/Dashboard/dashboard" label="Tela Inicial"/>
       <NavLink
         href="#required-for-focus"
         label="Unidades"
