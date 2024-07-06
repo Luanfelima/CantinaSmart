@@ -53,7 +53,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <NavLink href="#required-for-focus" label="Funcionários" />
       <NavLink href="/CadastroProduto/Produtos" label="Produto" />
-      <NavLink href="/CadastroCategoria/CadastroCategoria" label="Categorias" />
+      <NavLink href="/CadastroCategoria/Categorias" label="Categorias" />
       </AppShell.Navbar>
 
       <AppShell.Main>{children}</AppShell.Main>
