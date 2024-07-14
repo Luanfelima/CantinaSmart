@@ -29,7 +29,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { type User, fakeData, PolosPreDefinidos } from './makeDataCadastroUnidade';
+import { type User, fakeData, CargosPreDefinidos } from './makeDataCadastroFuncionario';
 
 const Example = () => {
   const [validationErrors, setValidationErrors] = useState<
@@ -39,98 +39,86 @@ const Example = () => {
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
       {
-        accessorKey: 'polo',
-        header: 'Polo',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: PolosPreDefinidos,
+        accessorKey: 'nome',
+        header: 'Nome',
+        mantineEditTextInputProps: {
+          type: 'text',
           required: true,
-          error: validationErrors?.polo,
+          error: validationErrors?.nome,
         //remove any previous validation errors when user focuses on the input
         onFocus: () =>
           setValidationErrors({
             ...validationErrors,
-            polo: undefined,
+            nome: undefined,
           }),
           },
         },
       {
-        accessorKey: 'nomeUnidade',
-        header: 'Nome da Unidade',
+        accessorKey: 'email',
+        header: 'E-mail',
         mantineEditTextInputProps: {
           type: 'text',
           required: true,
-          error: validationErrors?.nomeUnidade,
+          error: validationErrors?.email,
           //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              nomeUnidade: undefined,
+              email: undefined,
             }),
         },
       },
       { 
-        accessorKey: 'cep',
-        header: 'CEP',
+        accessorKey: 'telefone',
+        header: 'Telefone',
         mantineEditTextInputProps: {
           type: 'text',
           required: true, 
-          error: validationErrors?.cep,
+          error: validationErrors?.telefone,
           //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              cep: undefined,
+              telefone: undefined,
             }),
-        },
-      },
-      { // Este campo deveria ser ReadOnly devido ao CEP
-        accessorKey: 'cidade',
-        header: 'Cidade da Unidade',
-        mantineEditTextInputProps: {
-          type: 'text',
-          required: true, 
-          disabled: true,
-        },
-      },
-      { // Este campo deveria ser ReadOnly devido ao CEP
-        accessorKey: 'rua',
-        header: 'Rua da Unidade',
-        mantineEditTextInputProps: {
-          type: 'text',
-          required: true, 
-          disabled: true,
-        },
-      },
-      { // Este campo deveria ser ReadOnly devido ao CEP
-        accessorKey: 'estado',
-        header: 'Estado da Unidade',
-        mantineEditTextInputProps: {
-          type: 'text',
-          required: true, 
-          disabled: true,
         },
       },
       { 
-        accessorKey: 'numero',
-        header: 'Número da Unidade',
+        accessorKey: 'cpf',
+        header: 'CPF',
         mantineEditTextInputProps: {
-          type: 'number',
-          required: true,
-          error: validationErrors?.numero,
+          type: 'text',
+          required: true, 
+          error: validationErrors?.cpf,
           //remove any previous validation errors when user focuses on the input
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
-              numero: undefined,
+              cpf: undefined,
             }),
         },
       },
-      { // Campo não obrigatório
-        accessorKey: 'complemento',
-        header: 'Complemento da Unidade',
+      { 
+        accessorKey: 'cargo',
+        header: 'Cargo',
+        editVariant: 'select',
+        mantineEditSelectProps: {
+            data: CargosPreDefinidos,
+            required: true,
+            error: validationErrors?.cargo, 
+            onFocus: () =>
+              setValidationErrors({
+                ...validationErrors,
+                cargo: undefined,
+              }),  
+        },
+      },
+      { 
+        accessorKey: 'senha',
+        header: 'Senha',
         mantineEditTextInputProps: {
           type: 'text',
+          disabled: true,
         },
       },
     ],
@@ -187,10 +175,10 @@ const Example = () => {
   //DELETE action
   const openDeleteConfirmModal = (row: MRT_Row<User>) =>
     modals.openConfirmModal({
-      title: 'Tem certeza que você quer excluir essa unidade?',
+      title: 'Tem certeza que você quer excluir esse funcionário?',
       children: (
         <Text>
-          Tem certeza que você quer excluir a unidade {row.original.nomeUnidade}?
+          Tem certeza que você quer excluir o funcionário {row.original.nome}?
           Essa ação não pode ser desfeita.
         </Text>
       ),
@@ -223,7 +211,7 @@ const Example = () => {
     onEditingRowSave: handleSaveUser,
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
-        <Title order={3}>Cadastrar nova unidade</Title>
+        <Title order={3}>Cadastrar novo funcionário</Title>
         {internalEditComponents}
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -232,7 +220,7 @@ const Example = () => {
     ),
     renderEditRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
-        <Title order={3}>Editar unidade</Title>
+        <Title order={3}>Editar Funcionário</Title>
         {internalEditComponents}
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -265,7 +253,7 @@ const Example = () => {
           // );
         }}
       >
-        Cadastrar nova unidade
+        Cadastrar novo funcionário
       </Button>
     ),
     state: {
@@ -373,25 +361,41 @@ const ExampleWithProviders = () => (
 export default ExampleWithProviders;
 
 const validateRequired = (value: any) => !!value.length; //Validate de todos os campos
-const validateCep = (cep: string) => //Regex do CEP
-  !!cep.length &&
-  cep
+
+const validateEmail = (email: string) => //Regex do Email
+  !!email.length &&
+  email
   .toLowerCase()
-  .match(/^\d{5}-?\d{3}$/);
+  .match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
+
+const validateCpf = (cpf: string) => //Regex do CPF
+  !!cpf.length &&
+  cpf
+  .toLowerCase()
+  .match(/^(\d{3}\.?\d{3}\.?\d{3}-?\d{2})$/);
+
+const validateTelefone = (telefone: string) => //Regex do Telefone
+  !!telefone.length &&
+  telefone
+  .toLowerCase()
+  .match(/^(\(\d{2}\)\s?\d{5}-?\d{4}|\d{2}\s?\d{5}\s?\d{4}|\d{11}|\d{10})$/);
 
 function validateUser(user: User) {
   return {
-    polo: !validateRequired(user.polo)
-    ? 'É necessário selecionar o polo da unidade'
+    nome: !validateRequired(user.nome)
+    ? 'É necessário inserir o nome do funcionário'
     : '',
-    nomeUnidade: !validateRequired(user.nomeUnidade)
-      ? 'É necessário inserir o nome da unidade'
+    email: !validateEmail(user.email)
+      ? 'E-mail inválido'
       : '',
-      cep: !validateCep(user.cep)
-      ? 'CEP inválido'
+    telefone: !validateTelefone(user.telefone)
+      ? 'Telefone inválido'
       : '',
-      numero: !validateRequired(user.numero)
-      ? 'É necessário inserir o número da unidade'
-      : '',   
+      cpf: !validateCpf(user.cpf)
+      ? 'CPF inválido'
+      : '', 
+      cargo: !validateRequired(user.cargo)
+      ? 'É necessário selecionar o cargo do funcionário'
+      : '',  
   };
 }
