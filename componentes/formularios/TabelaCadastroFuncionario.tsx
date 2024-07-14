@@ -360,7 +360,7 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => !!value.length; //Validate de todos os campos
+const validateRequired = (value: any) => value !== null && !!value.length; //Validate de todos os campos
 
 const validateEmail = (email: string) => //Regex do Email
   !!email.length &&

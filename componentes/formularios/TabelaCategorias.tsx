@@ -302,8 +302,7 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: string) => !!value.length;
-
+const validateRequired = (value: any) => value !== null && !!value.length; //Validate de todos os campos
 
 function validateUser(user: User) {
   return {
