@@ -113,14 +113,6 @@ const Example = () => {
               }),  
         },
       },
-      { 
-        accessorKey: 'senha',
-        header: 'Senha',
-        mantineEditTextInputProps: {
-          type: 'text',
-          disabled: true,
-        },
-      },
     ],
     [validationErrors],
   );
