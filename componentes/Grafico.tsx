@@ -14,9 +14,9 @@ function Grafico() {
       data={data}
       dataKey="month"
       series={[
-        { name: 'Smartphones', color: 'violet.6' },
-        { name: 'Laptops', color: 'blue.6' },
-        { name: 'Tablets', color: 'teal.6' },
+        { name: 'Vendas', color: 'violet.3' },
+        { name: 'Estoque', color: 'blue.3' },
+        { name: 'Gastos', color: 'teal.3' },
       ]}
       tickLine="none"
       gridAxis="xy"
