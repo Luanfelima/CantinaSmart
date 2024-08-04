@@ -33,9 +33,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             { group: 'Dashboard', items: ['Tela Inicial'] },
             { group: 'Unidades', items: ['Cadastrar nova unidade','Gerenciar estoque', 'Gerenciar fluxo de caixa'] },
             { group: 'Funcionários', items: ['Cadastrar funcionário'] },
-            { group: 'Produtos', items: ['Cadastrar produto', 'Gerenciar produtos'] },
-            { group: 'Categorias', items: ['Cadastrar Categorias'] },
+            { group: 'Produtos', items: ['Cadastrar produto'] },
             { group: 'Estoque', items: ['Estoque'] },
+            { group: 'Categorias', items: ['Cadastrar Categorias'] },
       ]}
     />
           <Button variant="transparent"><Avatar variant="light" radius="lg" size="lg" color="rgba(83, 130, 224, 1)" src="PerfilUsuario" /></Button>
@@ -57,8 +57,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <NavLink href="/CadastroFuncionario/Funcionarios" label="Funcionários" />
       <NavLink href="/CadastroProduto/Produtos" label="Produto" />
+      <NavLink href="/CadastroEstoque/Estoque" label="Estoque" />
       <NavLink href="/CadastroCategoria/Categorias" label="Categorias" />
-      <NavLink href="/Estoque/Estoque" label="Estoque" />
       </AppShell.Navbar>
 
       <AppShell.Main>{children}</AppShell.Main>
