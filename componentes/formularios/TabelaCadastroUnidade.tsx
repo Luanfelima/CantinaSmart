@@ -2,6 +2,7 @@ import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css'; //if using mantine date picker features
 import 'mantine-react-table/styles.css'; //make sure MRT styles were imported in your app root (once)
 import { useMemo, useState } from 'react';
+import axios from 'axios';  
 import {
   MRT_EditActionButtons,
   MantineReactTable,
@@ -36,6 +37,14 @@ const Example = () => {
     Record<string, string | undefined>
   >({});
 
+   // State para armazenar os dados preenchidos automaticamente
+   const [autoCompleteData, setAutoCompleteData] = useState({
+    cidade: '',
+    rua: '',
+    estado: '',
+    cep: '', 
+  });
+
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
       {
@@ -69,14 +78,33 @@ const Example = () => {
             }),
         },
       },
-      { 
+
+      {
         accessorKey: 'cep',
         header: 'CEP',
         mantineEditTextInputProps: {
           type: 'text',
-          required: true, 
+          required: true,
           error: validationErrors?.cep,
-          //remove any previous validation errors when user focuses on the input
+          onChange: async (e) => {
+            const cepValue = (e.target as HTMLInputElement).value;
+            setAutoCompleteData({ ...autoCompleteData, cep: cepValue });
+
+            if (cepValue.length === 8) {
+              try {
+                const response = await axios.get(`https://viacep.com.br/ws/${cepValue}/json/`);
+                const data = response.data;
+                setAutoCompleteData({
+                  cidade: data.localidade,
+                  rua: data.logradouro,
+                  estado: data.uf,
+                  cep: cepValue, 
+                });
+              } catch (error) {
+                console.error('Erro ao buscar o CEP:', error);
+              }
+            }
+          },
           onFocus: () =>
             setValidationErrors({
               ...validationErrors,
@@ -84,33 +112,40 @@ const Example = () => {
             }),
         },
       },
-      { // Este campo deveria ser ReadOnly devido ao CEP
+
+      {
         accessorKey: 'cidade',
         header: 'Cidade da Unidade',
         mantineEditTextInputProps: {
           type: 'text',
-          required: true, 
+          required: true,
+          value: autoCompleteData.cidade,
           disabled: true,
         },
       },
-      { // Este campo deveria ser ReadOnly devido ao CEP
+
+      {
         accessorKey: 'rua',
         header: 'Rua da Unidade',
         mantineEditTextInputProps: {
           type: 'text',
-          required: true, 
+          required: true,
+          value: autoCompleteData.rua,
           disabled: true,
         },
       },
-      { // Este campo deveria ser ReadOnly devido ao CEP
+      
+      {
         accessorKey: 'estado',
         header: 'Estado da Unidade',
         mantineEditTextInputProps: {
           type: 'text',
-          required: true, 
+          required: true,
+          value: autoCompleteData.estado,
           disabled: true,
         },
       },
+
       { 
         accessorKey: 'numero',
         header: 'Número da Unidade',
@@ -134,7 +169,7 @@ const Example = () => {
         },
       },
     ],
-    [validationErrors],
+    [validationErrors, autoCompleteData],
   );
 
   //call CREATE hook
