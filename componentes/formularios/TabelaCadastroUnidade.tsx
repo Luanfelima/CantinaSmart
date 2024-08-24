@@ -98,7 +98,7 @@ const Example = () => {
                   cidade: data.localidade,
                   rua: data.logradouro,
                   estado: data.uf,
-                  cep: cepValue, 
+                  cep: cepValue,
                 });
               } catch (error) {
                 console.error('Erro ao buscar o CEP:', error);
@@ -161,6 +161,7 @@ const Example = () => {
             }),
         },
       },
+
       { // Campo não obrigatório
         accessorKey: 'complemento',
         header: 'Complemento da Unidade',
