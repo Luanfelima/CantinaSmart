@@ -1,0 +1,22 @@
+comandos para run
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+back end - 
+npm install node cors express next
+
+rodar - node server.js
+
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+front end -
+npm install --force
+npm install axios --force
+rodar - npm run dev
+
+
+---Vercel config--
+yarn install
+yarn run build
+
+
+
