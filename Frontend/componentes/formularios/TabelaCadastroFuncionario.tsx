@@ -5,7 +5,6 @@ import { useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
   MantineReactTable,
-  // createRow,
   type MRT_ColumnDef,
   type MRT_Row,
   type MRT_TableOptions,
@@ -29,12 +28,11 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { type User, fakeData, CargosPreDefinidos } from './makeDataCadastroFuncionario';
+import axios from 'axios';
+import { type User, CargosPreDefinidos } from './makeDataCadastroFuncionario';
 
 const Example = () => {
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string | undefined>
-  >({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
   const columns = useMemo<MRT_ColumnDef<User>[]>(
     () => [
@@ -45,14 +43,9 @@ const Example = () => {
           type: 'text',
           required: true,
           error: validationErrors?.nome,
-        //remove any previous validation errors when user focuses on the input
-        onFocus: () =>
-          setValidationErrors({
-            ...validationErrors,
-            nome: undefined,
-          }),
-          },
+          onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
         },
+      },
       {
         accessorKey: 'email',
         header: 'E-mail',
@@ -60,85 +53,50 @@ const Example = () => {
           type: 'text',
           required: true,
           error: validationErrors?.email,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              email: undefined,
-            }),
+          onFocus: () => setValidationErrors({ ...validationErrors, email: undefined }),
         },
       },
-      { 
+      {
         accessorKey: 'telefone',
         header: 'Telefone',
         mantineEditTextInputProps: {
           type: 'text',
-          required: true, 
+          required: true,
           error: validationErrors?.telefone,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              telefone: undefined,
-            }),
+          onFocus: () => setValidationErrors({ ...validationErrors, telefone: undefined }),
         },
       },
-      { 
+      {
         accessorKey: 'cpf',
         header: 'CPF',
         mantineEditTextInputProps: {
           type: 'text',
-          required: true, 
+          required: true,
           error: validationErrors?.cpf,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              cpf: undefined,
-            }),
+          onFocus: () => setValidationErrors({ ...validationErrors, cpf: undefined }),
         },
       },
-      { 
+      {
         accessorKey: 'cargo',
         header: 'Cargo',
         editVariant: 'select',
         mantineEditSelectProps: {
-            data: CargosPreDefinidos,
-            required: true,
-            error: validationErrors?.cargo, 
-            onFocus: () =>
-              setValidationErrors({
-                ...validationErrors,
-                cargo: undefined,
-              }),  
+          data: CargosPreDefinidos,
+          required: true,
+          error: validationErrors?.cargo,
+          onFocus: () => setValidationErrors({ ...validationErrors, cargo: undefined }),
         },
       },
     ],
     [validationErrors],
   );
 
-  //call CREATE hook
-  const { mutateAsync: createUser, isPending: isCreatingUser } =
-    useCreateUser();
-  //call READ hook
-  const {
-    data: fetchedUsers = [],
-    isError: isLoadingUsersError,
-    isFetching: isFetchingUsers,
-    isLoading: isLoadingUsers,
-  } = useGetUsers();
-  //call UPDATE hook
-  const { mutateAsync: updateUser, isPending: isUpdatingUser } =
-    useUpdateUser();
-  //call DELETE hook
-  const { mutateAsync: deleteUser, isPending: isDeletingUser } =
-    useDeleteUser();
+  const { mutateAsync: createUser } = useCreateUser();
+  const { data: fetchedUsers = [], isError: isLoadingUsersError, isFetching: isFetchingUsers, isLoading: isLoadingUsers } = useGetUsers();
+  const { mutateAsync: updateUser } = useUpdateUser();
+  const { mutateAsync: deleteUser } = useDeleteUser();
 
-  //CREATE action
-  const handleCreateUser: MRT_TableOptions<User>['onCreatingRowSave'] = async ({
-    values,
-    exitCreatingMode,
-  }) => {
+  const handleCreateUser: MRT_TableOptions<User>['onCreatingRowSave'] = async ({ values, exitCreatingMode }) => {
     const newValidationErrors = validateUser(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -149,11 +107,7 @@ const Example = () => {
     exitCreatingMode();
   };
 
-  //UPDATE action
-  const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({
-    values,
-    table,
-  }) => {
+  const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({ values, table }) => {
     const newValidationErrors = validateUser(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -161,18 +115,14 @@ const Example = () => {
     }
     setValidationErrors({});
     await updateUser(values);
-    table.setEditingRow(null); //exit editing mode
+    table.setEditingRow(null); // exit editing mode
   };
 
-  //DELETE action
   const openDeleteConfirmModal = (row: MRT_Row<User>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir esse funcionário?',
       children: (
-        <Text>
-          Tem certeza que você quer excluir o funcionário {row.original.nome}?
-          Essa ação não pode ser desfeita.
-        </Text>
+        <Text>Tem certeza que você quer excluir o funcionário {row.original.nome}? Essa ação não pode ser desfeita.</Text>
       ),
       labels: { confirm: 'Excluir', cancel: 'Cancelar' },
       confirmProps: { color: 'red' },
@@ -182,21 +132,12 @@ const Example = () => {
   const table = useMantineReactTable({
     columns,
     data: fetchedUsers,
-    createDisplayMode: 'modal', //default ('row', and 'custom' are also available)
-    editDisplayMode: 'modal', //default ('row', 'cell', 'table', and 'custom' are also available)
+    createDisplayMode: 'modal',
+    editDisplayMode: 'modal',
     enableEditing: true,
     getRowId: (row) => row.id,
-    mantineToolbarAlertBannerProps: isLoadingUsersError
-      ? {
-          color: 'red',
-          children: 'Error loading data',
-        }
-      : undefined,
-    mantineTableContainerProps: {
-      style: {
-        minHeight: '500px',
-      },
-    },
+    mantineToolbarAlertBannerProps: isLoadingUsersError ? { color: 'red', children: 'Error loading data' } : undefined,
+    mantineTableContainerProps: { style: { minHeight: '500px' } },
     onCreatingRowCancel: () => setValidationErrors({}),
     onCreatingRowSave: handleCreateUser,
     onEditingRowCancel: () => setValidationErrors({}),
@@ -234,23 +175,11 @@ const Example = () => {
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button
-        onClick={() => {
-          table.setCreatingRow(true); //simplest way to open the create row modal with no default values
-          //or you can pass in a row object to set default values with the `createRow` helper function
-          // table.setCreatingRow(
-          //   createRow(table, {
-          //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-          //   }),
-          // );
-        }}
-      >
-        Cadastrar novo funcionário
-      </Button>
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo funcionário</Button>
     ),
     state: {
       isLoading: isLoadingUsers,
-      isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
+      isSaving: false,
       showAlertBanner: isLoadingUsersError,
       showProgressBars: isFetchingUsers,
     },
@@ -259,90 +188,111 @@ const Example = () => {
   return <MantineReactTable table={table} />;
 };
 
-//CREATE hook (post new user to api)
 function useCreateUser() {
   const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+      try {
+        // Validação básica dos dados
+        if (!user.nome || !user.email || !user.telefone || !user.cpf || !user.cargo) {
+          throw new Error('Todos os campos são obrigatórios.');
+        }
+        
+        // Chamada de API POST
+        const response = await axios.post('http://localhost:3000/funcionarios', user);
+
+        // Retorna os dados da resposta do servidor
+        return response.data;
+      } catch (error: any) {
+        // Tratamento de erro
+        console.error('Erro ao criar novo funcionário:', error);
+        throw new Error('Falha ao criar o funcionário. Verifique os dados e tente novamente.');
+      }
     },
-    //client side optimistic update
     onMutate: (newUserInfo: User) => {
-      queryClient.setQueryData(
-        ['users'],
-        (prevUsers: any) =>
-          [
-            ...prevUsers,
-            {
-              ...newUserInfo,
-              id: (Math.random() + 1).toString(36).substring(7),
-            },
-          ] as User[],
-      );
+      // Atualiza a cache otimistamente antes da resposta do servidor
+      queryClient.setQueryData(['users'], (prevUsers: User[] | undefined) => [
+        ...(prevUsers || []),
+        { ...newUserInfo, id: (Math.random() + 1).toString(36).substring(7) },
+      ]);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    onSuccess: () => {
+      // Invalida a query para garantir que os dados mais recentes são buscados após a criação
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      console.log('Novo funcionário criado com sucesso no banco de dados!');
+    },
+    onError: (error: any) => {
+      // Mostra uma mensagem de erro no caso de falha
+      console.error('Erro ao criar o funcionário no backend:', error.message);
+    },
   });
 }
 
-//READ hook (get users from api)
 function useGetUsers() {
   return useQuery<User[]>({
     queryKey: ['users'],
     queryFn: async () => {
-      //send api request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(fakeData);
+      const response = await axios.get('http://localhost:3000/funcionarios'); // chamada de API GET
+      return response.data;
     },
     refetchOnWindowFocus: false,
   });
 }
 
-//UPDATE hook (put user in api)
 function useUpdateUser() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+      try {
+        console.log('Enviando dados para atualização:', user);
+        const response = await axios.put(`http://localhost:3000/funcionarios/${user.id}`, user); // chamada de API PUT
+        console.log('Resposta do servidor após atualização:', response.data); // Log da resposta do servidor
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao enviar a atualização ao servidor:', error);
+        throw new Error('Falha ao atualizar o funcionário');
+      }
     },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.map((prevUser: User) =>
-          prevUser.id === newUserInfo.id ? newUserInfo : prevUser,
-        ),
-      );
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      console.log(`Funcionário ${variables.nome} atualizado com sucesso no banco de dados!`);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    onError: (error) => {
+      console.error('Erro ao atualizar o usuário no backend:', error);
+    },
   });
 }
 
-//DELETE hook (delete user in api)
 function useDeleteUser() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (userId: string) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+      try {
+        console.log('Iniciando a exclusão do usuário:', userId);
+        const response = await axios.delete(`http://localhost:3000/funcionarios/${userId}`); // chamada de API DELETE
+        console.log('Resposta do servidor após exclusão:', response.data); // Log da resposta do servidor
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao enviar a exclusão ao servidor:', error);
+        throw new Error('Falha ao excluir o funcionário');
+      }
     },
-    //client side optimistic update
-    onMutate: (userId: string) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.filter((user: User) => user.id !== userId),
-      );
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      console.log(`Funcionário com ID ${variables} excluído com sucesso no banco de dados!`);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    onError: (error) => {
+      console.error('Erro ao excluir o usuário no backend:', error);
+    },
   });
 }
 
 const queryClient = new QueryClient();
 
 const ExampleWithProviders = () => (
-  //Put this with your other react-query providers near root of your app
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
       <Example />
@@ -352,42 +302,21 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => value !== null && !!value.length; //Validate de todos os campos
+const validateRequired = (value: any) => value !== null && !!value.length;
+const validateEmail = (email: string) =>
+  !!email.length && email.toLowerCase().match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
+const validateCpf = (cpf: string) =>
+  !!cpf.length && cpf.replace(/\D/g, '').match(/^[0-9]{11}$/);
+const validateTelefone = (telefone: string) =>
+  !!telefone.length && telefone.replace(/\D/g, '').match(/^[0-9]{10,11}$/);
 
-const validateEmail = (email: string) => //Regex do Email
-  !!email.length &&
-  email
-  .toLowerCase()
-  .match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
-
-const validateCpf = (cpf: string) => //Regex do CPF
-  !!cpf.length &&
-  cpf
-  .toLowerCase()
-  .match(/^(\d{3}\.?\d{3}\.?\d{3}-?\d{2})$/);
-
-const validateTelefone = (telefone: string) => //Regex do Telefone
-  !!telefone.length &&
-  telefone
-  .toLowerCase()
-  .match(/^(\(\d{2}\)\s?\d{5}-?\d{4}|\d{2}\s?\d{5}\s?\d{4}|\d{11}|\d{10})$/);
-
-function validateUser(user: User) {
-  return {
-    nome: !validateRequired(user.nome)
-    ? 'É necessário inserir o nome do funcionário'
-    : '',
-    email: !validateEmail(user.email)
-      ? 'E-mail inválido'
-      : '',
-    telefone: !validateTelefone(user.telefone)
-      ? 'Telefone inválido'
-      : '',
-      cpf: !validateCpf(user.cpf)
-      ? 'CPF inválido'
-      : '', 
-      cargo: !validateRequired(user.cargo)
-      ? 'É necessário selecionar o cargo do funcionário'
-      : '',  
+const validateUser = (values: User) => {
+  const errors: Record<string, string | undefined> = {
+    nome: validateRequired(values.nome) ? undefined : 'Nome é obrigatório',
+    email: validateEmail(values.email) ? undefined : 'E-mail inválido',
+    cpf: validateCpf(values.cpf) ? undefined : 'CPF inválido',
+    telefone: validateTelefone(values.telefone) ? undefined : 'Telefone inválido',
+    cargo: validateRequired(values.cargo) ? undefined : 'Cargo é obrigatório',
   };
-}
+  return errors;
+};
