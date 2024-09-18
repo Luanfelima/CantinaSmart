@@ -6,8 +6,13 @@ export type User = {
     cpf: string;
     cargo: string;
   };
+
+  export const CargosPreDefinidos = [
+    'Gestor(a)',
+    'Funcionário(a)',
+  ]
   
-  export const fakeData: User[] = [
+ /* export const fakeData: User[] = [
     {
       id: '9s41rp',
       nome: 'Fernando Rigon',
@@ -48,9 +53,5 @@ export type User = {
         cpf: '123.468.975-11',
         cargo: 'Funcionário(a)',
       },
-  ];
+  ];*/
 
-  export const CargosPreDefinidos = [
-    'Gestor(a)',
-    'Funcionário(a)',
-  ]

@@ -1,12 +1,10 @@
 import '@mantine/core/styles.css';
-import '@mantine/dates/styles.css'; //if using mantine date picker features
-import 'mantine-react-table/styles.css'; //make sure MRT styles were imported in your app root (once)
+import '@mantine/dates/styles.css';
+import 'mantine-react-table/styles.css';
 import { useMemo, useState } from 'react';
-import axios from 'axios';  
 import {
   MRT_EditActionButtons,
   MantineReactTable,
-  // createRow,
   type MRT_ColumnDef,
   type MRT_Row,
   type MRT_TableOptions,
@@ -30,55 +28,53 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { type User, fakeData, PolosPreDefinidos } from './makeDataCadastroUnidade';
+import axios from 'axios';
+
+// Definição do tipo Unidade
+type Unidade = {
+  id_unidade?: string;
+  polo: string;
+  nome_unidade: string;
+  cep: string;
+  cidade: string;
+  rua: string;
+  estado: string;
+  numero: string;
+  complemento?: string;
+};
 
 const Example = () => {
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string | undefined>
-  >({});
-
-   // State para armazenar os dados preenchidos automaticamente
-   const [autoCompleteData, setAutoCompleteData] = useState({
+  const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+  const [autoCompleteData, setAutoCompleteData] = useState({
     cidade: '',
     rua: '',
     estado: '',
-    cep: '', 
+    cep: '',
   });
 
-  const columns = useMemo<MRT_ColumnDef<User>[]>(
+  const columns = useMemo<MRT_ColumnDef<Unidade>[]>(
     () => [
       {
         accessorKey: 'polo',
         header: 'Polo',
         editVariant: 'select',
         mantineEditSelectProps: {
-          data: PolosPreDefinidos,
+          data: ['Barcelona','Centro','Conceição', 'São Paulo'], // Ajuste aqui para dados reais
           required: true,
           error: validationErrors?.polo,
-        //remove any previous validation errors when user focuses on the input
-        onFocus: () =>
-          setValidationErrors({
-            ...validationErrors,
-            polo: undefined,
-          }),
-          },
+          onFocus: () => setValidationErrors({ ...validationErrors, polo: undefined }),
         },
+      },
       {
-        accessorKey: 'nomeUnidade',
+        accessorKey: 'nome_unidade',
         header: 'Nome da Unidade',
         mantineEditTextInputProps: {
           type: 'text',
           required: true,
-          error: validationErrors?.nomeUnidade,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              nomeUnidade: undefined,
-            }),
+          error: validationErrors?.nome_unidade,
+          onFocus: () => setValidationErrors({ ...validationErrors, nome_unidade: undefined }),
         },
       },
-
       {
         accessorKey: 'cep',
         header: 'CEP',
@@ -105,14 +101,9 @@ const Example = () => {
               }
             }
           },
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              cep: undefined,
-            }),
+          onFocus: () => setValidationErrors({ ...validationErrors, cep: undefined }),
         },
       },
-
       {
         accessorKey: 'cidade',
         header: 'Cidade da Unidade',
@@ -123,7 +114,6 @@ const Example = () => {
           disabled: true,
         },
       },
-
       {
         accessorKey: 'rua',
         header: 'Rua da Unidade',
@@ -134,7 +124,6 @@ const Example = () => {
           disabled: true,
         },
       },
-      
       {
         accessorKey: 'estado',
         header: 'Estado da Unidade',
@@ -145,24 +134,17 @@ const Example = () => {
           disabled: true,
         },
       },
-
-      { 
+      {
         accessorKey: 'numero',
         header: 'Número da Unidade',
         mantineEditTextInputProps: {
           type: 'number',
           required: true,
           error: validationErrors?.numero,
-          //remove any previous validation errors when user focuses on the input
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              numero: undefined,
-            }),
+          onFocus: () => setValidationErrors({ ...validationErrors, numero: undefined }),
         },
       },
-
-      { // Campo não obrigatório
+      {
         accessorKey: 'complemento',
         header: 'Complemento da Unidade',
         mantineEditTextInputProps: {
@@ -173,90 +155,69 @@ const Example = () => {
     [validationErrors, autoCompleteData],
   );
 
-  //call CREATE hook
-  const { mutateAsync: createUser, isPending: isCreatingUser } =
-    useCreateUser();
-  //call READ hook
-  const {
-    data: fetchedUsers = [],
-    isError: isLoadingUsersError,
-    isFetching: isFetchingUsers,
-    isLoading: isLoadingUsers,
-  } = useGetUsers();
-  //call UPDATE hook
-  const { mutateAsync: updateUser, isPending: isUpdatingUser } =
-    useUpdateUser();
-  //call DELETE hook
-  const { mutateAsync: deleteUser, isPending: isDeletingUser } =
-    useDeleteUser();
+  const { mutateAsync: createUnidade } = useCreateUnidade();
+  const { data: fetchedUnidades = [], isError: isLoadingUnidadesError, isFetching: isFetchingUnidades, isLoading: isLoadingUnidades } = useGetUnidades();
+  const { mutateAsync: updateUnidade } = useUpdateUnidade();
+  const { mutateAsync: deleteUnidade } = useDeleteUnidade();
 
-  //CREATE action
-  const handleCreateUser: MRT_TableOptions<User>['onCreatingRowSave'] = async ({
-    values,
-    exitCreatingMode,
-  }) => {
-    const newValidationErrors = validateUser(values);
+  const handleCreateUnidade: MRT_TableOptions<Unidade>['onCreatingRowSave'] = async ({ values, exitCreatingMode }) => {
+    const newValidationErrors = validateUnidade(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await createUser(values);
+    await createUnidade({ ...values, ...autoCompleteData }); // Inclui os dados preenchidos automaticamente
     exitCreatingMode();
   };
 
-  //UPDATE action
-  const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({
-    values,
-    table,
-  }) => {
-    const newValidationErrors = validateUser(values);
+  const handleSaveUnidade: MRT_TableOptions<Unidade>['onEditingRowSave'] = async ({ values, table }) => {
+    const newValidationErrors = validateUnidade(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await updateUser(values);
-    table.setEditingRow(null); //exit editing mode
+    await updateUnidade({ ...values, ...autoCompleteData });
+    table.setEditingRow(null);
   };
 
-  //DELETE action
-  const openDeleteConfirmModal = (row: MRT_Row<User>) =>
-    modals.openConfirmModal({
-      title: 'Tem certeza que você quer excluir essa unidade?',
-      children: (
-        <Text>
-          Tem certeza que você quer excluir a unidade {row.original.nomeUnidade}?
-          Essa ação não pode ser desfeita.
-        </Text>
-      ),
-      labels: { confirm: 'Excluir', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
-      onConfirm: () => deleteUser(row.original.id),
-    });
+  const openDeleteConfirmModal = (row: MRT_Row<Unidade>) => {
+    const id_unidade = row.original.id_unidade;
+
+    if (id_unidade) {
+      modals.openConfirmModal({
+        title: 'Tem certeza que você quer excluir esta unidade?',
+        children: (
+          <Text>
+            Tem certeza que você quer excluir a unidade {row.original.nome_unidade}? Essa ação não
+            pode ser desfeita.
+          </Text>
+        ),
+        labels: { confirm: 'Excluir', cancel: 'Cancelar' },
+        confirmProps: { color: 'red' },
+        onConfirm: () => deleteUnidade(id_unidade),
+      });
+    } else {
+      console.error('ID da unidade é inválido ou indefinido.');
+    }
+  };
 
   const table = useMantineReactTable({
     columns,
-    data: fetchedUsers,
-    createDisplayMode: 'modal', //default ('row', and 'custom' are also available)
-    editDisplayMode: 'modal', //default ('row', 'cell', 'table', and 'custom' are also available)
+    data: fetchedUnidades,
+    createDisplayMode: 'modal',
+    editDisplayMode: 'modal',
     enableEditing: true,
-    getRowId: (row) => row.id,
-    mantineToolbarAlertBannerProps: isLoadingUsersError
-      ? {
-          color: 'red',
-          children: 'Error loading data',
-        }
+    getRowId: (row) => row.id_unidade,
+    mantineToolbarAlertBannerProps: isLoadingUnidadesError
+      ? { color: 'red', children: 'Erro ao carregar dados' }
       : undefined,
-    mantineTableContainerProps: {
-      style: {
-        minHeight: '500px',
-      },
-    },
+    mantineTableContainerProps: { style: { minHeight: '500px' } },
     onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateUser,
+    onCreatingRowSave: handleCreateUnidade,
     onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveUser,
+    onEditingRowSave: handleSaveUnidade,
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar nova unidade</Title>
@@ -268,7 +229,7 @@ const Example = () => {
     ),
     renderEditRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
-        <Title order={3}>Editar unidade</Title>
+        <Title order={3}>Editar Unidade</Title>
         {internalEditComponents}
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -290,115 +251,133 @@ const Example = () => {
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button
-        onClick={() => {
-          table.setCreatingRow(true); //simplest way to open the create row modal with no default values
-          //or you can pass in a row object to set default values with the `createRow` helper function
-          // table.setCreatingRow(
-          //   createRow(table, {
-          //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-          //   }),
-          // );
-        }}
-      >
-        Cadastrar nova unidade
-      </Button>
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar nova unidade</Button>
     ),
     state: {
-      isLoading: isLoadingUsers,
-      isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
-      showAlertBanner: isLoadingUsersError,
-      showProgressBars: isFetchingUsers,
+      isLoading: isLoadingUnidades,
+      isSaving: false,
+      showAlertBanner: isLoadingUnidadesError,
+      showProgressBars: isFetchingUnidades,
     },
   });
 
   return <MantineReactTable table={table} />;
 };
 
-//CREATE hook (post new user to api)
-function useCreateUser() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
-    },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
-      queryClient.setQueryData(
-        ['users'],
-        (prevUsers: any) =>
-          [
-            ...prevUsers,
-            {
-              ...newUserInfo,
-              id: (Math.random() + 1).toString(36).substring(7),
-            },
-          ] as User[],
-      );
-    },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
-  });
-}
-
-//READ hook (get users from api)
-function useGetUsers() {
-  return useQuery<User[]>({
-    queryKey: ['users'],
+// Função para obter Unidades
+function useGetUnidades() {
+  return useQuery<Unidade[]>({
+    queryKey: ['unidades'],
     queryFn: async () => {
-      //send api request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(fakeData);
+      const response = await axios.get('http://localhost:3000/unidades');
+      return response.data;
     },
     refetchOnWindowFocus: false,
   });
 }
 
-//UPDATE hook (put user in api)
-function useUpdateUser() {
+// Função para atualizar Unidade
+function useUpdateUnidade() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+    mutationFn: async (unidade: Unidade) => {
+      try {
+        console.log('Enviando dados para atualização:', unidade);
+        const response = await axios.put(
+          `http://localhost:3000/unidades/${unidade.id_unidade}`,
+          unidade,
+        );
+        console.log('Resposta do servidor após atualização:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao atualizar a unidade no servidor:', error);
+        throw new Error('Falha ao atualizar a unidade.');
+      }
     },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.map((prevUser: User) =>
-          prevUser.id === newUserInfo.id ? newUserInfo : prevUser,
-        ),
-      );
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      console.log(`Unidade ${variables.nome_unidade} atualizada com sucesso!`);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    onError: (error) => {
+      console.error('Erro ao atualizar a unidade:', error);
+    },
   });
 }
 
-//DELETE hook (delete user in api)
-function useDeleteUser() {
+// Função para deletar Unidade
+function useDeleteUnidade() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (userId: string) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+    mutationFn: async (id_unidade: string) => {
+      try {
+        console.log('Iniciando exclusão da unidade:', id_unidade);
+        const response = await axios.delete(`http://localhost:3000/unidades/${id_unidade}`);
+        console.log('Resposta do servidor após exclusão:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao excluir a unidade no servidor:', error);
+        throw new Error('Falha ao excluir a unidade.');
+      }
     },
-    //client side optimistic update
-    onMutate: (userId: string) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.filter((user: User) => user.id !== userId),
-      );
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      console.log(`Unidade com ID ${variables} excluída com sucesso!`);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    onError: (error) => {
+      console.error('Erro ao excluir a unidade:', error);
+    },
   });
 }
+
+// Função de criação da unidade
+function useCreateUnidade() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (unidade: Unidade) => {
+      try {
+        const response = await axios.post('http://localhost:3000/unidades', unidade);
+        return response.data;
+      } catch (error: any) {
+        console.error('Erro ao criar unidade:', error.message);
+        throw new Error('Falha ao criar a unidade.');
+      }
+    },
+    onMutate: (newUnidadeInfo: Unidade) => {
+      queryClient.setQueryData(['unidades'], (prevUnidades: Unidade[] | undefined) => [
+        ...(prevUnidades || []),
+        { ...newUnidadeInfo, id_unidade: (Math.random() + 1).toString(36).substring(7) },
+      ]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+      console.log('Nova unidade criada com sucesso!');
+    },
+    onError: (error: any) => {
+      console.error('Erro ao criar unidade:', error.message);
+    },
+  });
+}
+
+// Função de validação
+const validateUnidade = (values: Unidade) => {
+  const errors: Record<string, string | undefined> = {
+    polo: values.polo ? undefined : 'Polo é obrigatório',
+    nome_unidade: values.nome_unidade ? undefined : 'Nome da unidade é obrigatório',
+    cep: values.cep ? undefined : 'CEP é obrigatório',
+    cidade: values.cidade ? undefined : 'Cidade é obrigatória',
+    rua: values.rua ? undefined : 'Rua é obrigatória',
+    estado: values.estado ? undefined : 'Estado é obrigatório',
+    numero: values.numero ? undefined : 'Número é obrigatório',
+  };
+  return errors;
+};
 
 const queryClient = new QueryClient();
 
 const ExampleWithProviders = () => (
-  //Put this with your other react-query providers near root of your app
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
       <Example />
@@ -407,27 +386,3 @@ const ExampleWithProviders = () => (
 );
 
 export default ExampleWithProviders;
-
-const validateRequired = (value: any) => value !== null && !!value.length; //Validate de todos os campos
-const validateCep = (cep: string) => //Regex do CEP
-  !!cep.length &&
-  cep
-  .toLowerCase()
-  .match(/^\d{5}-?\d{3}$/);
-
-function validateUser(user: User) {
-  return {
-    polo: !validateRequired(user.polo)
-    ? 'É necessário selecionar o polo da unidade'
-    : '',
-    nomeUnidade: !validateRequired(user.nomeUnidade)
-      ? 'É necessário inserir o nome da unidade'
-      : '',
-      cep: !validateCep(user.cep)
-      ? 'CEP inválido'
-      : '',
-      numero: !validateRequired(user.numero)
-      ? 'É necessário inserir o número da unidade'
-      : '',   
-  };
-}

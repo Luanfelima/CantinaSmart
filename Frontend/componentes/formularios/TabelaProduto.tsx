@@ -1,11 +1,10 @@
 import '@mantine/core/styles.css';
-import '@mantine/dates/styles.css'; //if using mantine date picker features
-import 'mantine-react-table/styles.css'; //make sure MRT styles were imported in your app root (once)
+import '@mantine/dates/styles.css';
+import 'mantine-react-table/styles.css';
 import { useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
   MantineReactTable,
-  // createRow,
   type MRT_ColumnDef,
   type MRT_Row,
   type MRT_TableOptions,
@@ -29,57 +28,42 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { type User, fakeData, categoriasPreDefinidas, unidadesMedidaPreDefinidas, perecivelPreDefinidas } from './makeDataProduto';
+import axios from 'axios';
+
+// Definição do tipo Produto
+type Produto = {
+  id_produto?: string;
+  nome_p: string;
+  categoria: string;
+  preco: number;
+  perecivel: boolean;
+  descricao: string;
+  unidade_medida: string;
+};
 
 const Example = () => {
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string | undefined>
-  >({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
-  const columns = useMemo<MRT_ColumnDef<User>[]>(
+  const columns = useMemo<MRT_ColumnDef<Produto>[]>(
     () => [
       {
-        accessorKey: 'nomeProduto',
-        header: 'Nome do produto',
+        accessorKey: 'nome_p',
+        header: 'Nome do Produto',
         mantineEditTextInputProps: {
           type: 'text',
           required: true,
-          error: validationErrors?.nomeProduto,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              nomeProduto: undefined,
-            }),
+          error: validationErrors?.nome_p,
+          onFocus: () => setValidationErrors({ ...validationErrors, nome_p: undefined }),
         },
       },
       {
         accessorKey: 'categoria',
         header: 'Categoria',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: categoriasPreDefinidas,
+        mantineEditTextInputProps: {
+          type: 'text',
           required: true,
           error: validationErrors?.categoria,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              categoria: undefined,
-            }),
-        },
-      },
-      {
-        accessorKey: 'unidadeMedida',
-        header: 'Unidade de medida',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: unidadesMedidaPreDefinidas,
-          required: true,
-          error: validationErrors?.unidadeMedida,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              unidadeMedida: undefined,
-            }),
+          onFocus: () => setValidationErrors({ ...validationErrors, categoria: undefined }),
         },
       },
       {
@@ -89,11 +73,7 @@ const Example = () => {
           type: 'number',
           required: true,
           error: validationErrors?.preco,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              preco: undefined,
-            }),          
+          onFocus: () => setValidationErrors({ ...validationErrors, preco: undefined }),
         },
       },
       {
@@ -101,14 +81,10 @@ const Example = () => {
         header: 'Perecível',
         editVariant: 'select',
         mantineEditSelectProps: {
-          data: perecivelPreDefinidas,
+          data: ['Sim', 'Não'],
           required: true,
           error: validationErrors?.perecivel,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              perecivel: undefined,
-            }),
+          onFocus: () => setValidationErrors({ ...validationErrors, perecivel: undefined }),
         },
       },
       {
@@ -116,98 +92,83 @@ const Example = () => {
         header: 'Descrição',
         mantineEditTextInputProps: {
           type: 'text',
-          required: false,
-                  
+          required: true,
+          error: validationErrors?.descricao,
+          onFocus: () => setValidationErrors({ ...validationErrors, descricao: undefined }),
+        },
+      },
+      {
+        accessorKey: 'unidade_medida',
+        header: 'Unidade de Medida',
+        mantineEditTextInputProps: {
+          type: 'text',
+          required: true,
+          error: validationErrors?.unidade_medida,
+          onFocus: () => setValidationErrors({ ...validationErrors, unidade_medida: undefined }),
         },
       },
     ],
     [validationErrors],
   );
 
-  //call CREATE hook
-  const { mutateAsync: createUser, isPending: isCreatingUser } =
-    useCreateUser();
-  //call READ hook
-  const {
-    data: fetchedUsers = [],
-    isError: isLoadingUsersError,
-    isFetching: isFetchingUsers,
-    isLoading: isLoadingUsers,
-  } = useGetUsers();
-  //call UPDATE hook
-  const { mutateAsync: updateUser, isPending: isUpdatingUser } =
-    useUpdateUser();
-  //call DELETE hook
-  const { mutateAsync: deleteUser, isPending: isDeletingUser } =
-    useDeleteUser();
+  const { mutateAsync: createProduto } = useCreateProduto();
+  const { data: fetchedProdutos = [], isError: isLoadingProdutosError, isFetching: isFetchingProdutos, isLoading: isLoadingProdutos } = useGetProdutos();
+  const { mutateAsync: updateProduto } = useUpdateProduto();
+  const { mutateAsync: deleteProduto } = useDeleteProduto();
 
-  //CREATE action
-  const handleCreateUser: MRT_TableOptions<User>['onCreatingRowSave'] = async ({
-    values,
-    exitCreatingMode,
-  }) => {
-    const newValidationErrors = validateUser(values);
+  const handleCreateProduto: MRT_TableOptions<Produto>['onCreatingRowSave'] = async ({ values, exitCreatingMode }) => {
+    const newValidationErrors = validateProduto(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await createUser(values);
+    await createProduto(values);
     exitCreatingMode();
   };
 
-  //UPDATE action
-  const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({
-    values,
-    table,
-  }) => {
-    const newValidationErrors = validateUser(values);
+  const handleSaveProduto: MRT_TableOptions<Produto>['onEditingRowSave'] = async ({ values, table }) => {
+    const newValidationErrors = validateProduto(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await updateUser(values);
-    table.setEditingRow(null); //exit editing mode
+    await updateProduto(values);
+    table.setEditingRow(null);
   };
 
-  //DELETE action
-  const openDeleteConfirmModal = (row: MRT_Row<User>) =>
-    modals.openConfirmModal({
-      title: 'Tem certeza que você quer excluir esse produto?',
-      children: (
-        <Text>
-          Tem certeza que você quer excluir {row.original.nomeProduto}?
-          Essa ação não pode ser desfeita.
-        </Text>
-      ),
-      labels: { confirm: 'Excluir', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
-      onConfirm: () => deleteUser(row.original.id),
-    });
+  const openDeleteConfirmModal = (row: MRT_Row<Produto>) => {
+    const id_produto = row.original.id_produto;
+  
+    if (id_produto) {
+      modals.openConfirmModal({
+        title: 'Tem certeza que você quer excluir este produto?',
+        children: (
+          <Text>Tem certeza que você quer excluir o produto {row.original.nome_p}? Essa ação não pode ser desfeita.</Text>
+        ),
+        labels: { confirm: 'Excluir', cancel: 'Cancelar' },
+        confirmProps: { color: 'red' },
+        onConfirm: () => deleteProduto(id_produto),
+      });
+    } else {
+      console.error('ID do produto é inválido ou indefinido.');
+    }
+  };
 
   const table = useMantineReactTable({
     columns,
-    data: fetchedUsers,
-    createDisplayMode: 'modal', //default ('row', and 'custom' are also available)
-    editDisplayMode: 'modal', //default ('row', 'cell', 'table', and 'custom' are also available)
+    data: fetchedProdutos,
+    createDisplayMode: 'modal',
+    editDisplayMode: 'modal',
     enableEditing: true,
-    getRowId: (row) => row.id,
-    mantineToolbarAlertBannerProps: isLoadingUsersError
-      ? {
-          color: 'red',
-          children: 'Error loading data',
-        }
-      : undefined,
-    mantineTableContainerProps: {
-      style: {
-        minHeight: '500px',
-      },
-    },
+    getRowId: (row) => row.id_produto,
+    mantineToolbarAlertBannerProps: isLoadingProdutosError ? { color: 'red', children: 'Erro ao carregar dados' } : undefined,
+    mantineTableContainerProps: { style: { minHeight: '500px' } },
     onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateUser,
+    onCreatingRowSave: handleCreateProduto,
     onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveUser,
+    onEditingRowSave: handleSaveProduto,
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar novo produto</Title>
@@ -219,7 +180,7 @@ const Example = () => {
     ),
     renderEditRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
-        <Title order={3}>Editar produto</Title>
+        <Title order={3}>Editar Produto</Title>
         {internalEditComponents}
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -241,115 +202,135 @@ const Example = () => {
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button
-        onClick={() => {
-          table.setCreatingRow(true); //simplest way to open the create row modal with no default values
-          //or you can pass in a row object to set default values with the `createRow` helper function
-          // table.setCreatingRow(
-          //   createRow(table, {
-          //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-          //   }),
-          // );
-        }}
-      >
-        Cadastrar novo produto
-      </Button>
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo produto</Button>
     ),
     state: {
-      isLoading: isLoadingUsers,
-      isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
-      showAlertBanner: isLoadingUsersError,
-      showProgressBars: isFetchingUsers,
+      isLoading: isLoadingProdutos,
+      isSaving: false,
+      showAlertBanner: isLoadingProdutosError,
+      showProgressBars: isFetchingProdutos,
     },
   });
 
   return <MantineReactTable table={table} />;
 };
 
-//CREATE hook (post new user to api)
-function useCreateUser() {
+function useCreateProduto() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+    mutationFn: async (produto: Produto) => {
+      try {
+        // Log para verificar os dados que estão sendo enviados
+        console.log('Enviando dados do produto:', produto);
+
+        // Verifique se todos os campos obrigatórios estão presentes
+        if (!produto.nome_p || !produto.categoria || !produto.preco || !produto.descricao || !produto.unidade_medida) {
+          throw new Error('Todos os campos obrigatórios devem ser preenchidos.');
+        }
+
+        // Chamada de API POST
+        const response = await axios.post('http://localhost:3000/produtos', produto);
+
+        // Log para verificar a resposta do servidor
+        console.log('Resposta do servidor após a criação do produto:', response.data);
+
+        return response.data;
+      } catch (error: any) {
+        // Tratamento de erro com log detalhado
+        if (error.response) {
+          console.error('Erro no servidor:', error.response.data);
+        } else if (error.request) {
+          console.error('Nenhuma resposta recebida do servidor:', error.request);
+        } else {
+          console.error('Erro na configuração da requisição:', error.message);
+        }
+        throw new Error('Falha ao criar o produto. Verifique os dados e tente novamente.');
+      }
     },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
-      queryClient.setQueryData(
-        ['users'],
-        (prevUsers: any) =>
-          [
-            ...prevUsers,
-            {
-              ...newUserInfo,
-              id: (Math.random() + 1).toString(36).substring(7),
-            },
-          ] as User[],
-      );
+    onMutate: (newProdutoInfo: Produto) => {
+      // Atualiza a cache otimistamente antes da resposta do servidor
+      queryClient.setQueryData(['produtos'], (prevProdutos: Produto[] | undefined) => [
+        ...(prevProdutos || []),
+        { ...newProdutoInfo, id_produto: (Math.random() + 1).toString(36).substring(7) },
+      ]);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    onSuccess: () => {
+      // Invalida a query para garantir que os dados mais recentes são buscados após a criação
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      console.log('Novo produto criado com sucesso no banco de dados!');
+    },
+    onError: (error: any) => {
+      // Log do erro no frontend
+      console.error('Erro ao criar o produto no backend:', error.message);
+    },
   });
 }
 
-//READ hook (get users from api)
-function useGetUsers() {
-  return useQuery<User[]>({
-    queryKey: ['users'],
+function useGetProdutos() {
+  return useQuery<Produto[]>({
+    queryKey: ['produtos'],
     queryFn: async () => {
-      //send api request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(fakeData);
+      const response = await axios.get('http://localhost:3000/produtos'); // chamada de API GET
+      return response.data;
     },
     refetchOnWindowFocus: false,
   });
 }
 
-//UPDATE hook (put user in api)
-function useUpdateUser() {
+function useUpdateProduto() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+    mutationFn: async (produto: Produto) => {
+      try {
+        console.log('Enviando dados para atualização:', produto);
+        const response = await axios.put(`http://localhost:3000/produtos/${produto.id_produto}`, produto); // chamada de API PUT
+        console.log('Resposta do servidor após atualização:', response.data); // Log da resposta do servidor
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao enviar a atualização ao servidor:', error);
+        throw new Error('Falha ao atualizar o produto');
+      }
     },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.map((prevUser: User) =>
-          prevUser.id === newUserInfo.id ? newUserInfo : prevUser,
-        ),
-      );
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      console.log(`Produto ${variables.nome_p} atualizado com sucesso no banco de dados!`);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    onError: (error) => {
+      console.error('Erro ao atualizar o produto no backend:', error);
+    },
   });
 }
 
-//DELETE hook (delete user in api)
-function useDeleteUser() {
+function useDeleteProduto() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (userId: string) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve();
+    mutationFn: async (id_produto: string) => {
+      try {
+        console.log('Iniciando a exclusão do produto:', id_produto);
+        const response = await axios.delete(`http://localhost:3000/produtos/${id_produto}`); // chamada de API DELETE
+        console.log('Resposta do servidor após exclusão:', response.data); // Log da resposta do servidor
+        return response.data;
+      } catch (error) {
+        console.error('Erro ao enviar a exclusão ao servidor:', error);
+        throw new Error('Falha ao excluir o produto');
+      }
     },
-    //client side optimistic update
-    onMutate: (userId: string) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.filter((user: User) => user.id !== userId),
-      );
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      console.log(`Produto com ID ${variables} excluído com sucesso no banco de dados!`);
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    onError: (error) => {
+      console.error('Erro ao excluir o produto no backend:', error);
+    },
   });
 }
 
 const queryClient = new QueryClient();
 
 const ExampleWithProviders = () => (
-  //Put this with your other react-query providers near root of your app
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
       <Example />
@@ -359,28 +340,15 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => value !== null && !!value.length; //Validate de todos os campos
-
-function validateUser(user: User) {
-  return {
-    nomeProduto: !validateRequired(user.nomeProduto)
-      ? 'É necessário inserir o nome do produto'
-      : user.nomeProduto.length <= 2
-        ? 'O nome do produto precisa conter mais do que 2 caracteres'
-        : '',
-    categoria: !validateRequired(user.categoria)
-      ? 'É necessário selecionar uma categoria para o produto'
-      : '',
-    unidadeMedida: !validateRequired(user.unidadeMedida)
-      ? 'É necessário selecionar uma unidade de medida para o produto'
-      : '',
-    preco: !validateRequired(user.preco)
-      ? 'É necessário inserir um preço para o produto'
-      : user.preco <= 0
-        ? 'Preço não pode ser menor ou igual a 0 (Zero)'
-        : '',
-    perecivel: !validateRequired(user.perecivel)
-      ? 'É necessário selecionar uma das opções '
-      : '',
+// Função de validação de produto
+const validateProduto = (values: Produto) => {
+  const errors: Record<string, string | undefined> = {
+    nome_p: values.nome_p ? undefined : 'Nome do produto é obrigatório',
+    categoria: values.categoria ? undefined : 'Categoria é obrigatória',
+    preco: values.preco ? undefined : 'Preço é obrigatório',
+    perecivel: values.perecivel !== undefined ? undefined : 'Campo perecível é obrigatório',
+    descricao: values.descricao ? undefined : 'Descrição é obrigatória',
+    unidade_medida: values.unidade_medida ? undefined : 'Unidade de medida é obrigatória',
   };
-}
+  return errors;
+};

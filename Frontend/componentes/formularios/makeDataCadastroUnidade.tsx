@@ -9,7 +9,15 @@ export type User = {
     numero: number;
     complemento: string;
   };
+
+  export const PolosPreDefinidos = [
+    'Centro',
+    'Conceiçao',
+    'Barcelona',
+    'São Paulo',
+  ]
   
+  /*
   export const fakeData: User[] = [
     {
       id: '9s41rp',
@@ -67,10 +75,4 @@ export type User = {
         complemento: 'Proximo do Atacadão',
       },
   ];
-
-  export const PolosPreDefinidos = [
-    'Centro',
-    'Conceiçao',
-    'Barcelona',
-    'São Paulo',
-  ]
+*/
