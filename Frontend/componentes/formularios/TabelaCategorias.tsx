@@ -30,49 +30,40 @@ import {
 } from '@tanstack/react-query';
 import axios from 'axios';
 
-// Definição do tipo Categoria
 type Categoria = {
-  id_categoria?: string;
-  nomeCategoria: string;
-  descricao?: string;
+  id_categorias: number;
+  nome: string;
+  descricao: string;
 };
 
 const Example = () => {
-  const [validationErrors, setValidationErrors] = useState<
-    Record<string, string | undefined>
-  >({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
   const columns = useMemo<MRT_ColumnDef<Categoria>[]>(
     () => [
       {
-        accessorKey: 'nomeCategoria',
-        header: 'Nome da categoria',
+        accessorKey: 'nome',
+        header: 'Nome',
         mantineEditTextInputProps: {
-          type: 'text',
           required: true,
-          error: validationErrors?.nomeCategoria,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              nomeCategoria: undefined,
-            }),
+          error: validationErrors?.nome,
+          onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
         },
       },
       {
         accessorKey: 'descricao',
         header: 'Descrição',
         mantineEditTextInputProps: {
-          type: 'text',
-          required: false,
+          required: true,
+          error: validationErrors?.descricao,
+          onFocus: () => setValidationErrors({ ...validationErrors, descricao: undefined }),
         },
       },
     ],
     [validationErrors],
   );
 
-  // Chamar os hooks de API
-  const { mutateAsync: createCategoria, status: createStatus } = useCreateCategoria();
-  const isCreatingCategoria = createStatus === 'pending';
+  const queryClient = useQueryClient();
 
   const {
     data: fetchedCategorias = [],
@@ -81,51 +72,46 @@ const Example = () => {
     isLoading: isLoadingCategorias,
   } = useGetCategorias();
 
-  const { mutateAsync: updateCategoria, status: updateStatus } = useUpdateCategoria();
-  const isUpdatingCategoria = updateStatus === 'pending';
+  const createCategoriaMutation = useCreateCategoria();
+  const updateCategoriaMutation = useUpdateCategoria();
+  const deleteCategoriaMutation = useDeleteCategoria();
 
-  const { mutateAsync: deleteCategoria, status: deleteStatus } = useDeleteCategoria();
-  const isDeletingCategoria = deleteStatus === 'pending';
+  const handleCreateCategoria: MRT_TableOptions<Categoria>['onCreatingRowSave'] = async ({
+    values,
+    exitCreatingMode,
+  }) => {
+    const newValidationErrors = validateCategoria(values);
+    if (Object.values(newValidationErrors).some((error) => error)) {
+      setValidationErrors(newValidationErrors);
+      return;
+    }
+    setValidationErrors({});
+    await createCategoriaMutation.mutateAsync(values);
+    exitCreatingMode();
+  };
 
-  // Ação de criação
-  const handleCreateCategoria: MRT_TableOptions<Categoria>['onCreatingRowSave'] =
-    async ({ values, exitCreatingMode }) => {
-      const newValidationErrors = validateCategoria(values);
-      if (Object.values(newValidationErrors).some((error) => error)) {
-        setValidationErrors(newValidationErrors);
-        return;
-      }
-      setValidationErrors({});
-      await createCategoria(values);
-      exitCreatingMode();
-    };
+  const handleSaveCategoria: MRT_TableOptions<Categoria>['onEditingRowSave'] = async ({ values, table }) => {
+    const newValidationErrors = validateCategoria(values);
+    if (Object.values(newValidationErrors).some((error) => error)) {
+      setValidationErrors(newValidationErrors);
+      return;
+    }
+    setValidationErrors({});
+    await updateCategoriaMutation.mutateAsync(values);
+    table.setEditingRow(null);
+  };
 
-  // Ação de atualização
-  const handleSaveCategoria: MRT_TableOptions<Categoria>['onEditingRowSave'] =
-    async ({ values, table }) => {
-      const newValidationErrors = validateCategoria(values);
-      if (Object.values(newValidationErrors).some((error) => error)) {
-        setValidationErrors(newValidationErrors);
-        return;
-      }
-      setValidationErrors({});
-      await updateCategoria(values);
-      table.setEditingRow(null); // sair do modo de edição
-    };
-
-  // Ação de exclusão
   const openDeleteConfirmModal = (row: MRT_Row<Categoria>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir essa categoria?',
       children: (
         <Text>
-          Tem certeza que você quer excluir {row.original.nomeCategoria}? Essa ação não pode ser
-          desfeita.
+          Tem certeza que você quer excluir a categoria {row.original.nome}? Essa ação não pode ser desfeita.
         </Text>
       ),
       labels: { confirm: 'Excluir', cancel: 'Cancelar' },
       confirmProps: { color: 'red' },
-      onConfirm: () => deleteCategoria(row.original.id_categoria!),
+      onConfirm: () => deleteCategoriaMutation.mutateAsync(row.original.id_categorias),
     });
 
   const table = useMantineReactTable({
@@ -134,18 +120,11 @@ const Example = () => {
     createDisplayMode: 'modal',
     editDisplayMode: 'modal',
     enableEditing: true,
-    getRowId: (row) => row.id_categoria!,
+    getRowId: (row) => String(row.id_categorias),
     mantineToolbarAlertBannerProps: isLoadingCategoriasError
-      ? {
-          color: 'red',
-          children: 'Erro ao carregar os dados',
-        }
+      ? { color: 'red', children: 'Erro ao carregar dados' }
       : undefined,
-    mantineTableContainerProps: {
-      style: {
-        minHeight: '500px',
-      },
-    },
+    mantineTableContainerProps: { style: { minHeight: '500px' } },
     onCreatingRowCancel: () => setValidationErrors({}),
     onCreatingRowSave: handleCreateCategoria,
     onEditingRowCancel: () => setValidationErrors({}),
@@ -161,7 +140,7 @@ const Example = () => {
     ),
     renderEditRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
-        <Title order={3}>Editar categoria</Title>
+        <Title order={3}>Editar Categoria</Title>
         {internalEditComponents}
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
@@ -183,17 +162,11 @@ const Example = () => {
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button
-        onClick={() => {
-          table.setCreatingRow(true);
-        }}
-      >
-        Cadastrar nova categoria
-      </Button>
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar nova categoria</Button>
     ),
     state: {
       isLoading: isLoadingCategorias,
-      isSaving: isCreatingCategoria || isUpdatingCategoria || isDeletingCategoria,
+      isSaving: false,
       showAlertBanner: isLoadingCategoriasError,
       showProgressBars: isFetchingCategorias,
     },
@@ -202,47 +175,23 @@ const Example = () => {
   return <MantineReactTable table={table} />;
 };
 
-// Função para criar categoria (POST)
 function useCreateCategoria() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (categoria: Categoria) => {
-      try {
-        const response = await axios.post('http://localhost:3000/categorias', categoria);
-        return response.data;
-      } catch (error: any) {
-        if (axios.isAxiosError(error)) {
-          console.error('Erro ao criar categoria:', {
-            message: error.message,
-            status: error.response?.status,
-            data: error.response?.data,
-          });
-        } else {
-          console.error('Erro desconhecido:', error);
-        }
-        throw new Error('Falha ao criar a categoria.');
-      }
-    },
-    onMutate: (newCategoriaInfo: Categoria) => {
-      queryClient.setQueryData(['users'], (prevCategorias: Categoria[] | undefined) => [
-        ...(prevCategorias || []),
-        { ...newCategoriaInfo, id_categoria: (Math.random() + 1).toString(36).substring(7) },
-      ]);
+    mutationFn: async (categoria: Omit<Categoria, 'id_categorias'>) => {
+      const response = await axios.post('http://localhost:3000/categorias', categoria);
+      return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      console.log('Nova categoria criada com sucesso!');
-    },
-    onError: (error: any) => {
-      console.error('Erro ao criar categoria:', error.message);
+      queryClient.invalidateQueries({ queryKey: ['categorias'] });
     },
   });
 }
 
-// Função para obter categorias (GET)
 function useGetCategorias() {
   return useQuery<Categoria[]>({
-    queryKey: ['users'],
+    queryKey: ['categorias'],
     queryFn: async () => {
       const response = await axios.get('http://localhost:3000/categorias');
       return response.data;
@@ -251,51 +200,28 @@ function useGetCategorias() {
   });
 }
 
-// Função para atualizar categoria (PUT)
 function useUpdateCategoria() {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (categoria: Categoria) => {
-      try {
-        const response = await axios.put(
-          `http://localhost:3000/categorias/${categoria.id_categoria}`,
-          categoria,
-        );
-        return response.data;
-      } catch (error: any) {
-        console.error('Erro ao atualizar categoria:', error.message);
-        throw new Error('Falha ao atualizar a categoria.');
-      }
+      await axios.put(`http://localhost:3000/categorias/${categoria.id_categorias}`, categoria);
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      console.log(`Categoria ${variables.nomeCategoria} atualizada com sucesso!`);
-    },
-    onError: (error: any) => {
-      console.error('Erro ao atualizar categoria:', error.message);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categorias'] });
     },
   });
 }
 
-// Função para excluir categoria (DELETE)
 function useDeleteCategoria() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (id_categoria: string) => {
-      try {
-        const response = await axios.delete(`http://localhost:3000/categorias/${id_categoria}`);
-        return response.data;
-      } catch (error: any) {
-        console.error('Erro ao excluir categoria:', error.message);
-        throw new Error('Falha ao excluir a categoria.');
-      }
+    mutationFn: async (categoriaId: number) => {
+      await axios.delete(`http://localhost:3000/categorias/${categoriaId}`);
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      console.log(`Categoria com ID ${variables} excluída com sucesso!`);
-    },
-    onError: (error: any) => {
-      console.error('Erro ao excluir categoria:', error.message);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categorias'] });
     },
   });
 }
@@ -303,7 +229,6 @@ function useDeleteCategoria() {
 const queryClient = new QueryClient();
 
 const ExampleWithProviders = () => (
-  // Coloque isso com seus outros provedores do react-query perto da raiz do seu app
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
       <Example />
@@ -313,15 +238,18 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-// Função de validação
-const validateRequired = (value: any) => value !== null && !!value.length;
+const validateRequired = (value: any) => {return value !== null && value !== undefined && value.toString().trim().length > 0;};
+const validateMinLength = (value: string, minLength: number) => {return value.trim().length >= minLength;};
+const validateNomeCategoria = (nome: string) => {return /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);}; // Nome da categoria não deve conter números e deve ter no mínimo 3 caracteres
 
 function validateCategoria(categoria: Categoria) {
-  return {
-    nomeCategoria: !validateRequired(categoria.nomeCategoria)
-      ? 'É necessário inserir o nome da categoria'
-      : categoria.nomeCategoria.length <= 2
-      ? 'O nome da categoria precisa ter mais do que 2 caracteres'
-      : '',
-  };
+  const errors: Record<string, string | undefined> = {};
+  
+  // Validação do nome da categoria
+  if (!validateRequired(categoria.nome)) {
+    errors.nomeCategoria = 'É necessário inserir o nome da categoria';
+  } else if (!validateNomeCategoria(categoria.nome)) {
+    errors.nomeCategoria = 'O nome da categoria precisa ter mais do que 2 caracteres e não conter números';
+  }
+  return errors;
 }

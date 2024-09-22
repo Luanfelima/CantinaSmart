@@ -1,9 +1,10 @@
-export type User = {
+/*export type User = {
     id: string;
     nomeProduto: string;
     quantidade: string;
   };
 
+ 
   export const fakeData: User[] = [
     {
       id: 'sa5d6c',
@@ -17,4 +18,4 @@ export type User = {
       quantidade: '12',
     },
 
-  ];
+  ];*/

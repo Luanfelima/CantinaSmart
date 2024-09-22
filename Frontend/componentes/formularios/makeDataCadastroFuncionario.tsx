@@ -1,4 +1,4 @@
-export type User = {
+/*export type User = {
     id: string;
     nome: string;
     email: string;
@@ -6,12 +6,12 @@ export type User = {
     cpf: string;
     cargo: string;
   };
-
+/*
   export const CargosPreDefinidos = [
     'Gestor(a)',
     'Funcionário(a)',
   ]
-  
+  /*
  /* export const fakeData: User[] = [
     {
       id: '9s41rp',

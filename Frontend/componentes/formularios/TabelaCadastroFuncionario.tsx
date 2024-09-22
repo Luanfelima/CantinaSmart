@@ -1,6 +1,6 @@
 import '@mantine/core/styles.css';
-import '@mantine/dates/styles.css'; //if using mantine date picker features
-import 'mantine-react-table/styles.css'; //make sure MRT styles were imported in your app root (once)
+import '@mantine/dates/styles.css';
+import 'mantine-react-table/styles.css';
 import { useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
@@ -29,18 +29,25 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import axios from 'axios';
-import { type User, CargosPreDefinidos } from './makeDataCadastroFuncionario';
 
-const Example = () => {
+type Funcionario = {
+  id_func: number;
+  nome: string;
+  email: string;
+  telefone: string;
+  cpf: string;
+  cargo: string;
+};
+
+const CadastroFuncionario = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
-  const columns = useMemo<MRT_ColumnDef<User>[]>(
+  const columns = useMemo<MRT_ColumnDef<Funcionario>[]>(
     () => [
       {
         accessorKey: 'nome',
         header: 'Nome',
         mantineEditTextInputProps: {
-          type: 'text',
           required: true,
           error: validationErrors?.nome,
           onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
@@ -50,7 +57,6 @@ const Example = () => {
         accessorKey: 'email',
         header: 'E-mail',
         mantineEditTextInputProps: {
-          type: 'text',
           required: true,
           error: validationErrors?.email,
           onFocus: () => setValidationErrors({ ...validationErrors, email: undefined }),
@@ -60,7 +66,6 @@ const Example = () => {
         accessorKey: 'telefone',
         header: 'Telefone',
         mantineEditTextInputProps: {
-          type: 'text',
           required: true,
           error: validationErrors?.telefone,
           onFocus: () => setValidationErrors({ ...validationErrors, telefone: undefined }),
@@ -70,7 +75,6 @@ const Example = () => {
         accessorKey: 'cpf',
         header: 'CPF',
         mantineEditTextInputProps: {
-          type: 'text',
           required: true,
           error: validationErrors?.cpf,
           onFocus: () => setValidationErrors({ ...validationErrors, cpf: undefined }),
@@ -81,7 +85,7 @@ const Example = () => {
         header: 'Cargo',
         editVariant: 'select',
         mantineEditSelectProps: {
-          data: CargosPreDefinidos,
+          data: ['Gestor(a)','Funcionário(a)'], // Ajuste aqui para dados reais
           required: true,
           error: validationErrors?.cargo,
           onFocus: () => setValidationErrors({ ...validationErrors, cargo: undefined }),
@@ -91,57 +95,72 @@ const Example = () => {
     [validationErrors],
   );
 
-  const { mutateAsync: createUser } = useCreateUser();
-  const { data: fetchedUsers = [], isError: isLoadingUsersError, isFetching: isFetchingUsers, isLoading: isLoadingUsers } = useGetUsers();
-  const { mutateAsync: updateUser } = useUpdateUser();
-  const { mutateAsync: deleteUser } = useDeleteUser();
+  const queryClient = useQueryClient();
 
-  const handleCreateUser: MRT_TableOptions<User>['onCreatingRowSave'] = async ({ values, exitCreatingMode }) => {
-    const newValidationErrors = validateUser(values);
+  const {
+    data: fetchedFuncionarios = [],
+    isError: isLoadingFuncionariosError,
+    isFetching: isFetchingFuncionarios,
+    isLoading: isLoadingFuncionarios,
+  } = useGetFuncionarios();
+
+  const createFuncionarioMutation = useCreateFuncionario();
+  const updateFuncionarioMutation = useUpdateFuncionario();
+  const deleteFuncionarioMutation = useDeleteFuncionario();
+
+  const handleCreateFuncionario: MRT_TableOptions<Funcionario>['onCreatingRowSave'] = async ({
+    values,
+    exitCreatingMode,
+  }) => {
+    const newValidationErrors = validateFuncionario(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await createUser(values);
+    await createFuncionarioMutation.mutateAsync(values);
     exitCreatingMode();
   };
 
-  const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({ values, table }) => {
-    const newValidationErrors = validateUser(values);
+  const handleSaveFuncionario: MRT_TableOptions<Funcionario>['onEditingRowSave'] = async ({ values, table }) => {
+    const newValidationErrors = validateFuncionario(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await updateUser(values);
-    table.setEditingRow(null); // exit editing mode
+    await updateFuncionarioMutation.mutateAsync(values);
+    table.setEditingRow(null);
   };
 
-  const openDeleteConfirmModal = (row: MRT_Row<User>) =>
+  const openDeleteConfirmModal = (row: MRT_Row<Funcionario>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir esse funcionário?',
       children: (
-        <Text>Tem certeza que você quer excluir o funcionário {row.original.nome}? Essa ação não pode ser desfeita.</Text>
+        <Text>
+          Tem certeza que você quer excluir o funcionário {row.original.nome}? Essa ação não pode ser desfeita.
+        </Text>
       ),
       labels: { confirm: 'Excluir', cancel: 'Cancelar' },
       confirmProps: { color: 'red' },
-      onConfirm: () => deleteUser(row.original.id),
+      onConfirm: () => deleteFuncionarioMutation.mutateAsync(row.original.id_func),
     });
 
   const table = useMantineReactTable({
     columns,
-    data: fetchedUsers,
+    data: fetchedFuncionarios,
     createDisplayMode: 'modal',
     editDisplayMode: 'modal',
     enableEditing: true,
-    getRowId: (row) => row.id,
-    mantineToolbarAlertBannerProps: isLoadingUsersError ? { color: 'red', children: 'Error loading data' } : undefined,
+    getRowId: (row) => String(row.id_func),
+    mantineToolbarAlertBannerProps: isLoadingFuncionariosError
+      ? { color: 'red', children: 'Erro ao carregar dados' }
+      : undefined,
     mantineTableContainerProps: { style: { minHeight: '500px' } },
     onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateUser,
+    onCreatingRowSave: handleCreateFuncionario,
     onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveUser,
+    onEditingRowSave: handleSaveFuncionario,
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar novo funcionário</Title>
@@ -178,145 +197,116 @@ const Example = () => {
       <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo funcionário</Button>
     ),
     state: {
-      isLoading: isLoadingUsers,
+      isLoading: isLoadingFuncionarios,
       isSaving: false,
-      showAlertBanner: isLoadingUsersError,
-      showProgressBars: isFetchingUsers,
+      showAlertBanner: isLoadingFuncionariosError,
+      showProgressBars: isFetchingFuncionarios,
     },
   });
 
   return <MantineReactTable table={table} />;
 };
 
-function useCreateUser() {
+function useCreateFuncionario() {
   const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async (user: User) => {
-      try {
-        // Validação básica dos dados
-        if (!user.nome || !user.email || !user.telefone || !user.cpf || !user.cargo) {
-          throw new Error('Todos os campos são obrigatórios.');
-        }
-        
-        // Chamada de API POST
-        const response = await axios.post('http://localhost:3000/funcionarios', user);
 
-        // Retorna os dados da resposta do servidor
-        return response.data;
-      } catch (error: any) {
-        // Tratamento de erro
-        console.error('Erro ao criar novo funcionário:', error);
-        throw new Error('Falha ao criar o funcionário. Verifique os dados e tente novamente.');
-      }
-    },
-    onMutate: (newUserInfo: User) => {
-      // Atualiza a cache otimistamente antes da resposta do servidor
-      queryClient.setQueryData(['users'], (prevUsers: User[] | undefined) => [
-        ...(prevUsers || []),
-        { ...newUserInfo, id: (Math.random() + 1).toString(36).substring(7) },
-      ]);
+  return useMutation({
+    mutationFn: async (funcionario: Omit<Funcionario, 'id_func'>) => {
+      const response = await axios.post('http://localhost:3000/funcionarios', funcionario);
+      return response.data;
     },
     onSuccess: () => {
-      // Invalida a query para garantir que os dados mais recentes são buscados após a criação
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      console.log('Novo funcionário criado com sucesso no banco de dados!');
-    },
-    onError: (error: any) => {
-      // Mostra uma mensagem de erro no caso de falha
-      console.error('Erro ao criar o funcionário no backend:', error.message);
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
     },
   });
 }
 
-function useGetUsers() {
-  return useQuery<User[]>({
-    queryKey: ['users'],
+function useGetFuncionarios() {
+  return useQuery<Funcionario[]>({
+    queryKey: ['funcionarios'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:3000/funcionarios'); // chamada de API GET
+      const response = await axios.get('http://localhost:3000/funcionarios');
       return response.data;
     },
     refetchOnWindowFocus: false,
   });
 }
 
-function useUpdateUser() {
+function useUpdateFuncionario() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (user: User) => {
-      try {
-        console.log('Enviando dados para atualização:', user);
-        const response = await axios.put(`http://localhost:3000/funcionarios/${user.id}`, user); // chamada de API PUT
-        console.log('Resposta do servidor após atualização:', response.data); // Log da resposta do servidor
-        return response.data;
-      } catch (error) {
-        console.error('Erro ao enviar a atualização ao servidor:', error);
-        throw new Error('Falha ao atualizar o funcionário');
-      }
+    mutationFn: async (funcionario: Funcionario) => {
+      await axios.put(`http://localhost:3000/funcionarios/${funcionario.id_func}`, funcionario);
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      console.log(`Funcionário ${variables.nome} atualizado com sucesso no banco de dados!`);
-    },
-    onError: (error) => {
-      console.error('Erro ao atualizar o usuário no backend:', error);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
     },
   });
 }
 
-function useDeleteUser() {
+function useDeleteFuncionario() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (userId: string) => {
-      try {
-        console.log('Iniciando a exclusão do usuário:', userId);
-        const response = await axios.delete(`http://localhost:3000/funcionarios/${userId}`); // chamada de API DELETE
-        console.log('Resposta do servidor após exclusão:', response.data); // Log da resposta do servidor
-        return response.data;
-      } catch (error) {
-        console.error('Erro ao enviar a exclusão ao servidor:', error);
-        throw new Error('Falha ao excluir o funcionário');
-      }
+    mutationFn: async (funcionarioId: number) => {
+      await axios.delete(`http://localhost:3000/funcionarios/${funcionarioId}`);
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      console.log(`Funcionário com ID ${variables} excluído com sucesso no banco de dados!`);
-    },
-    onError: (error) => {
-      console.error('Erro ao excluir o usuário no backend:', error);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
     },
   });
 }
 
 const queryClient = new QueryClient();
 
-const ExampleWithProviders = () => (
+const CadastroFuncionarioWithProviders = () => (
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
-      <Example />
+      <CadastroFuncionario />
     </ModalsProvider>
   </QueryClientProvider>
 );
 
-export default ExampleWithProviders;
+export default CadastroFuncionarioWithProviders;
 
-const validateRequired = (value: any) => value !== null && !!value.length;
-const validateEmail = (email: string) =>
-  !!email.length && email.toLowerCase().match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/);
-const validateCpf = (cpf: string) =>
-  !!cpf.length && cpf.replace(/\D/g, '').match(/^[0-9]{11}$/);
-const validateTelefone = (telefone: string) =>
-  !!telefone.length && telefone.replace(/\D/g, '').match(/^[0-9]{10,11}$/);
+const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength;
+const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length;
+const validateNome = (nome: string) => {const regex = /^[^0-9]+$/; return regex.test(nome) && validateMinLength(nome, 4);};
+const validateEmail = (email: string) => {const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; return !!email.length && regex.test(email.toLowerCase());};
+const validateCpf = (cpf: string) => {if (cpf.includes('.') || cpf.includes('-')) {return false;} return /^[0-9]{11}$/.test(cpf);};
+const validateTelefone = (telefone: string) => {const cleanTelefone = telefone.replace(/\D/g, ''); return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone);};
 
-const validateUser = (values: User) => {
-  const errors: Record<string, string | undefined> = {
-    nome: validateRequired(values.nome) ? undefined : 'Nome é obrigatório',
-    email: validateEmail(values.email) ? undefined : 'E-mail inválido',
-    cpf: validateCpf(values.cpf) ? undefined : 'CPF inválido',
-    telefone: validateTelefone(values.telefone) ? undefined : 'Telefone inválido',
-    cargo: validateRequired(values.cargo) ? undefined : 'Cargo é obrigatório',
-  };
+const validateFuncionario = (values: Funcionario) => {
+  const errors: Record<string, string | undefined> = {};
+  
+  // Validação do nome
+  if (!validateRequired(values.nome)) {
+    errors.nome = 'Nome é obrigatório';
+  } else if (!validateNome(values.nome)) {
+    errors.nome = 'Nome deve ter no mínimo 4 caracteres e não conter números';
+  }
+  // Validação do email
+  if (!validateRequired(values.email)) {
+    errors.email = 'E-mail é obrigatório';
+  } else if (!validateEmail(values.email)) {
+    errors.email = 'E-mail em formato inválido';
+  }
+  // Validação do telefone
+  if (!validateRequired(values.telefone)) {
+    errors.telefone = 'Telefone é obrigatório';
+  } else if (!validateTelefone(values.telefone)) {
+    errors.telefone = 'Telefone inválido';
+  }
+  // Validação do CPF
+  if (!validateRequired(values.cpf)) {
+    errors.cpf = 'CPF é obrigatório';
+  } else if (!validateCpf(values.cpf)) {
+    errors.cpf = 'CPF inválido. Digite sem traços e pontos';
+  }
+  // Validação do cargo
+  if (!validateRequired(values.cargo)) {
+    errors.cargo = 'Cargo é obrigatório';
+  }
   return errors;
 };

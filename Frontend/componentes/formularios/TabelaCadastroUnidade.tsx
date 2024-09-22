@@ -32,7 +32,7 @@ import axios from 'axios';
 
 // Definição do tipo Unidade
 type Unidade = {
-  id_unidade?: string;
+  id_unidade: number;
   polo: string;
   nome_unidade: string;
   cep: string;
@@ -155,19 +155,31 @@ const Example = () => {
     [validationErrors, autoCompleteData],
   );
 
-  const { mutateAsync: createUnidade } = useCreateUnidade();
-  const { data: fetchedUnidades = [], isError: isLoadingUnidadesError, isFetching: isFetchingUnidades, isLoading: isLoadingUnidades } = useGetUnidades();
-  const { mutateAsync: updateUnidade } = useUpdateUnidade();
-  const { mutateAsync: deleteUnidade } = useDeleteUnidade();
+  const queryClient = useQueryClient();
 
-  const handleCreateUnidade: MRT_TableOptions<Unidade>['onCreatingRowSave'] = async ({ values, exitCreatingMode }) => {
+  const {
+    data: fetchedUnidades = [],
+    isError: isLoadingUnidadesError,
+    isFetching: isFetchingUnidades,
+    isLoading: isLoadingUnidades,
+  } = useGetUnidades();
+
+  const createUnidadeMutation = useCreateUnidade();
+  const updateUnidadeMutation = useUpdateUnidade();
+  const deleteUnidadeMutation = useDeleteUnidade();
+
+  const handleCreateUnidade: MRT_TableOptions<Unidade>['onCreatingRowSave'] = async ({
+    values,
+    exitCreatingMode,
+  }) => {
     const newValidationErrors = validateUnidade(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await createUnidade({ ...values, ...autoCompleteData }); // Inclui os dados preenchidos automaticamente
+
+    await createUnidadeMutation.mutateAsync(values);
     exitCreatingMode();
   };
 
@@ -178,30 +190,23 @@ const Example = () => {
       return;
     }
     setValidationErrors({});
-    await updateUnidade({ ...values, ...autoCompleteData });
+
+    await updateUnidadeMutation.mutateAsync(values);
     table.setEditingRow(null);
   };
 
-  const openDeleteConfirmModal = (row: MRT_Row<Unidade>) => {
-    const id_unidade = row.original.id_unidade;
-
-    if (id_unidade) {
-      modals.openConfirmModal({
-        title: 'Tem certeza que você quer excluir esta unidade?',
-        children: (
-          <Text>
-            Tem certeza que você quer excluir a unidade {row.original.nome_unidade}? Essa ação não
-            pode ser desfeita.
-          </Text>
-        ),
-        labels: { confirm: 'Excluir', cancel: 'Cancelar' },
-        confirmProps: { color: 'red' },
-        onConfirm: () => deleteUnidade(id_unidade),
-      });
-    } else {
-      console.error('ID da unidade é inválido ou indefinido.');
-    }
-  };
+  const openDeleteConfirmModal = (row: MRT_Row<Unidade>) =>
+    modals.openConfirmModal({
+      title: 'Tem certeza que você quer excluir essa unidade?',
+      children: (
+        <Text>
+          Tem certeza que você quer excluir a unidade {row.original.nome_unidade}? Essa ação não pode ser desfeita.
+        </Text>
+      ),
+      labels: { confirm: 'Excluir', cancel: 'Cancelar' },
+      confirmProps: { color: 'red' },
+      onConfirm: () => deleteUnidadeMutation.mutateAsync(row.original.id_unidade),
+    });
 
   const table = useMantineReactTable({
     columns,
@@ -209,7 +214,7 @@ const Example = () => {
     createDisplayMode: 'modal',
     editDisplayMode: 'modal',
     enableEditing: true,
-    getRowId: (row) => row.id_unidade,
+    getRowId: (row) => String(row.id_unidade),
     mantineToolbarAlertBannerProps: isLoadingUnidadesError
       ? { color: 'red', children: 'Erro ao carregar dados' }
       : undefined,
@@ -264,7 +269,7 @@ const Example = () => {
   return <MantineReactTable table={table} />;
 };
 
-// Função para obter Unidades
+// Funções auxiliares de CRUD
 function useGetUnidades() {
   return useQuery<Unidade[]>({
     queryKey: ['unidades'],
@@ -276,107 +281,47 @@ function useGetUnidades() {
   });
 }
 
-// Função para atualizar Unidade
+function useCreateUnidade() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (unidade: Omit<Unidade, 'id_unidade'>) => {
+      const response = await axios.post('http://localhost:3000/unidades', unidade);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['unidades'] });
+    },
+  });
+}
+
 function useUpdateUnidade() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (unidade: Unidade) => {
-      try {
-        console.log('Enviando dados para atualização:', unidade);
-        const response = await axios.put(
-          `http://localhost:3000/unidades/${unidade.id_unidade}`,
-          unidade,
-        );
-        console.log('Resposta do servidor após atualização:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('Erro ao atualizar a unidade no servidor:', error);
-        throw new Error('Falha ao atualizar a unidade.');
-      }
+      await axios.put(`http://localhost:3000/unidades/${unidade.id_unidade}`, unidade);
     },
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unidades'] });
-      console.log(`Unidade ${variables.nome_unidade} atualizada com sucesso!`);
-    },
-    onError: (error) => {
-      console.error('Erro ao atualizar a unidade:', error);
     },
   });
 }
 
-// Função para deletar Unidade
 function useDeleteUnidade() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id_unidade: string) => {
-      try {
-        console.log('Iniciando exclusão da unidade:', id_unidade);
-        const response = await axios.delete(`http://localhost:3000/unidades/${id_unidade}`);
-        console.log('Resposta do servidor após exclusão:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error('Erro ao excluir a unidade no servidor:', error);
-        throw new Error('Falha ao excluir a unidade.');
-      }
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['unidades'] });
-      console.log(`Unidade com ID ${variables} excluída com sucesso!`);
-    },
-    onError: (error) => {
-      console.error('Erro ao excluir a unidade:', error);
-    },
-  });
-}
-
-// Função de criação da unidade
-function useCreateUnidade() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (unidade: Unidade) => {
-      try {
-        const response = await axios.post('http://localhost:3000/unidades', unidade);
-        return response.data;
-      } catch (error: any) {
-        console.error('Erro ao criar unidade:', error.message);
-        throw new Error('Falha ao criar a unidade.');
-      }
-    },
-    onMutate: (newUnidadeInfo: Unidade) => {
-      queryClient.setQueryData(['unidades'], (prevUnidades: Unidade[] | undefined) => [
-        ...(prevUnidades || []),
-        { ...newUnidadeInfo, id_unidade: (Math.random() + 1).toString(36).substring(7) },
-      ]);
+    mutationFn: async (unidadeId: number) => {
+      await axios.delete(`http://localhost:3000/unidades/${unidadeId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unidades'] });
-      console.log('Nova unidade criada com sucesso!');
-    },
-    onError: (error: any) => {
-      console.error('Erro ao criar unidade:', error.message);
     },
   });
 }
 
-// Função de validação
-const validateUnidade = (values: Unidade) => {
-  const errors: Record<string, string | undefined> = {
-    polo: values.polo ? undefined : 'Polo é obrigatório',
-    nome_unidade: values.nome_unidade ? undefined : 'Nome da unidade é obrigatório',
-    cep: values.cep ? undefined : 'CEP é obrigatório',
-    cidade: values.cidade ? undefined : 'Cidade é obrigatória',
-    rua: values.rua ? undefined : 'Rua é obrigatória',
-    estado: values.estado ? undefined : 'Estado é obrigatório',
-    numero: values.numero ? undefined : 'Número é obrigatório',
-  };
-  return errors;
-};
-
 const queryClient = new QueryClient();
-
 const ExampleWithProviders = () => (
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
@@ -386,3 +331,53 @@ const ExampleWithProviders = () => (
 );
 
 export default ExampleWithProviders;
+
+const validateNomeUnidade = (value: string) => {return /^[^\d]+$/.test(value);};
+const validateMinLength = (value: string, minLength: number) => {return !!value && value.length >= minLength;};
+const validateRequired = (value: any) => {return value !== null && value !== undefined && !!value.length;};
+const validateCep = (cep: string) => {if (cep.includes('-')) {return false;}return /^\d{8}$/.test(cep);}; //Verifica se o CEP contém exatamente 8 dígitos numéricos e Verifica se o CEP contém o caractere '-'
+//caso seja melhor usar text, este é o validate de numero
+const validateNumero = (numero: string) => {
+  return /^-?\d+(\.\d+)?$/.test(numero);
+};
+// Funções de validação
+const validateUnidade = (values: Unidade) => {
+  const errors: Record<string, string | undefined> = {};
+  // Polo é obrigatório
+  if (!validateRequired(values.polo)) {
+    errors.polo = 'Polo é obrigatório';
+  }
+  // Nome da unidade
+  if (!validateRequired(values.nome_unidade)) {
+    errors.nome_unidade = 'Nome da unidade é obrigatório';
+  } else if (!validateNomeUnidade(values.nome_unidade)) {
+    errors.nome_unidade = 'Nome inválido';
+  } else if (!validateMinLength(values.nome_unidade, 2)) {
+    errors.nome_unidade = 'Nome inválido';
+  }
+  // CEP
+  if (!validateRequired(values.cep)) {
+    errors.cep = 'CEP é obrigatório';
+  } else if (!validateCep(values.cep)) {
+    errors.cep = 'CEP inválido. Digite sem o "-" ';
+  }
+  // Cidade
+  if (!validateRequired(values.cidade)) {
+    errors.cidade = 'Cidade é obrigatória'; //sei que está usando a API de CEP, mas tá ai
+  }
+  // Rua
+  if (!validateRequired(values.rua)) {
+    errors.rua = 'Rua é obrigatória'; //sei que está usando a API de CEP, mas tá ai
+  }
+  // Estado
+  if (!validateRequired(values.estado)) {
+    errors.estado = 'Estado é obrigatório'; //sei que está usando a API de CEP, mas tá ai
+  }
+  // Número
+  if (!validateRequired(values.numero)) {
+    errors.numero = 'Número é obrigatório';
+  } else if (!validateNumero(values.numero)) {
+    errors.numero = 'Número inválido'; //caso for usar text, mexer nessa validate
+  } 
+  return errors;
+};

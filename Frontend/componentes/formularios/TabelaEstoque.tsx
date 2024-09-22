@@ -30,7 +30,12 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { type User, fakeData } from './makeDataEstoque';
+
+type User = {
+  id: string;
+  nomeProduto: string;
+  quantidade: string;
+};
 
 const Example = () => {
   const [validationErrors, setValidationErrors] = useState<
@@ -95,7 +100,7 @@ const Example = () => {
     values,
     exitCreatingMode,
   }) => {
-    const newValidationErrors = validateUser(values);
+    const newValidationErrors = validateEstoque(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
@@ -110,7 +115,7 @@ const Example = () => {
     values,
     table,
   }) => {
-    const newValidationErrors = validateUser(values);
+    const newValidationErrors = validateEstoque(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
@@ -246,11 +251,6 @@ function useCreateUser() {
 function useGetUsers() {
   return useQuery<User[]>({
     queryKey: ['users'],
-    queryFn: async () => {
-      //send api request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
-      return Promise.resolve(fakeData);
-    },
     refetchOnWindowFocus: false,
   });
 }
@@ -296,7 +296,6 @@ function useDeleteUser() {
 }
 
 const queryClient = new QueryClient();
-
 const ExampleWithProviders = () => (
   //Put this with your other react-query providers near root of your app
   <QueryClientProvider client={queryClient}>
@@ -308,21 +307,26 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => value !== null && !!value.length; //Validate de todos os campos
-const validateQuantidade = (quantidade: string) => //Regex de números naturais (positivos e maiores que zero)
-    !!quantidade.length && 
-    quantidade
-    .match(/^[1-9]\d*$/); 
+const validateRequired = (value: any) => {return value !== null && value !== undefined && !!value.length;};
+const validateMinLength = (value: string, minLength: number) => {return !!value && value.length >= minLength;};
+const validateSomenteTexto = (value: string) => {return /^[^\d]+$/.test(value);};
+const validateQuantidade = (quantidade: string) => {return /^[1-9]\d{0,2}$/.test(quantidade);}; // Regex de números naturais (positivos e maiores que zero) com 2 digitos adicionais depois do primeiro diferente de zero
 
-function validateUser(user: User) {
-  return {
-    nomeProduto: !validateRequired(user.nomeProduto)
-      ? 'É necessário inserir o nome do produto'
-      : user.nomeProduto.length <= 2
-        ? 'O nome do produto precisar ter mais do que 2 caracteres'
-        : '',
-        quantidade: !validateQuantidade(user.quantidade)
-      ? 'Quantidade incorreta'
-      : '',
-  };
+function validateEstoque(user: User) {
+  const errors: Record<string, string | undefined> = {};
+  // Validação do nome do produto
+  if (!validateRequired(user.nomeProduto)) {
+    errors.nomeProduto = 'Nome do produto é obrigatório';
+  } else if (!validateMinLength(user.nomeProduto, 2)) {
+    errors.nomeProduto = 'Nome do produto inválido';
+  } else if (!validateSomenteTexto(user.nomeProduto)) {
+    errors.nomeProduto = 'Nome do produto inválido';
+  }
+  // Validação da quantidade
+  if (!validateRequired(user.quantidade)) {
+    errors.quantidade = 'Quantidade obrigatória';
+  } else if (!validateQuantidade(user.quantidade)) {
+    errors.quantidade = 'Quantidade inválida';
+  }
+  return errors;
 }

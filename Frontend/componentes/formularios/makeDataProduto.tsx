@@ -1,4 +1,4 @@
-export type User = {
+/*export type User = {
     id: string;
     nomeProduto: string;
     categoria: string;
@@ -67,4 +67,4 @@ export type User = {
   export const perecivelPreDefinidas = [
     'Sim',
     'Não'
-  ]
+  ]*/
