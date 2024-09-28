@@ -254,3 +254,68 @@ app.delete('/unidades/:id_unidade', (req, res) => {
     res.json({ message: 'Unidade removida com sucesso' });
   });
 });
+//------------------------------------------------------------------------------------------------------------------------------------
+app.get('/gestor', (req, res) => {
+  const query = 'SELECT nome, sobrenome, cpf_gestor, email, telefone FROM gestor';
+  db.query(query, (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.post('/gestor', async (req, res) => {
+  const { nome, sobrenome, cpf_gestor, email, telefone, senha } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(senha, 10);
+
+    const query = 'INSERT INTO gestor (nome, sobrenome, cpf_gestor, email, telefone, senha) VALUES (?, ?, ?, ?, ?, ?)';
+    const values = [nome, sobrenome, cpf_gestor, email, telefone, hashedPassword];
+
+    db.query(query, values, (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(201).json({ message: 'Gestor registrado com sucesso' });
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/gestor/:cpf_gestor', async (req, res) => {
+  const { cpf_gestor } = req.params;
+  const { nome, sobrenome, email, telefone, senha } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(senha, 10);
+
+    const query = 'UPDATE gestor SET nome = ?, sobrenome = ?, email = ?, telefone = ?, senha = ? WHERE cpf_gestor = ?';
+    const values = [nome, sobrenome, email, telefone, hashedPassword, cpf_gestor];
+
+    db.query(query, values, (err) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ message: 'Gestor atualizado com sucesso' });
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/gestor/:cpf_gestor', (req, res) => {
+  const { cpf_gestor } = req.params;
+  const query = 'DELETE FROM gestor WHERE cpf_gestor = ?';
+
+  db.query(query, [cpf_gestor], (err) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ message: 'Gestor removido com sucesso' });
+  });
+});

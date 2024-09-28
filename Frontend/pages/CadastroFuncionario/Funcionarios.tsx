@@ -2,7 +2,7 @@ import { Container } from "@mantine/core";
 import Layout from "../../componentes/Layout";
 import TabelaCadastroFuncionario from "../../componentes/formularios/TabelaCadastroFuncionario";
 
-function Categorias() {
+function Funcionarios() {
     return (
         <Layout>
             <Container size='xl'>
@@ -12,4 +12,4 @@ function Categorias() {
     )
 }
 
-export default Categorias;
+export default Funcionarios;

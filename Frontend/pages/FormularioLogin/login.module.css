@@ -1,0 +1,37 @@
+.title {
+    font-family:
+      Greycliff CF,
+      var(--mantine-font-family);
+    font-weight: 900;
+    color: #405F90;
+  }
+
+  .container {
+    position: relative;
+  }
+  
+  .imageContainer {
+    position: fixed; /* Fixa a imagem em relação à janela do navegador */
+    bottom: 10px; /* Coloca a imagem 10px do fundo da janela */
+    right: 10px; /* Coloca a imagem 10px do lado direito da janela */
+    cursor: pointer;
+  }
+  
+  .image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  @media (max-width: 768px) {
+    .image {
+      width: 40px; /* Ajusta o tamanho da imagem em telas menores */
+      height: 40px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .image {
+      width: 30px; /* Ajusta ainda mais o tamanho em telas muito pequenas */
+      height: 30px;
+    }
+  }

@@ -8,15 +8,15 @@ import {
   Group,
   Button,
 } from '@mantine/core';
-import classes from './login.module.css';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import Image from 'next/image';
+import classes from './login.module.css';
 
 export function FormLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({ email: '', password: '' });
-
   const router = useRouter();
 
   const validateEmail = (email: string) => {
@@ -46,8 +46,12 @@ export function FormLogin() {
     }
   };
 
+  const handleImageClick = () => {
+    router.push('/FormularioLoginAdm/loginAdm');
+  };
+
   return (
-    <Container size={420} my={40}>
+    <Container size={420} my={40} className={classes.container}>
       <Title ta="center" className={classes.title}>
         Cantinas Smart
       </Title>
@@ -76,8 +80,19 @@ export function FormLogin() {
           Login
         </Button>
       </Paper>
+
+      {/* Imagem clicável no canto */}
+      <div className={classes.imageContainer}>
+        <Image
+          src="/engrenagem.png"
+          alt="Área do ADM"
+          width={50}
+          height={50}
+          onClick={handleImageClick}
+          className={classes.image}
+        />
+      </div>
     </Container>
   );
 }
-
 export default FormLogin;

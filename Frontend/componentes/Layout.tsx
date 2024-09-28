@@ -8,7 +8,6 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
@@ -26,44 +25,52 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <Group h="100%" px="md">
           <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" />
           <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="sm" size="sm" />
-          <LogoClaro/>
+          <LogoClaro />
           <Autocomplete
-          placeholder="🔍 Pesquisa"
-          data={[
-            { group: 'Dashboard', items: ['Tela Inicial'] },
-            { group: 'Unidades', items: ['Cadastrar nova unidade','Gerenciar estoque', 'Gerenciar fluxo de caixa'] },
-            { group: 'Funcionários', items: ['Cadastrar funcionário'] },
-            { group: 'Produtos', items: ['Cadastrar produto'] },
-            { group: 'Estoque', items: ['Estoque'] },
-            { group: 'Categorias', items: ['Cadastrar Categorias'] },
-      ]}
-    />
-          <Button variant="transparent"><Avatar variant="light" radius="lg" size="lg" color="rgba(83, 130, 224, 1)" src="PerfilUsuario" /></Button>
+            placeholder="🔍 Pesquisa"
+            data={[
+              { group: 'Dashboard', items: ['Tela Inicial'] },
+              { group: 'Unidades', items: ['Cadastrar nova unidade', 'Gerenciar estoque', 'Gerenciar fluxo de caixa'] },
+              { group: 'Funcionários', items: ['Cadastrar funcionário'] },
+              { group: 'Produtos', items: ['Cadastrar produto'] },
+              { group: 'Estoque', items: ['Estoque'] },
+              { group: 'Categorias', items: ['Cadastrar Categorias'] },
+            ]}
+          />
+          <Button variant="transparent">
+            <Avatar variant="light" radius="lg" size="lg" color="rgba(83, 130, 224, 1)" src="PerfilUsuario" />
+          </Button>
         </Group>
-        </AppShell.Header>
+      </AppShell.Header>
 
-        <AppShell.Navbar p="md" > 
-        <NavLink href="/Dashboard/dashboard" label="Tela Inicial"/>
-      <NavLink
-        href="#required-for-focus"
-        label="Unidades"
-        childrenOffset={28}variant="subtle"
-      >
-        <NavLink href="/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes" label="Cadastrar nova unidade" />
-        <NavLink href="#required-for-focus" label="Gerenciar estoque" />
-        <NavLink label="Gerenciar fluxo de caixa" href="#required-for-focus" />
-        
-      </NavLink>
+      <AppShell.Navbar p="md" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div>
+          <NavLink href="/Dashboard/dashboard" label="Tela Inicial" />
+          <NavLink href="#required-for-focus" label="Unidades" childrenOffset={28} variant="subtle">
+            <NavLink href="/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes" label="Cadastrar nova unidade" />
+            <NavLink href="#required-for-focus" label="Gerenciar estoque" />
+            <NavLink label="Gerenciar fluxo de caixa" href="#required-for-focus" />
+          </NavLink>
 
-      <NavLink href="/CadastroFuncionario/Funcionarios" label="Funcionários" />
-      <NavLink href="/CadastroProduto/Produtos" label="Produto" />
-      <NavLink href="/CadastroEstoque/Estoque" label="Estoque" />
-      <NavLink href="/CadastroCategoria/Categorias" label="Categorias" />
+          <NavLink href="/CadastroFuncionario/Funcionarios" label="Funcionários" />
+          <NavLink href="/CadastroProduto/Produtos" label="Produto" />
+          <NavLink href="/CadastroEstoque/Estoque" label="Estoque" />
+          <NavLink href="/CadastroCategoria/Categorias" label="Categorias" />
+        </div>
+
+        <div>
+          <NavLink
+            href="/FormularioLogin/login"
+            label= {
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <img src="/LogOff.png" alt="Voltar ao Login / LogOff" style={{ width: 24, height: 24, marginRight: 8 }}/>
+              </div>
+            }
+          />
+        </div>
       </AppShell.Navbar>
-
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>
   );
 };
-
 export default Layout;
