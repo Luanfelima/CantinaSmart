@@ -1,7 +1,12 @@
+// Importa os estilos necessários para os componentes do Mantine e da tabela
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
+
+// Importa hooks e funções do React e outras bibliotecas
 import { useMemo, useState } from 'react';
+
+// Importa componentes e tipos do Mantine React Table
 import {
   MRT_EditActionButtons,
   MantineReactTable,
@@ -10,6 +15,8 @@ import {
   type MRT_TableOptions,
   useMantineReactTable,
 } from 'mantine-react-table';
+
+// Importa componentes do Mantine para a interface do usuário
 import {
   ActionIcon,
   Button,
@@ -19,8 +26,14 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
+
+// Importa o provedor de modais e a função de modais do Mantine
 import { ModalsProvider, modals } from '@mantine/modals';
+
+// Importa ícones da biblioteca Tabler Icons
 import { IconEdit, IconTrash } from '@tabler/icons-react';
+
+// Importa funções e hooks do React Query para gerenciamento de dados assíncronos
 import {
   QueryClient,
   QueryClientProvider,
@@ -28,26 +41,32 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+
+// Importa a biblioteca axios para fazer requisições HTTP
 import axios from 'axios';
 
+// Define o tipo Categoria com os campos correspondentes
 type Categoria = {
   id_categorias: number;
   nome: string;
   descricao: string;
 };
 
+// Componente principal do exemplo
 const Example = () => {
+  // Estado para armazenar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
+  // Define as colunas da tabela usando useMemo para otimização
   const columns = useMemo<MRT_ColumnDef<Categoria>[]>(
     () => [
       {
-        accessorKey: 'nome',
-        header: 'Nome',
+        accessorKey: 'nome', // Chave de acesso ao campo 'nome'
+        header: 'Nome', // Rótulo da coluna
         mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.nome,
-          onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
+          required: true, // Campo obrigatório
+          error: validationErrors?.nome, // Exibe erro se houver
+          onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }), // Limpa o erro ao focar
         },
       },
       {
@@ -63,8 +82,10 @@ const Example = () => {
     [validationErrors],
   );
 
+  // Obtém a instância do QueryClient para gerenciar o cache das requisições
   const queryClient = useQueryClient();
 
+  // Usa o hook useGetCategorias para buscar as categorias
   const {
     data: fetchedCategorias = [],
     isError: isLoadingCategoriasError,
@@ -72,35 +93,41 @@ const Example = () => {
     isLoading: isLoadingCategorias,
   } = useGetCategorias();
 
+  // Inicializa as mutações para criar, atualizar e deletar categorias
   const createCategoriaMutation = useCreateCategoria();
   const updateCategoriaMutation = useUpdateCategoria();
   const deleteCategoriaMutation = useDeleteCategoria();
 
+  // Função para lidar com a criação de uma nova categoria
   const handleCreateCategoria: MRT_TableOptions<Categoria>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode,
   }) => {
+    // Valida os dados da categoria
     const newValidationErrors = validateCategoria(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
+      setValidationErrors(newValidationErrors); // Define os erros de validação
       return;
     }
-    setValidationErrors({});
-    await createCategoriaMutation.mutateAsync(values);
-    exitCreatingMode();
+    setValidationErrors({}); // Limpa os erros de validação
+    await createCategoriaMutation.mutateAsync(values); // Realiza a mutação para criar a categoria
+    exitCreatingMode(); // Sai do modo de criação
   };
 
+  // Função para lidar com a atualização de uma categoria existente
   const handleSaveCategoria: MRT_TableOptions<Categoria>['onEditingRowSave'] = async ({ values, table }) => {
+    // Valida os dados da categoria
     const newValidationErrors = validateCategoria(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
+      setValidationErrors(newValidationErrors); // Define os erros de validação
       return;
     }
-    setValidationErrors({});
-    await updateCategoriaMutation.mutateAsync(values);
-    table.setEditingRow(null);
+    setValidationErrors({}); // Limpa os erros de validação
+    await updateCategoriaMutation.mutateAsync(values); // Realiza a mutação para atualizar a categoria
+    table.setEditingRow(null); // Sai do modo de edição
   };
 
+  // Função para abrir o modal de confirmação de exclusão
   const openDeleteConfirmModal = (row: MRT_Row<Categoria>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir essa categoria?',
@@ -111,30 +138,31 @@ const Example = () => {
       ),
       labels: { confirm: 'Excluir', cancel: 'Cancelar' },
       confirmProps: { color: 'red' },
-      onConfirm: () => deleteCategoriaMutation.mutateAsync(row.original.id_categorias),
+      onConfirm: () => deleteCategoriaMutation.mutateAsync(row.original.id_categorias), // Realiza a mutação para deletar a categoria
     });
 
+  // Configura o uso do MantineReactTable com as opções necessárias
   const table = useMantineReactTable({
-    columns,
-    data: fetchedCategorias,
-    createDisplayMode: 'modal',
-    editDisplayMode: 'modal',
-    enableEditing: true,
-    getRowId: (row) => String(row.id_categorias),
+    columns, // Colunas definidas anteriormente
+    data: fetchedCategorias, // Dados das categorias buscadas
+    createDisplayMode: 'modal', // Define que o formulário de criação será exibido em um modal
+    editDisplayMode: 'modal', // Define que o formulário de edição será exibido em um modal
+    enableEditing: true, // Habilita a edição na tabela
+    getRowId: (row) => String(row.id_categorias), // Define o identificador único de cada linha
     mantineToolbarAlertBannerProps: isLoadingCategoriasError
-      ? { color: 'red', children: 'Erro ao carregar dados' }
+      ? { color: 'red', children: 'Erro ao carregar dados' } // Exibe uma mensagem de erro se houver problema ao carregar os dados
       : undefined,
-    mantineTableContainerProps: { style: { minHeight: '500px' } },
-    onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateCategoria,
-    onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveCategoria,
+    mantineTableContainerProps: { style: { minHeight: '500px' } }, // Define a altura mínima da tabela
+    onCreatingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a criação
+    onCreatingRowSave: handleCreateCategoria, // Função para salvar a criação
+    onEditingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a edição
+    onEditingRowSave: handleSaveCategoria, // Função para salvar a edição
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar nova categoria</Title>
-        {internalEditComponents}
+        {internalEditComponents} {/* Componentes internos de edição */}
         <Flex justify="flex-end" mt="xl">
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
+          <MRT_EditActionButtons variant="text" table={table} row={row} /> {/* Botões de ação */}
         </Flex>
       </Stack>
     ),
@@ -151,83 +179,97 @@ const Example = () => {
       <Flex gap="md">
         <Tooltip label="Editar">
           <ActionIcon onClick={() => table.setEditingRow(row)}>
-            <IconEdit />
+            <IconEdit /> {/* Ícone de edição */}
           </ActionIcon>
         </Tooltip>
         <Tooltip label="Apagar">
           <ActionIcon color="red" onClick={() => openDeleteConfirmModal(row)}>
-            <IconTrash />
+            <IconTrash /> {/* Ícone de exclusão */}
           </ActionIcon>
         </Tooltip>
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar nova categoria</Button>
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar nova categoria</Button> // Botão para criar nova categoria
     ),
     state: {
-      isLoading: isLoadingCategorias,
-      isSaving: false,
-      showAlertBanner: isLoadingCategoriasError,
-      showProgressBars: isFetchingCategorias,
+      isLoading: isLoadingCategorias, // Estado de carregamento
+      isSaving: false, // Estado de salvamento
+      showAlertBanner: isLoadingCategoriasError, // Exibe banner de alerta se houver erro
+      showProgressBars: isFetchingCategorias, // Exibe barra de progresso durante o fetch
     },
   });
 
+  // Renderiza a tabela
   return <MantineReactTable table={table} />;
 };
 
+// Hook para criar uma categoria
 function useCreateCategoria() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (categoria: Omit<Categoria, 'id_categorias'>) => {
+      // Realiza uma requisição POST para criar uma categoria
       const response = await axios.post('http://localhost:3000/categorias', categoria);
       return response.data;
     },
     onSuccess: () => {
+      // Invalida a query para refazer o fetch das categorias atualizadas
       queryClient.invalidateQueries({ queryKey: ['categorias'] });
     },
   });
 }
 
+// Hook para obter a lista de categorias
 function useGetCategorias() {
   return useQuery<Categoria[]>({
-    queryKey: ['categorias'],
+    queryKey: ['categorias'], // Chave da query
     queryFn: async () => {
+      // Realiza uma requisição GET para obter as categorias
       const response = await axios.get('http://localhost:3000/categorias');
       return response.data;
     },
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false, // Não refaz o fetch ao focar na janela
   });
 }
 
+// Hook para atualizar uma categoria
 function useUpdateCategoria() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (categoria: Categoria) => {
+      // Realiza uma requisição PUT para atualizar a categoria
       await axios.put(`http://localhost:3000/categorias/${categoria.id_categorias}`, categoria);
     },
     onSuccess: () => {
+      // Invalida a query para refazer o fetch das categorias atualizadas
       queryClient.invalidateQueries({ queryKey: ['categorias'] });
     },
   });
 }
 
+// Hook para deletar uma categoria
 function useDeleteCategoria() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (categoriaId: number) => {
+      // Realiza uma requisição DELETE para deletar a categoria
       await axios.delete(`http://localhost:3000/categorias/${categoriaId}`);
     },
     onSuccess: () => {
+      // Invalida a query para refazer o fetch das categorias atualizadas
       queryClient.invalidateQueries({ queryKey: ['categorias'] });
     },
   });
 }
 
+// Cria uma instância do QueryClient para gerenciar o cache
 const queryClient = new QueryClient();
 
+// Componente que envolve o Example com os provedores necessários
 const ExampleWithProviders = () => (
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
@@ -236,20 +278,41 @@ const ExampleWithProviders = () => (
   </QueryClientProvider>
 );
 
+// Exporta o componente padrão
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => {return value !== null && value !== undefined && value.toString().trim().length > 0;};
-const validateMinLength = (value: string, minLength: number) => {return value.trim().length >= minLength;};
-const validateNomeCategoria = (nome: string) => {return /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);}; // Nome da categoria não deve conter números e deve ter no mínimo 3 caracteres
+// Funções de validação
 
+// Valida se o valor é obrigatório (não nulo, não indefinido e não vazio)
+const validateRequired = (value: any) => {
+  return value !== null && value !== undefined && value.toString().trim().length > 0;
+};
+
+// Valida se o valor tem um comprimento mínimo
+const validateMinLength = (value: string, minLength: number) => {
+  return value.trim().length >= minLength;
+};
+
+// Valida o nome da categoria (não deve conter números e deve ter no mínimo 3 caracteres)
+const validateNomeCategoria = (nome: string) => {
+  return /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);
+};
+
+// Função que valida todos os campos da categoria
 function validateCategoria(categoria: Categoria) {
   const errors: Record<string, string | undefined> = {};
-  
+
   // Validação do nome da categoria
   if (!validateRequired(categoria.nome)) {
     errors.nomeCategoria = 'É necessário inserir o nome da categoria';
   } else if (!validateNomeCategoria(categoria.nome)) {
     errors.nomeCategoria = 'O nome da categoria precisa ter mais do que 2 caracteres e não conter números';
   }
+
+  // Validação da descrição
+  if (!validateRequired(categoria.descricao)) {
+    errors.descricao = 'Descrição é obrigatória';
+  }
+
   return errors;
 }

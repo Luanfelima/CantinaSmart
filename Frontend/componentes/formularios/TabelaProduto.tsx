@@ -1,7 +1,12 @@
+// Importa os estilos necessários para os componentes do Mantine e da tabela
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
+
+// Importa hooks e funções do React e outras bibliotecas
 import { useMemo, useState } from 'react';
+
+// Importa componentes e tipos do Mantine React Table
 import {
   MRT_EditActionButtons,
   MantineReactTable,
@@ -10,6 +15,8 @@ import {
   type MRT_TableOptions,
   useMantineReactTable,
 } from 'mantine-react-table';
+
+// Importa componentes do Mantine para a interface do usuário
 import {
   ActionIcon,
   Button,
@@ -19,8 +26,14 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
+
+// Importa o provedor de modais e a função de modais do Mantine
 import { ModalsProvider, modals } from '@mantine/modals';
+
+// Importa ícones da biblioteca Tabler Icons
 import { IconEdit, IconTrash } from '@tabler/icons-react';
+
+// Importa funções e hooks do React Query para gerenciamento de dados assíncronos
 import {
   QueryClient,
   QueryClientProvider,
@@ -28,9 +41,11 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+
+// Importa a biblioteca axios para fazer requisições HTTP
 import axios from 'axios';
 
-// Definição do tipo Produto
+// Define o tipo Produto com os campos correspondentes
 type Produto = {
   id_produto: number;
   nome_p: string;
@@ -41,18 +56,21 @@ type Produto = {
   unidade_medida: string;
 };
 
+// Componente principal do exemplo
 const Example = () => {
+  // Estado para armazenar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
+  // Define as colunas da tabela usando useMemo para otimização
   const columns = useMemo<MRT_ColumnDef<Produto>[]>(
     () => [
       {
-        accessorKey: 'nome_p',
-        header: 'Nome do Produto',
+        accessorKey: 'nome_p', // Chave de acesso ao campo 'nome_p'
+        header: 'Nome do Produto', // Rótulo da coluna
         mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.nome_p,
-          onFocus: () => setValidationErrors({ ...validationErrors, nome_p: undefined }),
+          required: true, // Campo obrigatório
+          error: validationErrors?.nome_p, // Exibe erro se houver
+          onFocus: () => setValidationErrors({ ...validationErrors, nome_p: undefined }), // Limpa o erro ao focar
         },
       },
       {
@@ -68,7 +86,7 @@ const Example = () => {
         accessorKey: 'preco',
         header: 'Preço',
         mantineEditTextInputProps: {
-          type: 'number',
+          type: 'number', // Define o tipo de entrada como número
           required: true,
           error: validationErrors?.preco,
           onFocus: () => setValidationErrors({ ...validationErrors, preco: undefined }),
@@ -77,17 +95,17 @@ const Example = () => {
       {
         accessorKey: 'perecivel',
         header: 'Perecível',
-        editVariant: 'select',
+        editVariant: 'select', // Define que este campo será um seletor
         mantineEditSelectProps: {
           data: [
             { value: 'true', label: 'Sim' },
             { value: 'false', label: 'Não' },
-          ],
+          ], // Opções disponíveis no seletor
           required: true,
           error: validationErrors?.perecivel,
           onFocus: () => setValidationErrors({ ...validationErrors, perecivel: undefined }),
         },
-        Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'),
+        Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'), // Exibe 'Sim' ou 'Não' na célula
       },
       {
         accessorKey: 'descricao',
@@ -101,7 +119,9 @@ const Example = () => {
       {
         accessorKey: 'unidade_medida',
         header: 'Unidade de Medida',
-        mantineEditTextInputProps: {
+        editVariant: 'select',
+        mantineEditSelectProps: {
+          data: ['Cm', 'Unidade(s)', 'Kg', 'ML', 'g', 'L'], // Opções de unidades de medida
           required: true,
           error: validationErrors?.unidade_medida,
           onFocus: () => setValidationErrors({ ...validationErrors, unidade_medida: undefined }),
@@ -111,8 +131,10 @@ const Example = () => {
     [validationErrors],
   );
 
+  // Obtém a instância do QueryClient para gerenciar o cache das requisições
   const queryClient = useQueryClient();
 
+  // Usa o hook useGetProdutos para buscar os produtos
   const {
     data: fetchedProdutos = [],
     isError: isLoadingProdutosError,
@@ -120,47 +142,55 @@ const Example = () => {
     isLoading: isLoadingProdutos,
   } = useGetProdutos();
 
+  // Inicializa as mutações para criar, atualizar e deletar produtos
   const createProdutoMutation = useCreateProduto();
   const updateProdutoMutation = useUpdateProduto();
   const deleteProdutoMutation = useDeleteProduto();
 
+  // Função para lidar com a criação de um novo produto
   const handleCreateProduto: MRT_TableOptions<Produto>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode,
   }) => {
+    // Valida os dados do produto
     const newValidationErrors = validateProduto(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
+      setValidationErrors(newValidationErrors); // Define os erros de validação
       return;
     }
-    setValidationErrors({});
+    setValidationErrors({}); // Limpa os erros de validação
 
+    // Converte o valor de 'perecivel' para booleano
     const newProduto = {
       ...values,
       perecivel: values.perecivel === 'true',
     };
 
-    await createProdutoMutation.mutateAsync(newProduto);
-    exitCreatingMode();
+    await createProdutoMutation.mutateAsync(newProduto); // Realiza a mutação para criar o produto
+    exitCreatingMode(); // Sai do modo de criação
   };
 
+  // Função para lidar com a atualização de um produto existente
   const handleSaveProduto: MRT_TableOptions<Produto>['onEditingRowSave'] = async ({ values, table }) => {
+    // Valida os dados do produto
     const newValidationErrors = validateProduto(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
+      setValidationErrors(newValidationErrors); // Define os erros de validação
       return;
     }
-    setValidationErrors({});
+    setValidationErrors({}); // Limpa os erros de validação
 
+    // Converte o valor de 'perecivel' para booleano
     const updatedProduto = {
       ...values,
       perecivel: values.perecivel === 'true' || values.perecivel === true,
     };
 
-    await updateProdutoMutation.mutateAsync(updatedProduto);
-    table.setEditingRow(null);
+    await updateProdutoMutation.mutateAsync(updatedProduto); // Realiza a mutação para atualizar o produto
+    table.setEditingRow(null); // Sai do modo de edição
   };
 
+  // Função para abrir o modal de confirmação de exclusão
   const openDeleteConfirmModal = (row: MRT_Row<Produto>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir este produto?',
@@ -171,9 +201,10 @@ const Example = () => {
       ),
       labels: { confirm: 'Excluir', cancel: 'Cancelar' },
       confirmProps: { color: 'red' },
-      onConfirm: () => handleDeleteProduto(row.original.id_produto),
+      onConfirm: () => handleDeleteProduto(row.original.id_produto), // Chama a função para deletar o produto
     });
 
+  // Função para deletar o produto
   const handleDeleteProduto = async (produtoId: number) => {
     try {
       if (!produtoId && produtoId !== 0) {
@@ -181,33 +212,34 @@ const Example = () => {
         return;
       }
 
-      await deleteProdutoMutation.mutateAsync(produtoId);
+      await deleteProdutoMutation.mutateAsync(produtoId); // Realiza a mutação para deletar o produto
     } catch (error) {
       console.error('Erro ao excluir o produto:', error);
     }
   };
 
+  // Configura o uso do MantineReactTable com as opções necessárias
   const table = useMantineReactTable({
-    columns,
-    data: fetchedProdutos,
-    createDisplayMode: 'modal',
-    editDisplayMode: 'modal',
-    enableEditing: true,
-    getRowId: (row) => String(row.id_produto),
+    columns, // Colunas definidas anteriormente
+    data: fetchedProdutos, // Dados dos produtos buscados
+    createDisplayMode: 'modal', // Define que o formulário de criação será exibido em um modal
+    editDisplayMode: 'modal', // Define que o formulário de edição será exibido em um modal
+    enableEditing: true, // Habilita a edição na tabela
+    getRowId: (row) => String(row.id_produto), // Define o identificador único de cada linha
     mantineToolbarAlertBannerProps: isLoadingProdutosError
-      ? { color: 'red', children: 'Erro ao carregar dados' }
+      ? { color: 'red', children: 'Erro ao carregar dados' } // Exibe uma mensagem de erro se houver problema ao carregar os dados
       : undefined,
-    mantineTableContainerProps: { style: { minHeight: '500px' } },
-    onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateProduto,
-    onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveProduto,
+    mantineTableContainerProps: { style: { minHeight: '500px' } }, // Define a altura mínima da tabela
+    onCreatingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a criação
+    onCreatingRowSave: handleCreateProduto, // Função para salvar a criação
+    onEditingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a edição
+    onEditingRowSave: handleSaveProduto, // Função para salvar a edição
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar novo produto</Title>
-        {internalEditComponents}
+        {internalEditComponents} {/* Componentes internos de edição */}
         <Flex justify="flex-end" mt="xl">
-          <MRT_EditActionButtons variant="text" table={table} row={row} />
+          <MRT_EditActionButtons variant="text" table={table} row={row} /> {/* Botões de ação */}
         </Flex>
       </Stack>
     ),
@@ -224,69 +256,80 @@ const Example = () => {
       <Flex gap="md">
         <Tooltip label="Editar">
           <ActionIcon onClick={() => table.setEditingRow(row)}>
-            <IconEdit />
+            <IconEdit /> {/* Ícone de edição */}
           </ActionIcon>
         </Tooltip>
         <Tooltip label="Apagar">
           <ActionIcon color="red" onClick={() => openDeleteConfirmModal(row)}>
-            <IconTrash />
+            <IconTrash /> {/* Ícone de exclusão */}
           </ActionIcon>
         </Tooltip>
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo produto</Button>
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo produto</Button> // Botão para criar novo produto
     ),
     state: {
-      isLoading: isLoadingProdutos,
-      isSaving: false,
-      showAlertBanner: isLoadingProdutosError,
-      showProgressBars: isFetchingProdutos,
+      isLoading: isLoadingProdutos, // Estado de carregamento
+      isSaving: false, // Estado de salvamento
+      showAlertBanner: isLoadingProdutosError, // Exibe banner de alerta se houver erro
+      showProgressBars: isFetchingProdutos, // Exibe barra de progresso durante o fetch
     },
   });
 
+  // Renderiza a tabela
   return <MantineReactTable table={table} />;
 };
 
 // Funções auxiliares de CRUD
+
+// Hook para obter a lista de produtos
 function useGetProdutos() {
   return useQuery<Produto[]>({
-    queryKey: ['produtos'],
+    queryKey: ['produtos'], // Chave da query
     queryFn: async () => {
+      // Realiza uma requisição GET para obter os produtos
       const response = await axios.get('http://localhost:3000/produtos');
       return response.data;
     },
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false, // Não refaz o fetch ao focar na janela
   });
 }
 
+// Hook para criar um produto
 function useCreateProduto() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (produto: Omit<Produto, 'id_produto'>) => {
+      // Realiza uma requisição POST para criar um produto
       const response = await axios.post('http://localhost:3000/produtos', produto);
       return response.data;
     },
     onSuccess: () => {
+      // Invalida a query para refazer o fetch dos produtos atualizados
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
     },
   });
 }
 
+// Hook para atualizar um produto
 function useUpdateProduto() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (produto: Produto) => {
+      // Realiza uma requisição PUT para atualizar o produto
       await axios.put(`http://localhost:3000/produtos/${produto.id_produto}`, produto);
     },
     onSuccess: () => {
+      // Invalida a query para refazer o fetch dos produtos atualizados
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
     },
   });
 }
 
+// Hook para deletar um produto
 function useDeleteProduto() {
   const queryClient = useQueryClient();
 
@@ -295,15 +338,20 @@ function useDeleteProduto() {
       if (!produtoId && produtoId !== 0) {
         throw new Error('ID do produto é inválido.');
       }
+      // Realiza uma requisição DELETE para deletar o produto
       await axios.delete(`http://localhost:3000/produtos/${produtoId}`);
     },
     onSuccess: () => {
+      // Invalida a query para refazer o fetch dos produtos atualizados
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
     },
   });
 }
 
+// Cria uma instância do QueryClient para gerenciar o cache
 const queryClient = new QueryClient();
+
+// Componente que envolve o Example com os provedores necessários
 const ExampleWithProviders = () => (
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
@@ -312,48 +360,78 @@ const ExampleWithProviders = () => (
   </QueryClientProvider>
 );
 
+// Exporta o componente padrão
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => {return value !== null && value !== undefined && value.toString().trim().length > 0;};
-const validateMinLength = (value: string, minLength: number) => {return value.trim().length >= minLength;};
-const validateNomeProduto = (nome: string) => {return /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);}; // Nome do produto não deve conter números e deve ter no mínimo 3 caracteres
-const validatePreco = (preco: any) => {const numberPreco = Number(preco); return !isNaN(numberPreco) && numberPreco >= 0;}; // Verifica se o preço é um número positivo
-const validateDescricao = (descricao: string) => {return validateMinLength(descricao, 4);}; // Descrição deve ter no mínimo 4 caracteres
+// Funções de validação
 
-const validateProduto = (values: Produto) =>{
+// Valida se o valor é obrigatório (não nulo, não indefinido e não vazio)
+const validateRequired = (value: any) => {
+  return value !== null && value !== undefined && value.toString().trim().length > 0;
+};
+
+// Valida se o valor tem um comprimento mínimo
+const validateMinLength = (value: string, minLength: number) => {
+  return value.trim().length >= minLength;
+};
+
+// Valida o nome do produto (não deve conter números e deve ter no mínimo 3 caracteres)
+const validateNomeProduto = (nome: string) => {
+  return /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);
+};
+
+// Valida o preço (deve ser um número positivo)
+const validatePreco = (preco: any) => {
+  const numberPreco = Number(preco);
+  return !isNaN(numberPreco) && numberPreco >= 0;
+};
+
+// Valida a descrição (deve ter no mínimo 4 caracteres)
+const validateDescricao = (descricao: string) => {
+  return validateMinLength(descricao, 4);
+};
+
+// Função que valida todos os campos do produto
+const validateProduto = (values: Produto) => {
   const errors: Record<string, string | undefined> = {};
-  
+
   // Validação do nome do produto
   if (!validateRequired(values.nome_p)) {
     errors.nome_p = 'Nome do produto é obrigatório';
   } else if (!validateNomeProduto(values.nome_p)) {
     errors.nome_p = 'Nome do produto inválido';
   }
+
   // Validação da categoria
   if (!validateRequired(values.categoria)) {
     errors.categoria = 'Categoria é obrigatória';
   } else if (!validateMinLength(values.categoria, 3)) {
-    errors.categoria = 'Categoria inválida'
+    errors.categoria = 'Categoria inválida';
   }
+
   // Validação do preço
   if (!validateRequired(values.preco)) {
     errors.preco = 'Preço é obrigatório';
   } else if (!validatePreco(values.preco)) {
     errors.preco = 'Preço inválido';
   }
+
   // Validação do campo perecível
   if (values.perecivel === null || values.perecivel === undefined) {
     errors.perecivel = 'Campo perecível é obrigatório';
   }
+
   // Validação da descrição
   if (!validateRequired(values.descricao)) {
     errors.descricao = 'Descrição é obrigatória';
   } else if (!validateDescricao(values.descricao)) {
     errors.descricao = 'Descrição deve ter no mínimo 10 caracteres';
   }
+
   // Validação da unidade de medida
   if (!validateRequired(values.unidade_medida)) {
     errors.unidade_medida = 'Unidade de medida é obrigatória';
   }
+
   return errors;
 };
