@@ -1,7 +1,12 @@
-Comandos para rodar
+comandos para Rodar
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 back end - 
-npm install node cors express next
+npm install
+
+npm install node cors express next //Se necessário
+npm install jsonwebtoken //Se necessário
+npm install bcrypt //Se necessário
 
 rodar - node server.js
 
@@ -10,6 +15,7 @@ rodar - node server.js
 front end -
 npm install --force
 npm install axios --force
+
 rodar - npm run dev
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -17,5 +23,3 @@ rodar - npm run dev
 ---Vercel config--
 yarn install
 yarn run build
-
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
