@@ -42,7 +42,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-// Importa a biblioteca axios para fazer requisições HTTP
+// Importa a instância de API personalizada (neste caso, axios)
 import axios from 'axios';
 
 // Define o tipo Categoria com os campos correspondentes
@@ -52,20 +52,20 @@ type Categoria = {
   descricao: string;
 };
 
-// Componente principal do exemplo
+// Componente principal que renderiza a tabela de categorias
 const Example = () => {
   // Estado para armazenar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
-  // Define as colunas da tabela usando useMemo para otimização
+  // Define as colunas da tabela utilizando useMemo para otimização
   const columns = useMemo<MRT_ColumnDef<Categoria>[]>(
     () => [
       {
         accessorKey: 'nome', // Chave de acesso ao campo 'nome'
-        header: 'Nome', // Rótulo da coluna
+        header: 'Nome',      // Rótulo da coluna
         mantineEditTextInputProps: {
-          required: true, // Campo obrigatório
-          error: validationErrors?.nome, // Exibe erro se houver
+          required: true,                       // Campo obrigatório
+          error: validationErrors?.nome,        // Exibe erro se houver
           onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }), // Limpa o erro ao focar
         },
       },
@@ -87,10 +87,10 @@ const Example = () => {
 
   // Usa o hook useGetCategorias para buscar as categorias
   const {
-    data: fetchedCategorias = [],
-    isError: isLoadingCategoriasError,
-    isFetching: isFetchingCategorias,
-    isLoading: isLoadingCategorias,
+    data: fetchedCategorias = [],           // Dados das categorias
+    isError: isLoadingCategoriasError,      // Indica se houve erro ao carregar
+    isFetching: isFetchingCategorias,       // Indica se está buscando dados
+    isLoading: isLoadingCategorias,         // Indica se está carregando
   } = useGetCategorias();
 
   // Inicializa as mutações para criar, atualizar e deletar categorias
@@ -130,15 +130,15 @@ const Example = () => {
   // Função para abrir o modal de confirmação de exclusão
   const openDeleteConfirmModal = (row: MRT_Row<Categoria>) =>
     modals.openConfirmModal({
-      title: 'Tem certeza que você quer excluir essa categoria?',
+      title: 'Tem certeza que você quer excluir essa categoria?', // Título do modal
       children: (
         <Text>
           Tem certeza que você quer excluir a categoria {row.original.nome}? Essa ação não pode ser desfeita.
         </Text>
-      ),
-      labels: { confirm: 'Excluir', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
-      onConfirm: () => deleteCategoriaMutation.mutateAsync(row.original.id_categorias), // Realiza a mutação para deletar a categoria
+      ), // Conteúdo do modal
+      labels: { confirm: 'Excluir', cancel: 'Cancelar' }, // Botões do modal
+      confirmProps: { color: 'red' }, // Estilo do botão de confirmação
+      onConfirm: () => deleteCategoriaMutation.mutateAsync(row.original.id_categorias), // Ação ao confirmar exclusão
     });
 
   // Configura o uso do MantineReactTable com as opções necessárias
@@ -146,17 +146,17 @@ const Example = () => {
     columns, // Colunas definidas anteriormente
     data: fetchedCategorias, // Dados das categorias buscadas
     createDisplayMode: 'modal', // Define que o formulário de criação será exibido em um modal
-    editDisplayMode: 'modal', // Define que o formulário de edição será exibido em um modal
-    enableEditing: true, // Habilita a edição na tabela
+    editDisplayMode: 'modal',   // Define que o formulário de edição será exibido em um modal
+    enableEditing: true,        // Habilita a edição na tabela
     getRowId: (row) => String(row.id_categorias), // Define o identificador único de cada linha
     mantineToolbarAlertBannerProps: isLoadingCategoriasError
       ? { color: 'red', children: 'Erro ao carregar dados' } // Exibe uma mensagem de erro se houver problema ao carregar os dados
       : undefined,
     mantineTableContainerProps: { style: { minHeight: '500px' } }, // Define a altura mínima da tabela
     onCreatingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a criação
-    onCreatingRowSave: handleCreateCategoria, // Função para salvar a criação
-    onEditingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a edição
-    onEditingRowSave: handleSaveCategoria, // Função para salvar a edição
+    onCreatingRowSave: handleCreateCategoria,           // Função para salvar a criação
+    onEditingRowCancel: () => setValidationErrors({}),  // Limpa erros ao cancelar a edição
+    onEditingRowSave: handleSaveCategoria,              // Função para salvar a edição
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar nova categoria</Title>
@@ -190,13 +190,13 @@ const Example = () => {
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar nova categoria</Button> // Botão para criar nova categoria
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar nova categoria</Button> /* Botão para criar nova categoria */
     ),
     state: {
-      isLoading: isLoadingCategorias, // Estado de carregamento
-      isSaving: false, // Estado de salvamento
-      showAlertBanner: isLoadingCategoriasError, // Exibe banner de alerta se houver erro
-      showProgressBars: isFetchingCategorias, // Exibe barra de progresso durante o fetch
+      isLoading: isLoadingCategorias,                 // Estado de carregamento
+      isSaving: false,                                // Estado de salvamento
+      showAlertBanner: isLoadingCategoriasError,      // Exibe banner de alerta se houver erro
+      showProgressBars: isFetchingCategorias,         // Exibe barra de progresso durante o fetch
     },
   });
 
@@ -204,7 +204,9 @@ const Example = () => {
   return <MantineReactTable table={table} />;
 };
 
-// Hook para criar uma categoria
+// Funções auxiliares de CRUD
+
+// Hook para criar categoria
 function useCreateCategoria() {
   const queryClient = useQueryClient();
 
@@ -221,7 +223,7 @@ function useCreateCategoria() {
   });
 }
 
-// Hook para obter a lista de categorias
+// Hook para obter categorias
 function useGetCategorias() {
   return useQuery<Categoria[]>({
     queryKey: ['categorias'], // Chave da query
@@ -234,7 +236,7 @@ function useGetCategorias() {
   });
 }
 
-// Hook para atualizar uma categoria
+// Hook para atualizar categoria
 function useUpdateCategoria() {
   const queryClient = useQueryClient();
 
@@ -250,7 +252,7 @@ function useUpdateCategoria() {
   });
 }
 
-// Hook para deletar uma categoria
+// Hook para deletar categoria
 function useDeleteCategoria() {
   const queryClient = useQueryClient();
 
@@ -309,9 +311,11 @@ function validateCategoria(categoria: Categoria) {
     errors.nomeCategoria = 'O nome da categoria precisa ter mais do que 2 caracteres e não conter números';
   }
 
-  // Validação da descrição
+  // Validação da descrição (pode ser adicionada se necessário)
   if (!validateRequired(categoria.descricao)) {
-    errors.descricao = 'Descrição é obrigatória';
+    errors.descricao = 'É necessário inserir a descrição da categoria';
+  } else if (!validateMinLength(categoria.descricao, 5)) {
+    errors.descricao = 'A descrição deve ter pelo menos 5 caracteres';
   }
 
   return errors;

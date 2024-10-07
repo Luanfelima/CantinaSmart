@@ -84,9 +84,9 @@ export function FormLogin() {
       {/* Imagem clicável no canto */}
       <div className={classes.imageContainer}>
         <Image
-          src="/engrenagem.png"
+          src="/engrenagem.png" // Altere o caminho da imagem
           alt="Área do ADM"
-          width={50}
+          width={50} // Tamanho da imagem
           height={50}
           onClick={handleImageClick}
           className={classes.image}

@@ -42,8 +42,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-// Importa a biblioteca axios para fazer requisições HTTP
-import axios from 'axios';
+// Importa a instância de API personalizada (provavelmente uma configuração do axios)
+import api from '../../api/api';
 
 // Define o tipo Funcionario com os campos correspondentes
 type Funcionario = {
@@ -60,12 +60,93 @@ const CadastroFuncionario = () => {
   // Estado para armazenar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
+  // Obtém a instância do QueryClient para gerenciar o cache das requisições
+  const queryClient = useQueryClient();
+
+  // Usa o hook useGetFuncionarios para buscar os funcionários
+  const {
+    data: fetchedFuncionarios = [], // Dados dos funcionários
+    error,                          // Possível erro na requisição
+    isError: isLoadingFuncionariosError, // Indica se houve erro ao carregar
+    isFetching: isFetchingFuncionarios,  // Indica se está buscando dados
+    isLoading: isLoadingFuncionarios,    // Indica se está carregando
+  } = useGetFuncionarios();
+
+  // Se houver um erro ao carregar os funcionários, exibe uma mensagem de erro
+  if (isLoadingFuncionariosError) {
+    console.error('Erro ao buscar funcionários:', error);
+    return <div>Erro ao carregar os funcionários. Por favor, tente novamente mais tarde.</div>;
+  }
+
+  // Inicializa as mutações para criar, atualizar e deletar funcionários
+  const createFuncionarioMutation = useCreateFuncionario();
+  const updateFuncionarioMutation = useUpdateFuncionario();
+  const deleteFuncionarioMutation = useDeleteFuncionario();
+
+  // Função para lidar com a criação de um novo funcionário
+  const handleCreateFuncionario: MRT_TableOptions<Funcionario>['onCreatingRowSave'] = async ({
+    values,
+    exitCreatingMode,
+  }) => {
+    // Valida os dados do funcionário
+    const newValidationErrors = validateFuncionario(values);
+    if (Object.values(newValidationErrors).some((error) => error)) {
+      setValidationErrors(newValidationErrors); // Define os erros de validação
+      return;
+    }
+    setValidationErrors({}); // Limpa os erros de validação
+    try {
+      await createFuncionarioMutation.mutateAsync(values); // Realiza a mutação para criar o funcionário
+      exitCreatingMode(); // Sai do modo de criação
+    } catch (error) {
+      console.error('Erro ao criar funcionário:', error);
+    }
+  };
+
+  // Função para lidar com a atualização de um funcionário existente
+  const handleSaveFuncionario: MRT_TableOptions<Funcionario>['onEditingRowSave'] = async ({ values, table }) => {
+    // Valida os dados do funcionário
+    const newValidationErrors = validateFuncionario(values);
+    if (Object.values(newValidationErrors).some((error) => error)) {
+      setValidationErrors(newValidationErrors); // Define os erros de validação
+      return;
+    }
+    setValidationErrors({}); // Limpa os erros de validação
+    try {
+      await updateFuncionarioMutation.mutateAsync(values); // Realiza a mutação para atualizar o funcionário
+      table.setEditingRow(null); // Sai do modo de edição
+    } catch (error) {
+      console.error('Erro ao atualizar funcionário:', error);
+    }
+  };
+
+  // Função para abrir o modal de confirmação de exclusão
+  const openDeleteConfirmModal = (row: MRT_Row<Funcionario>) =>
+    modals.openConfirmModal({
+      title: 'Tem certeza que você quer excluir esse funcionário?', // Título do modal
+      children: (
+        <Text>
+          Tem certeza que você quer excluir o funcionário {row.original.nome}? Essa ação não pode ser desfeita.
+        </Text>
+      ), // Conteúdo do modal
+      labels: { confirm: 'Excluir', cancel: 'Cancelar' }, // Botões do modal
+      confirmProps: { color: 'red' }, // Estilo do botão de confirmação
+      onConfirm: async () => {
+        // Ação ao confirmar exclusão
+        try {
+          await deleteFuncionarioMutation.mutateAsync(row.original.id_func); // Realiza a mutação para deletar o funcionário
+        } catch (error) {
+          console.error('Erro ao excluir funcionário:', error);
+        }
+      },
+    });
+
   // Define as colunas da tabela utilizando useMemo para otimização
   const columns = useMemo<MRT_ColumnDef<Funcionario>[]>(
     () => [
       {
         accessorKey: 'nome', // Chave de acesso ao campo 'nome'
-        header: 'Nome', // Rótulo da coluna
+        header: 'Nome',      // Rótulo da coluna
         mantineEditTextInputProps: {
           required: true, // Campo obrigatório
           error: validationErrors?.nome, // Exibe erro se houver
@@ -114,81 +195,22 @@ const CadastroFuncionario = () => {
     [validationErrors],
   );
 
-  // Obtém a instância do QueryClient para gerenciar o cache das requisições
-  const queryClient = useQueryClient();
-
-  // Utiliza o hook useGetFuncionarios para buscar os funcionários
-  const {
-    data: fetchedFuncionarios = [],
-    isError: isLoadingFuncionariosError,
-    isFetching: isFetchingFuncionarios,
-    isLoading: isLoadingFuncionarios,
-  } = useGetFuncionarios();
-
-  // Inicializa as mutações para criar, atualizar e deletar funcionários
-  const createFuncionarioMutation = useCreateFuncionario();
-  const updateFuncionarioMutation = useUpdateFuncionario();
-  const deleteFuncionarioMutation = useDeleteFuncionario();
-
-  // Função para lidar com a criação de um novo funcionário
-  const handleCreateFuncionario: MRT_TableOptions<Funcionario>['onCreatingRowSave'] = async ({
-    values,
-    exitCreatingMode,
-  }) => {
-    // Valida os dados do funcionário
-    const newValidationErrors = validateFuncionario(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors); // Define os erros de validação
-      return;
-    }
-    setValidationErrors({}); // Limpa os erros de validação
-    await createFuncionarioMutation.mutateAsync(values); // Realiza a mutação para criar o funcionário
-    exitCreatingMode(); // Sai do modo de criação
-  };
-
-  // Função para lidar com a atualização de um funcionário existente
-  const handleSaveFuncionario: MRT_TableOptions<Funcionario>['onEditingRowSave'] = async ({ values, table }) => {
-    // Valida os dados do funcionário
-    const newValidationErrors = validateFuncionario(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors); // Define os erros de validação
-      return;
-    }
-    setValidationErrors({}); // Limpa os erros de validação
-    await updateFuncionarioMutation.mutateAsync(values); // Realiza a mutação para atualizar o funcionário
-    table.setEditingRow(null); // Sai do modo de edição
-  };
-
-  // Função para abrir o modal de confirmação de exclusão
-  const openDeleteConfirmModal = (row: MRT_Row<Funcionario>) =>
-    modals.openConfirmModal({
-      title: 'Tem certeza que você quer excluir esse funcionário?',
-      children: (
-        <Text>
-          Tem certeza que você quer excluir o funcionário {row.original.nome}? Essa ação não pode ser desfeita.
-        </Text>
-      ),
-      labels: { confirm: 'Excluir', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
-      onConfirm: () => deleteFuncionarioMutation.mutateAsync(row.original.id_func), // Realiza a mutação para deletar o funcionário
-    });
-
   // Configura o uso do MantineReactTable com as opções necessárias
   const table = useMantineReactTable({
     columns, // Colunas definidas anteriormente
     data: fetchedFuncionarios, // Dados dos funcionários buscados
     createDisplayMode: 'modal', // Define que o formulário de criação será exibido em um modal
-    editDisplayMode: 'modal', // Define que o formulário de edição será exibido em um modal
-    enableEditing: true, // Habilita a edição na tabela
+    editDisplayMode: 'modal',   // Define que o formulário de edição será exibido em um modal
+    enableEditing: true,        // Habilita a edição na tabela
     getRowId: (row) => String(row.id_func), // Define o identificador único de cada linha
     mantineToolbarAlertBannerProps: isLoadingFuncionariosError
       ? { color: 'red', children: 'Erro ao carregar dados' } // Exibe uma mensagem de erro se houver problema ao carregar os dados
       : undefined,
     mantineTableContainerProps: { style: { minHeight: '500px' } }, // Define a altura mínima da tabela
     onCreatingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a criação
-    onCreatingRowSave: handleCreateFuncionario, // Função para salvar a criação
-    onEditingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a edição
-    onEditingRowSave: handleSaveFuncionario, // Função para salvar a edição
+    onCreatingRowSave: handleCreateFuncionario,         // Função para salvar a criação
+    onEditingRowCancel: () => setValidationErrors({}),  // Limpa erros ao cancelar a edição
+    onEditingRowSave: handleSaveFuncionario,            // Função para salvar a edição
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar novo funcionário</Title>
@@ -222,78 +244,95 @@ const CadastroFuncionario = () => {
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo funcionário</Button> // Botão para criar novo funcionário
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo funcionário</Button> /* Botão para criar novo funcionário */
     ),
     state: {
-      isLoading: isLoadingFuncionarios, // Estado de carregamento
-      isSaving: false, // Estado de salvamento
-      showAlertBanner: isLoadingFuncionariosError, // Exibe banner de alerta se houver erro
-      showProgressBars: isFetchingFuncionarios, // Exibe barra de progresso durante o fetch
+      isLoading: isLoadingFuncionarios,                 // Estado de carregamento
+      isSaving: false,                                  // Estado de salvamento
+      showAlertBanner: isLoadingFuncionariosError,      // Exibe banner de alerta se houver erro
+      showProgressBars: isFetchingFuncionarios,         // Exibe barra de progresso durante o fetch
     },
   });
 
-  // Renderiza a tabela
-  return <MantineReactTable table={table} />;
+  // Renderiza a tabela ou a mensagem de erro
+  return (
+    <>
+      {isLoadingFuncionariosError ? (
+        <div>Erro ao carregar os funcionários. Por favor, tente novamente mais tarde.</div>
+      ) : (
+        <MantineReactTable table={table} />
+      )}
+    </>
+  );
 };
 
-// Hook para criar um funcionário
-function useCreateFuncionario() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (funcionario: Omit<Funcionario, 'id_func'>) => {
-      // Realiza uma requisição POST para criar um funcionário
-      const response = await axios.post('http://localhost:3000/funcionarios', funcionario);
-      return response.data;
-    },
-    onSuccess: () => {
-      // Invalida a query para refazer o fetch dos funcionários atualizados
-      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
-    },
-  });
-}
-
-// Hook para obter a lista de funcionários
+// Função para obter funcionários
 function useGetFuncionarios() {
-  return useQuery<Funcionario[]>({
+  return useQuery<Funcionario[], Error>({
     queryKey: ['funcionarios'], // Chave da query
     queryFn: async () => {
-      // Realiza uma requisição GET para obter os funcionários
-      const response = await axios.get('http://localhost:3000/funcionarios');
+      // Realiza uma requisição GET para obter os funcionários usando a instância de API personalizada
+      const response = await api.get('/funcionarios');
       return response.data;
     },
     refetchOnWindowFocus: false, // Não refaz o fetch ao focar na janela
   });
 }
 
-// Hook para atualizar um funcionário
-function useUpdateFuncionario() {
+// Função para criar funcionário
+function useCreateFuncionario() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (funcionario: Funcionario) => {
-      // Realiza uma requisição PUT para atualizar o funcionário
-      await axios.put(`http://localhost:3000/funcionarios/${funcionario.id_func}`, funcionario);
+  return useMutation<Funcionario, Error, Omit<Funcionario, 'id_func'>>({
+    mutationFn: async (funcionario) => {
+      // Realiza uma requisição POST para criar um funcionário
+      const response = await api.post('/funcionarios', funcionario);
+      return response.data;
     },
     onSuccess: () => {
       // Invalida a query para refazer o fetch dos funcionários atualizados
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao criar funcionário:', error);
     },
   });
 }
 
-// Hook para deletar um funcionário
-function useDeleteFuncionario() {
+// Função para atualizar funcionário
+function useUpdateFuncionario() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (funcionarioId: number) => {
-      // Realiza uma requisição DELETE para deletar o funcionário
-      await axios.delete(`http://localhost:3000/funcionarios/${funcionarioId}`);
+  return useMutation<void, Error, Funcionario>({
+    mutationFn: async (funcionario) => {
+      // Realiza uma requisição PUT para atualizar o funcionário
+      await api.put(`/funcionarios/${funcionario.id_func}`, funcionario);
     },
     onSuccess: () => {
       // Invalida a query para refazer o fetch dos funcionários atualizados
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar funcionário:', error);
+    },
+  });
+}
+
+// Função para deletar funcionário
+function useDeleteFuncionario() {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, number>({
+    mutationFn: async (funcionarioId) => {
+      // Realiza uma requisição DELETE para deletar o funcionário
+      await api.delete(`/funcionarios/${funcionarioId}`);
+    },
+    onSuccess: () => {
+      // Invalida a query para refazer o fetch dos funcionários atualizados
+      queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
+    },
+    onError: (error) => {
+      console.error('Erro ao excluir funcionário:', error);
     },
   });
 }
@@ -314,20 +353,26 @@ const CadastroFuncionarioWithProviders = () => (
 export default CadastroFuncionarioWithProviders;
 
 // Funções de validação
+
+// Valida se o valor tem um comprimento mínimo
 const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength;
 
+// Valida se o valor é obrigatório (não nulo, não indefinido e não vazio)
 const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length;
 
+// Valida o nome (não deve conter números e deve ter no mínimo 4 caracteres)
 const validateNome = (nome: string) => {
-  const regex = /^[^0-9]+$/; // Regex para não permitir números
+  const regex = /^[^0-9]+$/;
   return regex.test(nome) && validateMinLength(nome, 4);
 };
 
+// Valida o e-mail usando uma expressão regular
 const validateEmail = (email: string) => {
   const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return !!email.length && regex.test(email.toLowerCase());
 };
 
+// Valida o CPF (deve ter 11 dígitos numéricos e não conter '.' ou '-')
 const validateCpf = (cpf: string) => {
   if (cpf.includes('.') || cpf.includes('-')) {
     return false;
@@ -335,6 +380,7 @@ const validateCpf = (cpf: string) => {
   return /^[0-9]{11}$/.test(cpf);
 };
 
+// Valida o telefone (deve ter 10 ou 11 dígitos numéricos)
 const validateTelefone = (telefone: string) => {
   const cleanTelefone = telefone.replace(/\D/g, ''); // Remove caracteres não numéricos
   return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone);

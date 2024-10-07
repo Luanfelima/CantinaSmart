@@ -42,10 +42,10 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-// Importa a biblioteca axios para fazer requisições HTTP
+// Importa a instância de API personalizada (neste caso, axios)
 import axios from 'axios';
 
-// Define o tipo Produto com os campos correspondentes
+// Definição do tipo Produto com os campos correspondentes
 type Produto = {
   id_produto: number;
   nome_p: string;
@@ -56,16 +56,16 @@ type Produto = {
   unidade_medida: string;
 };
 
-// Componente principal do exemplo
+// Componente principal que renderiza a tabela de produtos
 const Example = () => {
   // Estado para armazenar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
-  // Define as colunas da tabela usando useMemo para otimização
+  // Define as colunas da tabela utilizando useMemo para otimização
   const columns = useMemo<MRT_ColumnDef<Produto>[]>(
     () => [
       {
-        accessorKey: 'nome_p', // Chave de acesso ao campo 'nome_p'
+        accessorKey: 'nome_p', // Chave de acesso ao campo 'nome_p' do produto
         header: 'Nome do Produto', // Rótulo da coluna
         mantineEditTextInputProps: {
           required: true, // Campo obrigatório
@@ -86,7 +86,7 @@ const Example = () => {
         accessorKey: 'preco',
         header: 'Preço',
         mantineEditTextInputProps: {
-          type: 'number', // Define o tipo de entrada como número
+          type: 'number',
           required: true,
           error: validationErrors?.preco,
           onFocus: () => setValidationErrors({ ...validationErrors, preco: undefined }),
@@ -105,7 +105,7 @@ const Example = () => {
           error: validationErrors?.perecivel,
           onFocus: () => setValidationErrors({ ...validationErrors, perecivel: undefined }),
         },
-        Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'), // Exibe 'Sim' ou 'Não' na célula
+        Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'), // Formata a exibição na célula
       },
       {
         accessorKey: 'descricao',
@@ -119,9 +119,7 @@ const Example = () => {
       {
         accessorKey: 'unidade_medida',
         header: 'Unidade de Medida',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: ['Cm', 'Unidade(s)', 'Kg', 'ML', 'g', 'L'], // Opções de unidades de medida
+        mantineEditTextInputProps: {
           required: true,
           error: validationErrors?.unidade_medida,
           onFocus: () => setValidationErrors({ ...validationErrors, unidade_medida: undefined }),
@@ -136,10 +134,10 @@ const Example = () => {
 
   // Usa o hook useGetProdutos para buscar os produtos
   const {
-    data: fetchedProdutos = [],
-    isError: isLoadingProdutosError,
-    isFetching: isFetchingProdutos,
-    isLoading: isLoadingProdutos,
+    data: fetchedProdutos = [],               // Dados dos produtos
+    isError: isLoadingProdutosError,          // Indica se houve erro ao carregar
+    isFetching: isFetchingProdutos,           // Indica se está buscando dados
+    isLoading: isLoadingProdutos,             // Indica se está carregando
   } = useGetProdutos();
 
   // Inicializa as mutações para criar, atualizar e deletar produtos
@@ -160,7 +158,7 @@ const Example = () => {
     }
     setValidationErrors({}); // Limpa os erros de validação
 
-    // Converte o valor de 'perecivel' para booleano
+    // Prepara o objeto produto, garantindo que 'perecivel' seja um booleano
     const newProduto = {
       ...values,
       perecivel: values.perecivel === 'true',
@@ -180,7 +178,7 @@ const Example = () => {
     }
     setValidationErrors({}); // Limpa os erros de validação
 
-    // Converte o valor de 'perecivel' para booleano
+    // Prepara o objeto produto, garantindo que 'perecivel' seja um booleano
     const updatedProduto = {
       ...values,
       perecivel: values.perecivel === 'true' || values.perecivel === true,
@@ -193,18 +191,18 @@ const Example = () => {
   // Função para abrir o modal de confirmação de exclusão
   const openDeleteConfirmModal = (row: MRT_Row<Produto>) =>
     modals.openConfirmModal({
-      title: 'Tem certeza que você quer excluir este produto?',
+      title: 'Tem certeza que você quer excluir este produto?', // Título do modal
       children: (
         <Text>
           Tem certeza que você quer excluir o produto {row.original.nome_p}? Essa ação não pode ser desfeita.
         </Text>
-      ),
-      labels: { confirm: 'Excluir', cancel: 'Cancelar' },
-      confirmProps: { color: 'red' },
-      onConfirm: () => handleDeleteProduto(row.original.id_produto), // Chama a função para deletar o produto
+      ), // Conteúdo do modal
+      labels: { confirm: 'Excluir', cancel: 'Cancelar' }, // Botões do modal
+      confirmProps: { color: 'red' }, // Estilo do botão de confirmação
+      onConfirm: () => handleDeleteProduto(row.original.id_produto), // Ação ao confirmar exclusão
     });
 
-  // Função para deletar o produto
+  // Função para deletar um produto
   const handleDeleteProduto = async (produtoId: number) => {
     try {
       if (!produtoId && produtoId !== 0) {
@@ -223,17 +221,17 @@ const Example = () => {
     columns, // Colunas definidas anteriormente
     data: fetchedProdutos, // Dados dos produtos buscados
     createDisplayMode: 'modal', // Define que o formulário de criação será exibido em um modal
-    editDisplayMode: 'modal', // Define que o formulário de edição será exibido em um modal
-    enableEditing: true, // Habilita a edição na tabela
+    editDisplayMode: 'modal',   // Define que o formulário de edição será exibido em um modal
+    enableEditing: true,        // Habilita a edição na tabela
     getRowId: (row) => String(row.id_produto), // Define o identificador único de cada linha
     mantineToolbarAlertBannerProps: isLoadingProdutosError
       ? { color: 'red', children: 'Erro ao carregar dados' } // Exibe uma mensagem de erro se houver problema ao carregar os dados
       : undefined,
     mantineTableContainerProps: { style: { minHeight: '500px' } }, // Define a altura mínima da tabela
     onCreatingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a criação
-    onCreatingRowSave: handleCreateProduto, // Função para salvar a criação
-    onEditingRowCancel: () => setValidationErrors({}), // Limpa erros ao cancelar a edição
-    onEditingRowSave: handleSaveProduto, // Função para salvar a edição
+    onCreatingRowSave: handleCreateProduto,             // Função para salvar a criação
+    onEditingRowCancel: () => setValidationErrors({}),  // Limpa erros ao cancelar a edição
+    onEditingRowSave: handleSaveProduto,                // Função para salvar a edição
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar novo produto</Title>
@@ -267,13 +265,13 @@ const Example = () => {
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo produto</Button> // Botão para criar novo produto
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo produto</Button> /* Botão para criar novo produto */
     ),
     state: {
-      isLoading: isLoadingProdutos, // Estado de carregamento
-      isSaving: false, // Estado de salvamento
-      showAlertBanner: isLoadingProdutosError, // Exibe banner de alerta se houver erro
-      showProgressBars: isFetchingProdutos, // Exibe barra de progresso durante o fetch
+      isLoading: isLoadingProdutos,                 // Estado de carregamento
+      isSaving: false,                              // Estado de salvamento
+      showAlertBanner: isLoadingProdutosError,      // Exibe banner de alerta se houver erro
+      showProgressBars: isFetchingProdutos,         // Exibe barra de progresso durante o fetch
     },
   });
 
@@ -283,7 +281,7 @@ const Example = () => {
 
 // Funções auxiliares de CRUD
 
-// Hook para obter a lista de produtos
+// Hook para obter produtos
 function useGetProdutos() {
   return useQuery<Produto[]>({
     queryKey: ['produtos'], // Chave da query
@@ -296,7 +294,7 @@ function useGetProdutos() {
   });
 }
 
-// Hook para criar um produto
+// Hook para criar produto
 function useCreateProduto() {
   const queryClient = useQueryClient();
 
@@ -313,7 +311,7 @@ function useCreateProduto() {
   });
 }
 
-// Hook para atualizar um produto
+// Hook para atualizar produto
 function useUpdateProduto() {
   const queryClient = useQueryClient();
 
@@ -329,7 +327,7 @@ function useUpdateProduto() {
   });
 }
 
-// Hook para deletar um produto
+// Hook para deletar produto
 function useDeleteProduto() {
   const queryClient = useQueryClient();
 
