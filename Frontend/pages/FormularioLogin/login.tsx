@@ -12,11 +12,12 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import Image from 'next/image';
 import classes from './login.module.css';
+import api from '../../api/api';
 
 export function FormLogin() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [senha, setSenha] = useState('');
+  const [errors, setErrors] = useState({ email: '', senha: '' });
   const router = useRouter();
 
   const validateEmail = (email: string) => {
@@ -25,26 +26,34 @@ export function FormLogin() {
   };
 
   const validateForm = () => {
-    const newErrors = { email: '', password: '' };
+    const newErrors = { email: '', senha: '' };
 
     if (!validateEmail(email)) {
       newErrors.email = 'Email inválido';
     }
 
-    if (!password) {
-      newErrors.password = 'Senha é obrigatória';
+    if (!senha) {
+      newErrors.senha = 'Senha é obrigatória';
     }
 
     setErrors(newErrors);
 
-    return !newErrors.email && !newErrors.password;
+    return !newErrors.email && !newErrors.senha;
   };
 
-  const handleLogin = () => {
-    if (validateForm()) {
-      router.push('/Dashboard/dashboard');
+  const handleLogin = async () => {
+    try {
+      const { data } = await api.post('/login', { email, senha });
+      localStorage.setItem('token', data.token);  // Salva o token JWT
+      localStorage.setItem('refreshToken', data.refreshToken);  // Salva o refresh token
+      router.push('/Dashboard/dashboard');  // Redireciona para o dashboard
+    } catch (error) {
+      console.error('Erro no login:', error);
+      alert('Erro ao fazer login. Verifique suas credenciais.');
     }
   };
+  
+  
 
   const handleImageClick = () => {
     router.push('/FormularioLoginAdm/loginAdm');
@@ -69,9 +78,9 @@ export function FormLogin() {
           placeholder="Sua senha"
           required
           mt="md"
-          value={password}
-          onChange={(event) => setPassword(event.currentTarget.value)}
-          error={errors.password}
+          value={senha}
+          onChange={(event) => setSenha(event.currentTarget.value)}
+          error={errors.senha}
         />
         <Group justify="space-between" mt="lg">
           <Checkbox label="Lembrar-me" />

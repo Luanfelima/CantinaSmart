@@ -48,6 +48,7 @@ db.connect((err) => {
     return;
   }
   console.log('Conectado ao banco de dados MySQL');
+  console.log('JWT_SECRET:', process.env.JWT_SECRET);
 });
 
 // Middleware para autenticação via token JWT
@@ -62,6 +63,7 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, process.env.JWT_SECRET, (err, gestor) => {
     if (err) {
+      console.error('erro ao verificar o codigo:', err)
       return res.status(403).json({ error: 'Token inválido ou expirado' });
     }
 
@@ -418,44 +420,89 @@ app.delete('/gestor/:cpf_gestor', (req, res) => {
 });
 
 // ----------------------------------- Rota de Login -----------------------------------
+
 app.post('/login', (req, res) => {
   const { email, senha } = req.body;
 
-  console.log('Email:', email);
-  console.log('Senha:', senha);
+  // Verifique se os dados do corpo da requisição estão corretos
+  if (!email || !senha) {
+    return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+  }
+
+  console.log('Email fornecido:', email);
+  console.log('Senha fornecida:', senha);  // Verifique se a senha está sendo enviada
 
   const query = 'SELECT * FROM gestor WHERE email = ?';
   db.query(query, [email], async (err, results) => {
     if (err) {
-      console.log('Erro no banco:', err.message);
-      res.status(500).json({ error: err.message });
-      return;
+      console.log('Erro no banco de dados:', err);
+      return res.status(500).json({ error: err.message });
     }
 
     if (results.length === 0) {
-      console.log('Email não encontrado');
+      console.log('Nenhum usuário encontrado com este email');
       return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 
     const gestor = results[0];
     console.log('Gestor encontrado:', gestor);
+    console.log('Senha do banco de dados (hash):', gestor.senha);  // Verifique se a senha está sendo retornada corretamente
 
-    // Verifica a senha
-    const match = await bcrypt.compare(senha, gestor.senha);
+    // Verificação da senha
+    try {
+      const match = await bcrypt.compare(senha, gestor.senha);  // Comparação da senha
+      if (!match) {
+        console.log('Senha incorreta');
+        return res.status(401).json({ error: 'Credenciais inválidas' });
+      }
 
-    if (!match) {
-      console.log('Senha incorreta');
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+      console.log('Senha correta, gerando token...');
+
+      // Geração do token JWT
+      const token = jwt.sign(
+        { cpf_gestor: gestor.cpf_gestor, email: gestor.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '12h' }
+      );
+
+      // Geração do refresh token
+      const refreshToken = jwt.sign(
+        { cpf_gestor: gestor.cpf_gestor, email: gestor.email },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      // Envio do token e refresh token como resposta
+      res.json({ token, refreshToken });
+    } catch (error) {
+      console.error('Erro ao comparar as senhas:', error);
+      return res.status(500).json({ error: 'Erro interno ao verificar as credenciais' });
+    }
+  });
+});
+
+
+
+// ----------------------------------- Rota para renovar token -------------------------
+
+app.post('/refresh-token', (req, res) => {
+  const { refreshToken } = req.body;
+  
+  // Verifique se o refresh token é válido
+  if (!refreshToken) {
+    return res.status(401).json({ error: 'Refresh token não fornecido' });
+  }
+
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, gestor) => {
+    if (err) {
+      return res.status(403).json({ error: 'Refresh token inválido ou expirado' });
     }
 
-    console.log('Senha correta, gerando token...');
+    // Gere um novo token de acesso
     const token = jwt.sign(
-      {
-        cpf_gestor: gestor.cpf_gestor,
-        email: gestor.email,
-      },
+      { cpf_gestor: gestor.cpf_gestor, email: gestor.email },
       process.env.JWT_SECRET,
-      { expiresIn: '12h' }
+      { expiresIn: '7h' } // Pode ajustar o tempo conforme necessário
     );
 
     res.json({ token });
