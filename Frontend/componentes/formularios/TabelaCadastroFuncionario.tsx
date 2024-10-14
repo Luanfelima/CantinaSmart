@@ -356,11 +356,11 @@ const validateFuncionario = (values: Funcionario) => {
     errors.telefone = 'Telefone inválido';
   }
   // Validação do CPF
-  //if (!validateRequired(values.cpf)) {
-  //  errors.cpf = 'CPF é obrigatório';
-  //} else if (!validateCpf(values.cpf)) {
-  //  errors.cpf = 'CPF inválido. Digite sem traços e pontos';
-  //}
+  if (!validateRequired(values.cpf)) {
+    errors.cpf = 'CPF é obrigatório';
+  } else if (!validateCpf(values.cpf)) {
+    errors.cpf = 'CPF inválido. Digite sem traços e pontos';
+  }
   // Validação do cargo
   if (!validateRequired(values.cargo)) {
     errors.cargo = 'Cargo é obrigatório';
