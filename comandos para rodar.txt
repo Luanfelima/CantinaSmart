@@ -8,6 +8,8 @@ npm install node cors express next //Se necessário
 npm install jsonwebtoken //Se necessário
 npm install bcrypt //Se necessário
 
+Se continuar dando erro pode dar um npm unistall bcrypt e dps o install dele;
+
 rodar - node server.js
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
