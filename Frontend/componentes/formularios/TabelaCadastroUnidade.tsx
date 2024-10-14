@@ -49,6 +49,14 @@ const Example = () => {
   const columns = useMemo<MRT_ColumnDef<Unidade>[]>(
     () => [
       {
+        accessorKey: 'id_unidade',
+        header: 'ID',
+        enableEditing: false, // Desativa a edição
+        size: 0, // Define o tamanho da coluna como zero
+        mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
+        mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+      },
+      {
         accessorKey: 'polo',
         header: 'Polo',
         editVariant: 'select',

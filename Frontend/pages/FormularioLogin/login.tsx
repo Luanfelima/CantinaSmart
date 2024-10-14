@@ -46,6 +46,7 @@ export function FormLogin() {
       const { data } = await api.post('/login', { email, senha });
       localStorage.setItem('token', data.token);  // Salva o token JWT
       localStorage.setItem('refreshToken', data.refreshToken);  // Salva o refresh token
+      localStorage.setItem('cpf_gestor', data.cpf_gestor);  // Salva o CPF do gestor
       router.push('/Dashboard/dashboard');  // Redireciona para o dashboard
     } catch (error) {
       console.error('Erro no login:', error);

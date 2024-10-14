@@ -80,6 +80,11 @@ const CadastroFuncionario = () => {
   };
 
   const handleSaveFuncionario: MRT_TableOptions<Funcionario>['onEditingRowSave'] = async ({ values, table }) => {
+    
+    console.log('Valores do funcionário para atualização:', values);
+
+    console.log('Tentando atualizar funcionário:', values);
+    
     const newValidationErrors = validateFuncionario(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -115,6 +120,14 @@ const CadastroFuncionario = () => {
 
   const columns = useMemo<MRT_ColumnDef<Funcionario>[]>(
     () => [
+      {
+        accessorKey: 'id_func',
+        header: 'ID',
+        enableEditing: false, // Desativa a edição
+        size: 0, // Define o tamanho da coluna como zero
+        mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
+        mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+      },
       {
         accessorKey: 'nome',
         header: 'Nome',

@@ -42,6 +42,14 @@ const CadastroGestor = () => {
   const columns = useMemo<MRT_ColumnDef<Gestor>[]>(
     () => [
       {
+        accessorKey: 'id_gestor',
+        header: 'ID',
+        enableEditing: false, // Desativa a edição
+        size: 0, // Define o tamanho da coluna como zero
+        mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
+        mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+      },
+      {
         accessorKey: 'nome',
         header: 'Nome',
         mantineEditTextInputProps: {

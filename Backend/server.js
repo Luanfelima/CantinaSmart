@@ -97,6 +97,8 @@ function authorizeFuncionario(req, res, next) {
   const { id_func } = req.params;
   const cpf_gestor = req.gestor.cpf_gestor;
 
+  console.log(`Gestor CPF: ${cpf_gestor}, Funcionário ID: ${id_func}`);
+
   const query = 'SELECT * FROM funcionario_gestor WHERE id_func = ? AND cpf_gestor = ?';
 
   db.query(query, [id_func, cpf_gestor], (err, results) => {
@@ -107,6 +109,26 @@ function authorizeFuncionario(req, res, next) {
 
     if (results.length === 0) {
       return res.status(403).json({ error: 'Acesso negado: Gestor não autorizado para este funcionário' });
+    }
+
+    next();
+  });
+}
+
+// Middleware para autorizar o gestor a acessar uma categoria específica
+function authorizeCategoria(req, res, next) {
+  const { id_categorias } = req.params;
+  const cpf_gestor = req.gestor.cpf_gestor;
+
+  const query = 'SELECT * FROM categoria_gestor WHERE id_categorias = ? AND cpf_gestor = ?';
+  db.query(query, [id_categorias, cpf_gestor], (err, results) => {
+    if (err) {
+      console.error('Erro ao acessar o banco de dados:', err);
+      return res.status(500).json({ error: 'Erro ao acessar o banco de dados' });
+    }
+
+    if (results.length === 0) {
+      return res.status(403).json({ error: 'Acesso negado: Gestor não autorizado para esta categoria' });
     }
 
     next();
@@ -167,7 +189,10 @@ app.post('/funcionarios', authenticateToken, (req, res) => {
 
 app.put('/funcionarios/:id_func', authenticateToken, authorizeFuncionario, (req, res) => {
   const { id_func } = req.params;
+  console.log(`ID do funcionário recebido na rota: ${id_func}`);
   const { nome, email, telefone, cpf, cargo } = req.body;
+
+  console.log(`Atualizando funcionário ID: ${id_func} pelo gestor CPF: ${req.gestor.cpf_gestor}`);
 
   const query = 'UPDATE funcionarios SET nome = ?, email = ?, telefone = ?, cpf = ?, cargo = ? WHERE id_func = ?';
   const values = [nome, email, telefone, cpf, cargo, id_func];
@@ -184,24 +209,29 @@ app.put('/funcionarios/:id_func', authenticateToken, authorizeFuncionario, (req,
 app.delete('/funcionarios/:id_func', authenticateToken, authorizeFuncionario, (req, res) => {
   const { id_func } = req.params;
 
-  const query = 'DELETE FROM funcionarios WHERE id_func = ?';
+  // Primeiro remove o funcionário da tabela `funcionario_gestor`
+  const deleteFuncionarioGestor = 'DELETE FROM funcionario_gestor WHERE id_func = ?';
 
-  db.query(query, [id_func], (err) => {
+  db.query(deleteFuncionarioGestor, [id_func], (err) => {
     if (err) {
-      console.error('Erro ao excluir funcionário:', err);
+      console.error('Erro ao excluir da tabela funcionario_gestor:', err);
       return res.status(500).json({ error: err.message });
     }
-    // Também remover da tabela funcionario_gestor
-    const query_fg = 'DELETE FROM funcionario_gestor WHERE id_func = ?';
-    db.query(query_fg, [id_func], (err) => {
+
+    // Depois remove o funcionário da tabela `funcionarios`
+    const deleteFuncionario = 'DELETE FROM funcionarios WHERE id_func = ?';
+
+    db.query(deleteFuncionario, [id_func], (err) => {
       if (err) {
-        console.error('Erro ao excluir da tabela funcionario_gestor:', err);
+        console.error('Erro ao excluir funcionário:', err);
         return res.status(500).json({ error: err.message });
       }
+
       res.json({ message: 'Funcionário removido com sucesso' });
     });
   });
 });
+
 
 // ----------------------------------- Rotas de Unidades -----------------------------------
 app.get('/unidades', authenticateToken, (req, res) => {
@@ -294,62 +324,87 @@ app.delete('/unidades/:id_unidade', authenticateToken, authorizeUnidade, (req, r
 });
 
 // ----------------------------------- Rotas de Categorias -----------------------------------
-app.get('/unidades/:id_unidade/categorias', authenticateToken, authorizeUnidade, (req, res) => {
-  const { id_unidade } = req.params;
+app.get('/categorias', authenticateToken, (req, res) => {
+  const cpf_gestor = req.gestor.cpf_gestor;
 
-  const query = 'SELECT * FROM categorias WHERE id_unidade = ?';
-  db.query(query, [id_unidade], (err, results) => {
+  const query = `
+    SELECT c.* 
+    FROM categorias c
+    INNER JOIN categoria_gestor cg ON c.id_categorias = cg.id_categorias
+    WHERE cg.cpf_gestor = ?;
+  `;
+
+  db.query(query, [cpf_gestor], (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      console.error('Erro ao buscar categorias:', err);
+      return res.status(500).json({ error: err.message });
     }
     res.json(results);
   });
 });
 
-app.post('/unidades/:id_unidade/categorias', authenticateToken, authorizeUnidade, (req, res) => {
-  const { id_unidade } = req.params;
+app.post('/categorias', authenticateToken, (req, res) => {
+  const cpf_gestor = req.gestor.cpf_gestor;
   const { nome, descricao } = req.body;
 
-  const query = 'INSERT INTO categorias (nome, descricao, id_unidade) VALUES (?, ?, ?)';
-  const values = [nome, descricao, id_unidade];
+  const query = 'INSERT INTO categorias (nome, descricao) VALUES (?, ?)';
+  const values = [nome, descricao];
 
   db.query(query, values, (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      console.error('Erro ao inserir categoria:', err);
+      return res.status(500).json({ error: err.message });
     }
-    res.status(201).json({ id_categorias: results.insertId, nome, descricao, id_unidade });
+    const id_categorias = results.insertId;
+
+    const query_cg = 'INSERT INTO categoria_gestor (cpf_gestor, id_categorias) VALUES (?, ?)';
+    db.query(query_cg, [cpf_gestor, id_categorias], (err) => {
+      if (err) {
+        console.error('Erro ao inserir na tabela categoria_gestor:', err);
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.status(201).json({ id_categorias, nome, descricao });
+    });
   });
 });
 
-app.put('/unidades/:id_unidade/categorias/:id_categorias', authenticateToken, authorizeUnidade, (req, res) => {
-  const { id_unidade, id_categorias } = req.params;
+app.put('/categorias/:id_categorias', authenticateToken, authorizeCategoria, (req, res) => {
+  const { id_categorias } = req.params;
   const { nome, descricao } = req.body;
 
-  const query = 'UPDATE categorias SET nome = ?, descricao = ? WHERE id_categorias = ? AND id_unidade = ?';
-  const values = [nome, descricao, id_categorias, id_unidade];
+  const query = 'UPDATE categorias SET nome = ?, descricao = ? WHERE id_categorias = ?';
+  const values = [nome, descricao, id_categorias];
 
   db.query(query, values, (err) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      console.error('Erro ao atualizar categoria:', err);
+      return res.status(500).json({ error: err.message });
     }
+
     res.json({ message: 'Categoria atualizada com sucesso' });
   });
 });
 
-app.delete('/unidades/:id_unidade/categorias/:id_categorias', authenticateToken, authorizeUnidade, (req, res) => {
-  const { id_unidade, id_categorias } = req.params;
+app.delete('/categorias/:id_categorias', authenticateToken, authorizeCategoria, (req, res) => {
+  const { id_categorias } = req.params;
 
-  const query = 'DELETE FROM categorias WHERE id_categorias = ? AND id_unidade = ?';
-
-  db.query(query, [id_categorias, id_unidade], (err) => {
+  const deleteCategoriaGestor = 'DELETE FROM categoria_gestor WHERE id_categorias = ?';
+  db.query(deleteCategoriaGestor, [id_categorias], (err) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      console.error('Erro ao excluir da tabela categoria_gestor:', err);
+      return res.status(500).json({ error: err.message });
     }
-    res.json({ message: 'Categoria removida com sucesso' });
+
+    const deleteCategoria = 'DELETE FROM categorias WHERE id_categorias = ?';
+    db.query(deleteCategoria, [id_categorias], (err) => {
+      if (err) {
+        console.error('Erro ao excluir categoria:', err);
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.json({ message: 'Categoria removida com sucesso' });
+    });
   });
 });
 
@@ -472,16 +527,14 @@ app.post('/login', (req, res) => {
         { expiresIn: '7d' }
       );
 
-      // Envio do token e refresh token como resposta
-      res.json({ token, refreshToken });
+      // Envio do token, refresh token e cpf_gestor como resposta
+      res.json({ token, refreshToken, cpf_gestor: gestor.cpf_gestor });
     } catch (error) {
       console.error('Erro ao comparar as senhas:', error);
       return res.status(500).json({ error: 'Erro interno ao verificar as credenciais' });
     }
   });
 });
-
-
 
 // ----------------------------------- Rota para renovar token -------------------------
 
