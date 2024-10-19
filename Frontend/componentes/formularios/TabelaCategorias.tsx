@@ -30,6 +30,7 @@ import {
 } from '@tanstack/react-query';
 import api from '../../api/api';
 
+// Definição do tipo Categoria
 type Categoria = {
   id_categorias: number;
   nome: string;
@@ -37,10 +38,12 @@ type Categoria = {
 };
 
 const CadastroCategoria = () => {
+  // Estado para armazenar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
   const queryClient = useQueryClient();
 
+  // Função para buscar as categorias da API
   const {
     data: fetchedCategorias = [],
     error,
@@ -54,10 +57,12 @@ const CadastroCategoria = () => {
     return <div>Erro ao carregar as categorias. Por favor, tente novamente mais tarde.</div>;
   }
 
+  // Mutations para criar, atualizar e deletar categorias
   const createCategoriaMutation = useCreateCategoria();
   const updateCategoriaMutation = useUpdateCategoria();
   const deleteCategoriaMutation = useDeleteCategoria();
 
+  // Função para salvar nova categoria
   const handleCreateCategoria: MRT_TableOptions<Categoria>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode,
@@ -70,12 +75,13 @@ const CadastroCategoria = () => {
     setValidationErrors({});
     try {
       await createCategoriaMutation.mutateAsync(values);
-      exitCreatingMode();
+      exitCreatingMode(); // Sai do modo de criação
     } catch (error) {
       console.error('Erro ao criar categoria:', error);
     }
   };
 
+  // Função para salvar alterações na categoria
   const handleSaveCategoria: MRT_TableOptions<Categoria>['onEditingRowSave'] = async ({ values, table }) => {
     const newValidationErrors = validateCategoria(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
@@ -84,13 +90,14 @@ const CadastroCategoria = () => {
     }
     setValidationErrors({});
     try {
-      await updateCategoriaMutation.mutateAsync(values);
-      table.setEditingRow(null);
+      await updateCategoriaMutation.mutateAsync(values); // Atualiza a categoria
+      table.setEditingRow(null); // Sai do modo de edição
     } catch (error) {
       console.error('Erro ao atualizar categoria:', error);
     }
   };
 
+  // Modal de confirmação para excluir uma categoria
   const openDeleteConfirmModal = (row: MRT_Row<Categoria>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir essa categoria?',
@@ -103,27 +110,28 @@ const CadastroCategoria = () => {
       confirmProps: { color: 'red' },
       onConfirm: async () => {
         try {
-          await deleteCategoriaMutation.mutateAsync(row.original.id_categorias);
+          await deleteCategoriaMutation.mutateAsync(row.original.id_categorias); // Exclui a categoria
         } catch (error) {
           console.error('Erro ao excluir categoria:', error);
         }
       },
     });
 
+  // Definição das colunas da tabela
   const columns = useMemo<MRT_ColumnDef<Categoria>[]>(() => [
     {
       accessorKey: 'id_categorias',
       header: 'ID',
       enableEditing: false, // Desativa a edição
-      size: 0, // Define o tamanho da coluna como zero
+      size: 0, // Oculta a coluna de ID
       mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
-      mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+      mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo da tabela
     },
     {
       accessorKey: 'nome',
       header: 'Nome',
       mantineEditTextInputProps: {
-        required: true,
+        required: true, // Campo obrigatório
         error: validationErrors?.nome,
         onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
       },
@@ -139,12 +147,13 @@ const CadastroCategoria = () => {
     },
   ], [validationErrors]);
 
+  // Configuração da tabela
   const table = useMantineReactTable({
     columns,
-    data: fetchedCategorias,
-    createDisplayMode: 'modal',
-    editDisplayMode: 'modal',
-    enableEditing: true,
+    data: fetchedCategorias, // Dados vindos da API
+    createDisplayMode: 'modal', // Exibe modal para criação
+    editDisplayMode: 'modal', // Exibe modal para edição
+    enableEditing: true, // Habilita edição
     getRowId: (row) => String(row.id_categorias),
     mantineToolbarAlertBannerProps: isLoadingCategoriasError
       ? { color: 'red', children: 'Erro ao carregar dados' }
@@ -200,6 +209,7 @@ const CadastroCategoria = () => {
   return <MantineReactTable table={table} />;
 };
 
+// Funções auxiliares de CRUD
 function useGetCategorias() {
   return useQuery<Categoria[], Error>({
     queryKey: ['categorias'],
@@ -272,7 +282,7 @@ const CadastroCategoriaWithProviders = () => (
 
 export default CadastroCategoriaWithProviders;
 
-// Validações
+// Funções de validação
 const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0;
 const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
 

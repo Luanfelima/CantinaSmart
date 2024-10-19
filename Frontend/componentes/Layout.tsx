@@ -64,6 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             label= {
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <img src="/LogOff.png" alt="Voltar ao Login / LogOff" style={{ width: 24, height: 24, marginRight: 8 }}/>
+                <p>Sair</p>
               </div>
             }
           />

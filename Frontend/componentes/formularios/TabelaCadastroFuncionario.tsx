@@ -30,6 +30,7 @@ import {
 } from '@tanstack/react-query';
 import api from '../../api/api';
 
+// Definição do tipo Funcionario com os campos necessários
 type Funcionario = {
   id_func: number;
   nome: string;
@@ -40,10 +41,13 @@ type Funcionario = {
 };
 
 const CadastroFuncionario = () => {
+  // Estado para armazenar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
+  // Instância do QueryClient para gerenciar o cache das requisições
   const queryClient = useQueryClient();
 
+  // Hook para buscar os funcionários
   const {
     data: fetchedFuncionarios = [],
     error,
@@ -52,19 +56,23 @@ const CadastroFuncionario = () => {
     isLoading: isLoadingFuncionarios,
   } = useGetFuncionarios();
 
+  // Exibe mensagem de erro se falhar ao buscar os dados
   if (isLoadingFuncionariosError) {
     console.error('Erro ao buscar funcionários:', error);
     return <div>Erro ao carregar os funcionários. Por favor, tente novamente mais tarde.</div>;
   }
 
+  // Funções de criação, atualização e exclusão de funcionários usando React Query
   const createFuncionarioMutation = useCreateFuncionario();
   const updateFuncionarioMutation = useUpdateFuncionario();
   const deleteFuncionarioMutation = useDeleteFuncionario();
 
+  // Função para criar um novo funcionário
   const handleCreateFuncionario: MRT_TableOptions<Funcionario>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode,
   }) => {
+    // Valida os campos antes de criar
     const newValidationErrors = validateFuncionario(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -73,18 +81,14 @@ const CadastroFuncionario = () => {
     setValidationErrors({});
     try {
       await createFuncionarioMutation.mutateAsync(values);
-      exitCreatingMode();
+      exitCreatingMode(); // Sai do modo de criação
     } catch (error) {
       console.error('Erro ao criar funcionário:', error);
     }
   };
 
+  // Função para atualizar um funcionário existente
   const handleSaveFuncionario: MRT_TableOptions<Funcionario>['onEditingRowSave'] = async ({ values, table }) => {
-    
-    console.log('Valores do funcionário para atualização:', values);
-
-    console.log('Tentando atualizar funcionário:', values);
-    
     const newValidationErrors = validateFuncionario(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -93,12 +97,13 @@ const CadastroFuncionario = () => {
     setValidationErrors({});
     try {
       await updateFuncionarioMutation.mutateAsync(values);
-      table.setEditingRow(null);
+      table.setEditingRow(null); // Sai do modo de edição
     } catch (error) {
       console.error('Erro ao atualizar funcionário:', error);
     }
   };
 
+  // Função para abrir modal de confirmação de exclusão
   const openDeleteConfirmModal = (row: MRT_Row<Funcionario>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir esse funcionário?',
@@ -118,74 +123,73 @@ const CadastroFuncionario = () => {
       },
     });
 
-  const columns = useMemo<MRT_ColumnDef<Funcionario>[]>(
-    () => [
-      {
-        accessorKey: 'id_func',
-        header: 'ID',
-        enableEditing: false, // Desativa a edição
-        size: 0, // Define o tamanho da coluna como zero
-        mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
-        mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+  // Define as colunas da tabela
+  const columns = useMemo<MRT_ColumnDef<Funcionario>[]>(() => [
+    {
+      accessorKey: 'id_func',
+      header: 'ID',
+      enableEditing: false, // Desativa a edição
+      size: 0, // Define o tamanho da coluna como zero
+      mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
+      mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+    },
+    {
+      accessorKey: 'nome',
+      header: 'Nome',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.nome,
+        onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
       },
-      {
-        accessorKey: 'nome',
-        header: 'Nome',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.nome,
-          onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
-        },
+    },
+    {
+      accessorKey: 'email',
+      header: 'E-mail',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.email,
+        onFocus: () => setValidationErrors({ ...validationErrors, email: undefined }),
       },
-      {
-        accessorKey: 'email',
-        header: 'E-mail',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.email,
-          onFocus: () => setValidationErrors({ ...validationErrors, email: undefined }),
-        },
+    },
+    {
+      accessorKey: 'telefone',
+      header: 'Telefone',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.telefone,
+        onFocus: () => setValidationErrors({ ...validationErrors, telefone: undefined }),
       },
-      {
-        accessorKey: 'telefone',
-        header: 'Telefone',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.telefone,
-          onFocus: () => setValidationErrors({ ...validationErrors, telefone: undefined }),
-        },
+    },
+    {
+      accessorKey: 'cpf',
+      header: 'CPF',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.cpf,
+        onFocus: () => setValidationErrors({ ...validationErrors, cpf: undefined }),
       },
-      {
-        accessorKey: 'cpf',
-        header: 'CPF',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.cpf,
-          onFocus: () => setValidationErrors({ ...validationErrors, cpf: undefined }),
-        },
+    },
+    {
+      accessorKey: 'cargo',
+      header: 'Cargo',
+      editVariant: 'select', // Campo como seletor
+      mantineEditSelectProps: {
+        data: ['Gestor(a)', 'Funcionário(a)'],
+        required: true,
+        error: validationErrors?.cargo,
+        onFocus: () => setValidationErrors({ ...validationErrors, cargo: undefined }),
       },
-      {
-        accessorKey: 'cargo',
-        header: 'Cargo',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: ['Gestor(a)', 'Funcionário(a)'],
-          required: true,
-          error: validationErrors?.cargo,
-          onFocus: () => setValidationErrors({ ...validationErrors, cargo: undefined }),
-        },
-      },
-    ],
-    [validationErrors],
-  );
+    },
+  ], [validationErrors]);
 
+  // Configuração da tabela MantineReactTable
   const table = useMantineReactTable({
     columns,
     data: fetchedFuncionarios,
-    createDisplayMode: 'modal',
-    editDisplayMode: 'modal',
-    enableEditing: true,
-    getRowId: (row) => String(row.id_func),
+    createDisplayMode: 'modal', // Modal para criação
+    editDisplayMode: 'modal', // Modal para edição
+    enableEditing: true, // Habilita edição
+    getRowId: (row) => String(row.id_func), // Define o id único
     mantineToolbarAlertBannerProps: isLoadingFuncionariosError
       ? { color: 'red', children: 'Erro ao carregar dados' }
       : undefined,
@@ -240,6 +244,7 @@ const CadastroFuncionario = () => {
   return <MantineReactTable table={table} />;
 };
 
+// Função para buscar os funcionários
 function useGetFuncionarios() {
   return useQuery<Funcionario[], Error>({
     queryKey: ['funcionarios'],
@@ -247,10 +252,11 @@ function useGetFuncionarios() {
       const response = await api.get('/funcionarios');
       return response.data;
     },
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: false, // Evita refetch quando a janela recebe foco
   });
 }
 
+// Função para criar funcionário
 function useCreateFuncionario() {
   const queryClient = useQueryClient();
 
@@ -268,6 +274,7 @@ function useCreateFuncionario() {
   });
 }
 
+// Função para atualizar funcionário
 function useUpdateFuncionario() {
   const queryClient = useQueryClient();
 
@@ -284,6 +291,7 @@ function useUpdateFuncionario() {
   });
 }
 
+// Função para excluir funcionário
 function useDeleteFuncionario() {
   const queryClient = useQueryClient();
 
@@ -300,6 +308,7 @@ function useDeleteFuncionario() {
   });
 }
 
+// Inicializa o QueryClient para gerenciamento global de dados
 const queryClient = new QueryClient();
 
 const CadastroFuncionarioWithProviders = () => (
@@ -312,56 +321,38 @@ const CadastroFuncionarioWithProviders = () => (
 
 export default CadastroFuncionarioWithProviders;
 
-// Validações
+// Funções de validação de campos
 const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength;
 const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length;
-const validateNome = (nome: string) => {
-  const regex = /^[^0-9]+$/;
-  return regex.test(nome) && validateMinLength(nome, 4);
-};
-const validateEmail = (email: string) => {
-  const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return !!email.length && regex.test(email.toLowerCase());
-};
-const validateCpf = (cpf: string) => {
-  if (cpf.includes('.') || cpf.includes('-')) {
-    return false;
-  }
-  return /^[0-9]{11}$/.test(cpf);
-};
-const validateTelefone = (telefone: string) => {
-  const cleanTelefone = telefone.replace(/\D/g, '');
-  return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone);
-};
+const validateNome = (nome: string) => {const regex = /^[^0-9]+$/;return regex.test(nome) && validateMinLength(nome, 4);};
+const validateEmail = (email: string) => {const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;return !!email.length && regex.test(email.toLowerCase());};
+const validateCpf = (cpf: string) => {if (cpf.includes('.') || cpf.includes('-')) {return false;}return /^[0-9]{11}$/.test(cpf);};
+const validateTelefone = (telefone: string) => {const cleanTelefone = telefone.replace(/\D/g, '');return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone);};
 
+// Função que valida todos os campos do funcionário
 const validateFuncionario = (values: Funcionario) => {
   const errors: Record<string, string | undefined> = {};
 
-  // Validação do nome
   if (!validateRequired(values.nome)) {
     errors.nome = 'Nome é obrigatório';
   } else if (!validateNome(values.nome)) {
     errors.nome = 'Nome deve ter no mínimo 4 caracteres e não conter números';
   }
-  // Validação do email
   if (!validateRequired(values.email)) {
     errors.email = 'E-mail é obrigatório';
   } else if (!validateEmail(values.email)) {
     errors.email = 'E-mail em formato inválido';
   }
-  // Validação do telefone
   if (!validateRequired(values.telefone)) {
     errors.telefone = 'Telefone é obrigatório';
   } else if (!validateTelefone(values.telefone)) {
     errors.telefone = 'Telefone inválido';
   }
-  // Validação do CPF
   if (!validateRequired(values.cpf)) {
     errors.cpf = 'CPF é obrigatório';
   } else if (!validateCpf(values.cpf)) {
     errors.cpf = 'CPF inválido. Digite sem traços e pontos';
   }
-  // Validação do cargo
   if (!validateRequired(values.cargo)) {
     errors.cargo = 'Cargo é obrigatório';
   }

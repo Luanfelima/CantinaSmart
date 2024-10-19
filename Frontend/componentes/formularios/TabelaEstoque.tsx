@@ -1,11 +1,10 @@
 import '@mantine/core/styles.css';
-import '@mantine/dates/styles.css'; //if using mantine date picker features
-import 'mantine-react-table/styles.css'; //make sure MRT styles were imported in your app root (once)
+import '@mantine/dates/styles.css'; // Importar estilos do seletor de data Mantine se utilizado
+import 'mantine-react-table/styles.css'; // Importar estilos do Mantine React Table
 import { useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
   MantineReactTable,
-  // createRow,
   type MRT_ColumnDef,
   type MRT_Row,
   type MRT_TableOptions,
@@ -31,27 +30,23 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-type User = {
+// Definição de tipo para o item de estoque
+type Estoque = {
   id: string;
   nomeProduto: string;
   quantidade: string;
 };
 
+// Função do componente principal
 const Example = () => {
+  // Estado para erros de validação
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string | undefined>
   >({});
 
-  const columns = useMemo<MRT_ColumnDef<User>[]>(
+  // Definir colunas para a tabela
+  const columns = useMemo<MRT_ColumnDef<Estoque>[]>(
     () => [
-      {
-        accessorKey: 'id_estoque',
-        header: 'ID',
-        enableEditing: false, // Desativa a edição
-        size: 0, // Define o tamanho da coluna como zero
-        mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
-        mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
-      },
       {
         accessorKey: 'nomeProduto',
         header: 'Nome do Produto',
@@ -59,12 +54,11 @@ const Example = () => {
           type: 'text',
           required: true,
           error: validationErrors?.nomeProduto,
-
-          onFocus: () => 
+          onFocus: () =>
             setValidationErrors({
               ...validationErrors,
               nomeProduto: undefined,
-            })
+            }),
         },
       },
       {
@@ -74,37 +68,30 @@ const Example = () => {
           type: 'String',
           required: true,
           error: validationErrors?.quantidade,
-
-          onFocus: () => 
+          onFocus: () =>
             setValidationErrors({
               ...validationErrors,
               quantidade: undefined,
-            })        
+            }),
         },
       },
     ],
     [validationErrors],
   );
 
-  //call CREATE hook
-  const { mutateAsync: createUser, isPending: isCreatingUser } =
-    useCreateUser();
-  //call READ hook
+  // Usar hooks personalizados para operações CRUD
+  const { mutateAsync: createUser, isPending: isCreatingUser } = useCreateUser();
   const {
     data: fetchedUsers = [],
     isError: isLoadingUsersError,
     isFetching: isFetchingUsers,
     isLoading: isLoadingUsers,
   } = useGetUsers();
-  //call UPDATE hook
-  const { mutateAsync: updateUser, isPending: isUpdatingUser } =
-    useUpdateUser();
-  //call DELETE hook
-  const { mutateAsync: deleteUser, isPending: isDeletingUser } =
-    useDeleteUser();
+  const { mutateAsync: updateUser, isPending: isUpdatingUser } = useUpdateUser();
+  const { mutateAsync: deleteUser, isPending: isDeletingUser } = useDeleteUser();
 
-  //CREATE action
-  const handleCreateUser: MRT_TableOptions<User>['onCreatingRowSave'] = async ({
+  // Lidar com a criação de um novo item de estoque
+  const handleCreateUser: MRT_TableOptions<Estoque>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode,
   }) => {
@@ -118,8 +105,8 @@ const Example = () => {
     exitCreatingMode();
   };
 
-  //UPDATE action
-  const handleSaveUser: MRT_TableOptions<User>['onEditingRowSave'] = async ({
+  // Lidar com a atualização de um item de estoque existente
+  const handleSaveUser: MRT_TableOptions<Estoque>['onEditingRowSave'] = async ({
     values,
     table,
   }) => {
@@ -130,17 +117,17 @@ const Example = () => {
     }
     setValidationErrors({});
     await updateUser(values);
-    table.setEditingRow(null); //exit editing mode
+    table.setEditingRow(null); // Sair do modo de edição
   };
 
-  //DELETE action
-  const openDeleteConfirmModal = (row: MRT_Row<User>) =>
+  // Abrir modal de confirmação antes de excluir um item de estoque
+  const openDeleteConfirmModal = (row: MRT_Row<Estoque>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir a quantidade do produto?',
       children: (
         <Text>
-          Tem certeza que você quer excluir {row.original.nomeProduto}?
-          Essa ação não pode ser desfeita.
+          Tem certeza que você quer excluir {row.original.nomeProduto}? Essa ação
+          não pode ser desfeita.
         </Text>
       ),
       labels: { confirm: 'Excluir', cancel: 'Cancelar' },
@@ -148,11 +135,12 @@ const Example = () => {
       onConfirm: () => deleteUser(row.original.id),
     });
 
+  // Inicializar a tabela com configurações e manipuladores de eventos
   const table = useMantineReactTable({
     columns,
     data: fetchedUsers,
-    createDisplayMode: 'modal', //default ('row', and 'custom' are also available)
-    editDisplayMode: 'modal', //default ('row', 'cell', 'table', and 'custom' are also available)
+    createDisplayMode: 'modal',
+    editDisplayMode: 'modal',
     enableEditing: true,
     getRowId: (row) => row.id,
     mantineToolbarAlertBannerProps: isLoadingUsersError
@@ -205,13 +193,7 @@ const Example = () => {
     renderTopToolbarCustomActions: ({ table }) => (
       <Button
         onClick={() => {
-          table.setCreatingRow(true); //simplest way to open the create row modal with no default values
-          //or you can pass in a row object to set default values with the `createRow` helper function
-          // table.setCreatingRow(
-          //   createRow(table, {
-          //     //optionally pass in default values for the new row, useful for nested data or other complex scenarios
-          //   }),
-          // );
+          table.setCreatingRow(true); // Abrir o modal de criação de linha
         }}
       >
         Cadastrar novo estoque
@@ -225,20 +207,21 @@ const Example = () => {
     },
   });
 
+  // Renderizar o componente da tabela
   return <MantineReactTable table={table} />;
 };
 
-//CREATE hook (post new user to api)
+// Hook CREATE para enviar novo item de estoque para a API
 function useCreateUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+    mutationFn: async (user: Estoque) => {
+      // Simular chamada à API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       return Promise.resolve();
     },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
+    // Atualização otimista no lado do cliente
+    onMutate: (newUserInfo: Estoque) => {
       queryClient.setQueryData(
         ['users'],
         (prevUsers: any) =>
@@ -248,64 +231,69 @@ function useCreateUser() {
               ...newUserInfo,
               id: (Math.random() + 1).toString(36).substring(7),
             },
-          ] as User[],
+          ] as Estoque[],
       );
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    // Recarregar usuários após mutação (desativado para demonstração)
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
   });
 }
 
-//READ hook (get users from api)
+// Hook READ para obter itens de estoque da API
 function useGetUsers() {
-  return useQuery<User[]>({
+  return useQuery<Estoque[]>({
     queryKey: ['users'],
     refetchOnWindowFocus: false,
   });
 }
 
-//UPDATE hook (put user in api)
+// Hook UPDATE para atualizar item de estoque na API
 function useUpdateUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (user: User) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+    mutationFn: async (user: Estoque) => {
+      // Simular chamada à API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       return Promise.resolve();
     },
-    //client side optimistic update
-    onMutate: (newUserInfo: User) => {
+    // Atualização otimista no lado do cliente
+    onMutate: (newUserInfo: Estoque) => {
       queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.map((prevUser: User) =>
+        prevUsers?.map((prevUser: Estoque) =>
           prevUser.id === newUserInfo.id ? newUserInfo : prevUser,
         ),
       );
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    // Recarregar usuários após mutação (desativado para demonstração)
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
   });
 }
 
-//DELETE hook (delete user in api)
+// Hook DELETE para excluir item de estoque na API
 function useDeleteUser() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (userId: string) => {
-      //send api update request here
-      await new Promise((resolve) => setTimeout(resolve, 1000)); //fake api call
+      // Simular chamada à API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       return Promise.resolve();
     },
-    //client side optimistic update
+    // Atualização otimista no lado do cliente
     onMutate: (userId: string) => {
       queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.filter((user: User) => user.id !== userId),
+        prevUsers?.filter((user: Estoque) => user.id !== userId),
       );
     },
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }), //refetch users after mutation, disabled for demo
+    // Recarregar usuários após mutação (desativado para demonstração)
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
   });
 }
 
 const queryClient = new QueryClient();
+
+// Componente com providers para react-query e modais
 const ExampleWithProviders = () => (
-  //Put this with your other react-query providers near root of your app
+  // Coloque esses providers próximo à raiz do seu aplicativo
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
       <Example />
@@ -315,14 +303,17 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => {return value !== null && value !== undefined && !!value.length;};
+// Funções de validação
+const validateRequired = (value: any) => {
+  return value !== null && value !== undefined && !!value.length;};
 const validateMinLength = (value: string, minLength: number) => {return !!value && value.length >= minLength;};
 const validateSomenteTexto = (value: string) => {return /^[^\d]+$/.test(value);};
-const validateQuantidade = (quantidade: string) => {return /^[1-9]\d{0,2}$/.test(quantidade);}; // Regex de números naturais (positivos e maiores que zero) com 2 digitos adicionais depois do primeiro diferente de zero
+const validateQuantidade = (quantidade: string) => {return /^[1-9]\d{0,2}$/.test(quantidade);}; // Regex para inteiros positivos maiores que zero, até três dígitos
 
-function validateEstoque(user: User) {
+// Função para validar campos do item de estoque
+function validateEstoque(user: Estoque) {
   const errors: Record<string, string | undefined> = {};
-  // Validação do nome do produto
+  
   if (!validateRequired(user.nomeProduto)) {
     errors.nomeProduto = 'Nome do produto é obrigatório';
   } else if (!validateMinLength(user.nomeProduto, 2)) {
@@ -330,7 +321,6 @@ function validateEstoque(user: User) {
   } else if (!validateSomenteTexto(user.nomeProduto)) {
     errors.nomeProduto = 'Nome do produto inválido';
   }
-  // Validação da quantidade
   if (!validateRequired(user.quantidade)) {
     errors.quantidade = 'Quantidade obrigatória';
   } else if (!validateQuantidade(user.quantidade)) {

@@ -44,83 +44,74 @@ type Produto = {
 const Example = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
-  const columns = useMemo<MRT_ColumnDef<Produto>[]>(
-    () => [
-      {
-        accessorKey: 'id_produto',
-        header: 'ID',
-        enableEditing: false, // Desativa a edição
-        size: 0, // Define o tamanho da coluna como zero
-        mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
-        mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+  // Definição das colunas da tabela de produtos
+  const columns = useMemo<MRT_ColumnDef<Produto>[]>(() => [
+    {
+      accessorKey: 'nome_p',
+      header: 'Nome do Produto',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.nome_p,
+        onFocus: () => setValidationErrors({ ...validationErrors, nome_p: undefined }),
       },
-      {
-        accessorKey: 'nome_p',
-        header: 'Nome do Produto',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.nome_p,
-          onFocus: () => setValidationErrors({ ...validationErrors, nome_p: undefined }),
-        },
+    },
+    {
+      accessorKey: 'categoria',
+      header: 'Categoria',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.categoria,
+        onFocus: () => setValidationErrors({ ...validationErrors, categoria: undefined }),
       },
-      {
-        accessorKey: 'categoria',
-        header: 'Categoria',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.categoria,
-          onFocus: () => setValidationErrors({ ...validationErrors, categoria: undefined }),
-        },
+    },
+    {
+      accessorKey: 'preco',
+      header: 'Preço',
+      mantineEditTextInputProps: {
+        type: 'number',
+        required: true,
+        error: validationErrors?.preco,
+        onFocus: () => setValidationErrors({ ...validationErrors, preco: undefined }),
       },
-      {
-        accessorKey: 'preco',
-        header: 'Preço',
-        mantineEditTextInputProps: {
-          type: 'number',
-          required: true,
-          error: validationErrors?.preco,
-          onFocus: () => setValidationErrors({ ...validationErrors, preco: undefined }),
-        },
+    },
+    {
+      accessorKey: 'perecivel',
+      header: 'Perecível',
+      editVariant: 'select',
+      mantineEditSelectProps: {
+        data: [
+          { value: 'true', label: 'Sim' },
+          { value: 'false', label: 'Não' },
+        ],
+        required: true,
+        error: validationErrors?.perecivel,
+        onFocus: () => setValidationErrors({ ...validationErrors, perecivel: undefined }),
       },
-      {
-        accessorKey: 'perecivel',
-        header: 'Perecível',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: [
-            { value: 'true', label: 'Sim' },
-            { value: 'false', label: 'Não' },
-          ],
-          required: true,
-          error: validationErrors?.perecivel,
-          onFocus: () => setValidationErrors({ ...validationErrors, perecivel: undefined }),
-        },
-        Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'),
+      Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'), // Exibe "Sim" ou "Não" conforme o valor booleano
+    },
+    {
+      accessorKey: 'descricao',
+      header: 'Descrição',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.descricao,
+        onFocus: () => setValidationErrors({ ...validationErrors, descricao: undefined }),
       },
-      {
-        accessorKey: 'descricao',
-        header: 'Descrição',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.descricao,
-          onFocus: () => setValidationErrors({ ...validationErrors, descricao: undefined }),
-        },
+    },
+    {
+      accessorKey: 'unidade_medida',
+      header: 'Unidade de Medida',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.unidade_medida,
+        onFocus: () => setValidationErrors({ ...validationErrors, unidade_medida: undefined }),
       },
-      {
-        accessorKey: 'unidade_medida',
-        header: 'Unidade de Medida',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.unidade_medida,
-          onFocus: () => setValidationErrors({ ...validationErrors, unidade_medida: undefined }),
-        },
-      },
-    ],
-    [validationErrors],
-  );
+    },
+  ], [validationErrors]);
 
   const queryClient = useQueryClient();
 
+  // Carregamento dos produtos via API
   const {
     data: fetchedProdutos = [],
     isError: isLoadingProdutosError,
@@ -128,10 +119,12 @@ const Example = () => {
     isLoading: isLoadingProdutos,
   } = useGetProdutos();
 
+  // Mutations para criação, atualização e exclusão de produtos
   const createProdutoMutation = useCreateProduto();
   const updateProdutoMutation = useUpdateProduto();
   const deleteProdutoMutation = useDeleteProduto();
 
+  // Função para criação de produto
   const handleCreateProduto: MRT_TableOptions<Produto>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode,
@@ -152,6 +145,7 @@ const Example = () => {
     exitCreatingMode();
   };
 
+  // Função para salvar alterações em produto
   const handleSaveProduto: MRT_TableOptions<Produto>['onEditingRowSave'] = async ({ values, table }) => {
     const newValidationErrors = validateProduto(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
@@ -169,6 +163,7 @@ const Example = () => {
     table.setEditingRow(null);
   };
 
+  // Função para abrir modal de confirmação de exclusão
   const openDeleteConfirmModal = (row: MRT_Row<Produto>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir este produto?',
@@ -182,26 +177,23 @@ const Example = () => {
       onConfirm: () => handleDeleteProduto(row.original.id_produto),
     });
 
+  // Função para excluir produto
   const handleDeleteProduto = async (produtoId: number) => {
     try {
-      if (!produtoId && produtoId !== 0) {
-        console.error('ID do produto é inválido:', produtoId);
-        return;
-      }
-
       await deleteProdutoMutation.mutateAsync(produtoId);
     } catch (error) {
       console.error('Erro ao excluir o produto:', error);
     }
   };
 
+  // Configuração da tabela
   const table = useMantineReactTable({
     columns,
-    data: fetchedProdutos,
+    data: fetchedProdutos, // Dados de produtos vindos da API
     createDisplayMode: 'modal',
     editDisplayMode: 'modal',
     enableEditing: true,
-    getRowId: (row) => String(row.id_produto),
+    getRowId: (row) => String(row.id_produto), // Usa o id_produto como identificador de linha
     mantineToolbarAlertBannerProps: isLoadingProdutosError
       ? { color: 'red', children: 'Erro ao carregar dados' }
       : undefined,
@@ -300,9 +292,6 @@ function useDeleteProduto() {
 
   return useMutation({
     mutationFn: async (produtoId: number) => {
-      if (!produtoId && produtoId !== 0) {
-        throw new Error('ID do produto é inválido.');
-      }
       await axios.delete(`http://localhost:3000/produtos/${produtoId}`);
     },
     onSuccess: () => {
@@ -322,46 +311,57 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-const validateRequired = (value: any) => {return value !== null && value !== undefined && value.toString().trim().length > 0;};
-const validateMinLength = (value: string, minLength: number) => {return value.trim().length >= minLength;};
-const validateNomeProduto = (nome: string) => {return /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);}; // Nome do produto não deve conter números e deve ter no mínimo 3 caracteres
-const validatePreco = (preco: any) => {const numberPreco = Number(preco); return !isNaN(numberPreco) && numberPreco >= 0;}; // Verifica se o preço é um número positivo
-const validateDescricao = (descricao: string) => {return validateMinLength(descricao, 4);}; // Descrição deve ter no mínimo 4 caracteres
+// Funções de validação
+const validateRequired = (value: any) => {
+  return value !== null && value !== undefined && value.toString().trim().length > 0;
+};
 
-const validateProduto = (values: Produto) =>{
+const validateMinLength = (value: string, minLength: number) => {
+  return value.trim().length >= minLength;
+};
+
+const validateNomeProduto = (nome: string) => {
+  return /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3); // Nome do produto não deve conter números e deve ter no mínimo 3 caracteres
+};
+
+const validatePreco = (preco: any) => {
+  const numberPreco = Number(preco);
+  return !isNaN(numberPreco) && numberPreco >= 0; // Verifica se o preço é um número positivo
+};
+
+const validateDescricao = (descricao: string) => {
+  return validateMinLength(descricao, 4); // Descrição deve ter no mínimo 4 caracteres
+};
+
+const validateProduto = (values: Produto) => {
   const errors: Record<string, string | undefined> = {};
-  
-  // Validação do nome do produto
+
   if (!validateRequired(values.nome_p)) {
     errors.nome_p = 'Nome do produto é obrigatório';
   } else if (!validateNomeProduto(values.nome_p)) {
     errors.nome_p = 'Nome do produto inválido';
   }
-  // Validação da categoria
   if (!validateRequired(values.categoria)) {
     errors.categoria = 'Categoria é obrigatória';
   } else if (!validateMinLength(values.categoria, 3)) {
-    errors.categoria = 'Categoria inválida'
+    errors.categoria = 'Categoria inválida';
   }
-  // Validação do preço
   if (!validateRequired(values.preco)) {
     errors.preco = 'Preço é obrigatório';
   } else if (!validatePreco(values.preco)) {
     errors.preco = 'Preço inválido';
   }
-  // Validação do campo perecível
   if (values.perecivel === null || values.perecivel === undefined) {
     errors.perecivel = 'Campo perecível é obrigatório';
   }
-  // Validação da descrição
   if (!validateRequired(values.descricao)) {
     errors.descricao = 'Descrição é obrigatória';
   } else if (!validateDescricao(values.descricao)) {
     errors.descricao = 'Descrição deve ter no mínimo 10 caracteres';
   }
-  // Validação da unidade de medida
   if (!validateRequired(values.unidade_medida)) {
     errors.unidade_medida = 'Unidade de medida é obrigatória';
   }
+
   return errors;
 };

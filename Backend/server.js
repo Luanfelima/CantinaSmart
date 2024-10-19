@@ -135,6 +135,26 @@ function authorizeCategoria(req, res, next) {
   });
 }
 
+// Middleware para autorizar o gestor a acessar uma unidade especifica
+function authorizeUnidade(req, res, next) {
+  const { id_unidade } = req.params;
+  const cpf_gestor = req.gestor.cpf_gestor;
+
+  const query = 'SELECT * FROM unidade_gestor WHERE id_unidade = ? AND cpf_gestor = ?';
+  db.query(query, [id_unidade, cpf_gestor], (err, results) => {
+    if (err) {
+      console.error('Erro ao acessar o banco de dados:', err);
+      return res.status(500).json({ error: 'Erro ao acessar o banco de dados' });
+    }
+
+    if (results.length === 0) {
+      return res.status(403).json({ error: 'Acesso negado: Gestor não autorizado para esta unidade' });
+    }
+
+    next();
+  });
+}
+
 // Start server
 app.listen(3000, () => {
   console.log('Servidor rodando em http://localhost:3000');
@@ -235,9 +255,7 @@ app.delete('/funcionarios/:id_func', authenticateToken, authorizeFuncionario, (r
 
 // ----------------------------------- Rotas de Unidades -----------------------------------
 app.get('/unidades', authenticateToken, (req, res) => {
-  console.log('Requisição recebida em /unidades');
   const cpf_gestor = req.gestor.cpf_gestor;
-  console.log('CPF do gestor autenticado:', cpf_gestor);
 
   const query = `
     SELECT u.*
@@ -248,80 +266,77 @@ app.get('/unidades', authenticateToken, (req, res) => {
 
   db.query(query, [cpf_gestor], (err, results) => {
     if (err) {
+      console.error('Erro ao buscar unidades:', err);
       return res.status(500).json({ error: err.message });
     }
-
     res.json(results);
   });
 });
 
-// Rota para criar uma nova unidade
 app.post('/unidades', authenticateToken, (req, res) => {
   const cpf_gestor = req.gestor.cpf_gestor;
-  console.log('CPF do gestor:', cpf_gestor);
-  console.log('Dados da unidade:', req.body);
   const { polo, nome_unidade, cep, cidade, rua, estado, numero, complemento } = req.body;
+
   const query = 'INSERT INTO unidades (polo, nome_unidade, cep, cidade, rua, estado, numero, complemento) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
   const values = [polo, nome_unidade, cep, cidade, rua, estado, numero, complemento];
 
   db.query(query, values, (err, results) => {
     if (err) {
       console.error('Erro ao inserir unidade:', err);
-      res.status(500).json({ error: err.message });
-      return;
+      return res.status(500).json({ error: err.message });
     }
     const id_unidade = results.insertId;
 
-    // Inserir na tabela unidade_gestor
     const query_ug = 'INSERT INTO unidade_gestor (cpf_gestor, id_unidade) VALUES (?, ?)';
     db.query(query_ug, [cpf_gestor, id_unidade], (err) => {
       if (err) {
         console.error('Erro ao inserir na tabela unidade_gestor:', err);
         return res.status(500).json({ error: err.message });
       }
-      console.log('Unidade associada ao gestor com sucesso');
+
       res.status(201).json({ id_unidade, polo, nome_unidade, cep, cidade, rua, estado, numero, complemento });
     });
   });
 });
 
-// Rota para atualizar uma unidade existente
 app.put('/unidades/:id_unidade', authenticateToken, authorizeUnidade, (req, res) => {
   const { id_unidade } = req.params;
   const { polo, nome_unidade, cep, cidade, rua, estado, numero, complemento } = req.body;
+
   const query = 'UPDATE unidades SET polo = ?, nome_unidade = ?, cep = ?, cidade = ?, rua = ?, estado = ?, numero = ?, complemento = ? WHERE id_unidade = ?';
   const values = [polo, nome_unidade, cep, cidade, rua, estado, numero, complemento, id_unidade];
 
   db.query(query, values, (err) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      console.error('Erro ao atualizar unidade:', err);
+      return res.status(500).json({ error: err.message });
     }
     res.json({ message: 'Unidade atualizada com sucesso' });
   });
 });
 
-// Rota para deletar uma unidade
 app.delete('/unidades/:id_unidade', authenticateToken, authorizeUnidade, (req, res) => {
   const { id_unidade } = req.params;
-  const query = 'DELETE FROM unidades WHERE id_unidade = ?';
 
-  db.query(query, [id_unidade], (err) => {
+  const deleteUnidadeGestor = 'DELETE FROM unidade_gestor WHERE id_unidade = ?';
+  db.query(deleteUnidadeGestor, [id_unidade], (err) => {
     if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+      console.error('Erro ao excluir da tabela unidade_gestor:', err);
+      return res.status(500).json({ error: err.message });
     }
-    // Também remover da tabela unidade_gestor
-    const query_ug = 'DELETE FROM unidade_gestor WHERE id_unidade = ?';
-    db.query(query_ug, [id_unidade], (err) => {
+
+    const deleteUnidade = 'DELETE FROM unidades WHERE id_unidade = ?';
+    db.query(deleteUnidade, [id_unidade], (err) => {
       if (err) {
-        console.error('Erro ao excluir da tabela unidade_gestor:', err);
+        console.error('Erro ao excluir unidade:', err);
         return res.status(500).json({ error: err.message });
       }
+
       res.json({ message: 'Unidade removida com sucesso' });
     });
   });
 });
+
 
 // ----------------------------------- Rotas de Categorias -----------------------------------
 app.get('/categorias', authenticateToken, (req, res) => {

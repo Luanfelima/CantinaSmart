@@ -44,102 +44,103 @@ type Unidade = {
 };
 
 const Example = () => {
+  // Estado para gerenciar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
 
-  const columns = useMemo<MRT_ColumnDef<Unidade>[]>(
-    () => [
-      {
-        accessorKey: 'id_unidade',
-        header: 'ID',
-        enableEditing: false, // Desativa a edição
-        size: 0, // Define o tamanho da coluna como zero
-        mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
-        mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+  // Definição das colunas da tabela
+  const columns = useMemo<MRT_ColumnDef<Unidade>[]>(() => [
+    {
+      accessorKey: 'id_unidade',
+      header: 'ID',
+      enableEditing: false, // Desativa a edição
+      size: 0, // Oculta a coluna ID
+      mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
+      mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+    },
+    {
+      accessorKey: 'polo',
+      header: 'Polo',
+      editVariant: 'select', // Torna o campo um seletor
+      mantineEditSelectProps: {
+        data: ['Barcelona', 'Centro', 'Conceição', 'São Paulo'], // Opções de polos
+        required: true,
+        error: validationErrors?.polo,
+        onFocus: () => setValidationErrors({ ...validationErrors, polo: undefined }),
       },
-      {
-        accessorKey: 'polo',
-        header: 'Polo',
-        editVariant: 'select',
-        mantineEditSelectProps: {
-          data: ['Barcelona', 'Centro', 'Conceição', 'São Paulo'], // Ajuste aqui para dados reais
-          required: true,
-          error: validationErrors?.polo,
-          onFocus: () => setValidationErrors({ ...validationErrors, polo: undefined }),
-        },
+    },
+    // Outras colunas com campos de validação
+    {
+      accessorKey: 'nome_unidade',
+      header: 'Nome da Unidade',
+      mantineEditTextInputProps: {
+        type: 'text',
+        required: true,
+        error: validationErrors?.nome_unidade,
+        onFocus: () => setValidationErrors({ ...validationErrors, nome_unidade: undefined }),
       },
-      {
-        accessorKey: 'nome_unidade',
-        header: 'Nome da Unidade',
-        mantineEditTextInputProps: {
-          type: 'text',
-          required: true,
-          error: validationErrors?.nome_unidade,
-          onFocus: () => setValidationErrors({ ...validationErrors, nome_unidade: undefined }),
-        },
+    },
+    {
+      accessorKey: 'cep',
+      header: 'CEP',
+      mantineEditTextInputProps: {
+        type: 'text',
+        required: true,
+        error: validationErrors?.cep,
+        onFocus: () => setValidationErrors({ ...validationErrors, cep: undefined }),
       },
-      {
-        accessorKey: 'cep',
-        header: 'CEP',
-        mantineEditTextInputProps: {
-          type: 'text',
-          required: true,
-          error: validationErrors?.cep,
-          onFocus: () => setValidationErrors({ ...validationErrors, cep: undefined }),
-        },
+    },
+    {
+      accessorKey: 'cidade',
+      header: 'Cidade da Unidade',
+      mantineEditTextInputProps: {
+        type: 'text',
+        required: true,
+        error: validationErrors?.cidade,
+        onFocus: () => setValidationErrors({ ...validationErrors, cidade: undefined }),
       },
-      {
-        accessorKey: 'cidade',
-        header: 'Cidade da Unidade',
-        mantineEditTextInputProps: {
-          type: 'text',
-          required: true,
-          error: validationErrors?.cidade,
-          onFocus: () => setValidationErrors({ ...validationErrors, cidade: undefined }),
-        },
+    },
+    {
+      accessorKey: 'rua',
+      header: 'Rua da Unidade',
+      mantineEditTextInputProps: {
+        type: 'text',
+        required: true,
+        error: validationErrors?.rua,
+        onFocus: () => setValidationErrors({ ...validationErrors, rua: undefined }),
       },
-      {
-        accessorKey: 'rua',
-        header: 'Rua da Unidade',
-        mantineEditTextInputProps: {
-          type: 'text',
-          required: true,
-          error: validationErrors?.rua,
-          onFocus: () => setValidationErrors({ ...validationErrors, rua: undefined }),
-        },
+    },
+    {
+      accessorKey: 'estado',
+      header: 'Estado da Unidade',
+      mantineEditTextInputProps: {
+        type: 'text',
+        required: true,
+        error: validationErrors?.estado,
+        onFocus: () => setValidationErrors({ ...validationErrors, estado: undefined }),
       },
-      {
-        accessorKey: 'estado',
-        header: 'Estado da Unidade',
-        mantineEditTextInputProps: {
-          type: 'text',
-          required: true,
-          error: validationErrors?.estado,
-          onFocus: () => setValidationErrors({ ...validationErrors, estado: undefined }),
-        },
+    },
+    {
+      accessorKey: 'numero',
+      header: 'Número da Unidade',
+      mantineEditTextInputProps: {
+        type: 'number',
+        required: true,
+        error: validationErrors?.numero,
+        onFocus: () => setValidationErrors({ ...validationErrors, numero: undefined }),
       },
-      {
-        accessorKey: 'numero',
-        header: 'Número da Unidade',
-        mantineEditTextInputProps: {
-          type: 'number',
-          required: true,
-          error: validationErrors?.numero,
-          onFocus: () => setValidationErrors({ ...validationErrors, numero: undefined }),
-        },
+    },
+    {
+      accessorKey: 'complemento',
+      header: 'Complemento da Unidade',
+      mantineEditTextInputProps: {
+        type: 'text',
       },
-      {
-        accessorKey: 'complemento',
-        header: 'Complemento da Unidade',
-        mantineEditTextInputProps: {
-          type: 'text',
-        },
-      },
-    ],
-    [validationErrors],
-  );
+    },
+  ], [validationErrors]);
 
   const queryClient = useQueryClient();
 
+  // Hook para buscar unidades
   const {
     data: fetchedUnidades = [],
     isError: isLoadingUnidadesError,
@@ -147,15 +148,16 @@ const Example = () => {
     isLoading: isLoadingUnidades,
   } = useGetUnidades();
 
+  // Mutations para criar, atualizar e deletar unidades
   const createUnidadeMutation = useCreateUnidade();
   const updateUnidadeMutation = useUpdateUnidade();
   const deleteUnidadeMutation = useDeleteUnidade();
 
+  // Função para criar unidade
   const handleCreateUnidade: MRT_TableOptions<Unidade>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode,
   }) => {
-    console.log('Iniciando criação de unidade com valores:', values);
     const newValidationErrors = validateUnidade(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -164,16 +166,15 @@ const Example = () => {
     setValidationErrors({});
 
     try {
-      await createUnidadeMutation.mutateAsync(values);
-      console.log('Unidade criada com sucesso');
-      exitCreatingMode();
+      await createUnidadeMutation.mutateAsync(values); // Chama a API para criar
+      exitCreatingMode(); // Sai do modo de criação
     } catch (error) {
       console.error('Erro ao criar unidade:', error);
     }
   };
 
+  // Função para salvar atualizações na unidade
   const handleSaveUnidade: MRT_TableOptions<Unidade>['onEditingRowSave'] = async ({ values, table }) => {
-    console.log('Iniciando atualização de unidade com valores:', values);
     const newValidationErrors = validateUnidade(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
@@ -182,14 +183,14 @@ const Example = () => {
     setValidationErrors({});
 
     try {
-      await updateUnidadeMutation.mutateAsync(values);
-      console.log('Unidade atualizada com sucesso');
-      table.setEditingRow(null);
+      await updateUnidadeMutation.mutateAsync(values); // Chama a API para atualizar
+      table.setEditingRow(null); // Sai do modo de edição
     } catch (error) {
       console.error('Erro ao atualizar unidade:', error);
     }
   };
 
+  // Modal de confirmação para exclusão de unidade
   const openDeleteConfirmModal = (row: MRT_Row<Unidade>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir essa unidade?',
@@ -203,13 +204,14 @@ const Example = () => {
       onConfirm: () => deleteUnidadeMutation.mutateAsync(row.original.id_unidade),
     });
 
+  // Configuração da tabela MantineReactTable
   const table = useMantineReactTable({
     columns,
     data: fetchedUnidades,
-    createDisplayMode: 'modal',
-    editDisplayMode: 'modal',
-    enableEditing: true,
-    getRowId: (row) => String(row.id_unidade),
+    createDisplayMode: 'modal', // Modal para criação de unidades
+    editDisplayMode: 'modal', // Modal para edição de unidades
+    enableEditing: true, // Habilita edição
+    getRowId: (row) => String(row.id_unidade), // Define o id único da unidade
     mantineToolbarAlertBannerProps: isLoadingUnidadesError
       ? { color: 'red', children: 'Erro ao carregar dados' }
       : undefined,
@@ -281,16 +283,14 @@ function useCreateUnidade() {
 
   return useMutation({
     mutationFn: async (unidade: Omit<Unidade, 'id_unidade'>) => {
-      console.log('Enviando requisição para criar unidade:', unidade);
       const response = await api.post('/unidades', unidade);
-      console.log('Resposta do backend:', response.data);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unidades'] });
     },
     onError: (error) => {
-      console.error('Erro na mutação de criação de unidade:', error);
+      console.error('Erro ao criar unidade:', error);
     },
   });
 }
@@ -300,14 +300,13 @@ function useUpdateUnidade() {
 
   return useMutation({
     mutationFn: async (unidade: Unidade) => {
-      console.log('Enviando requisição para atualizar unidade:', unidade);
       await api.put(`/unidades/${unidade.id_unidade}`, unidade);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unidades'] });
     },
     onError: (error) => {
-      console.error('Erro na mutação de atualização de unidade:', error);
+      console.error('Erro ao atualizar unidade:', error);
     },
   });
 }
@@ -317,14 +316,13 @@ function useDeleteUnidade() {
 
   return useMutation({
     mutationFn: async (unidadeId: number) => {
-      console.log('Enviando requisição para deletar unidade com ID:', unidadeId);
       await api.delete(`/unidades/${unidadeId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unidades'] });
     },
     onError: (error) => {
-      console.error('Erro na mutação de exclusão de unidade:', error);
+      console.error('Erro ao excluir unidade:', error);
     },
   });
 }
@@ -347,13 +345,13 @@ const validateRequired = (value: any) => value !== null && value !== undefined &
 const validateCep = (cep: string) => /^\d{8}$/.test(cep);
 const validateNumero = (numero: string) => /^-?\d+(\.\d+)?$/.test(numero);
 
+// Função para validar campos da unidade
 const validateUnidade = (values: Unidade) => {
   const errors: Record<string, string | undefined> = {};
-  // Polo é obrigatório
   if (!validateRequired(values.polo)) {
     errors.polo = 'Polo é obrigatório';
   }
-  // Nome da unidade
+  // Validação Nome da unidade
   if (!validateRequired(values.nome_unidade)) {
     errors.nome_unidade = 'Nome da unidade é obrigatório';
   } else if (!validateNomeUnidade(values.nome_unidade)) {
@@ -361,25 +359,20 @@ const validateUnidade = (values: Unidade) => {
   } else if (!validateMinLength(values.nome_unidade, 2)) {
     errors.nome_unidade = 'Nome inválido';
   }
-  // CEP
   if (!validateRequired(values.cep)) {
     errors.cep = 'CEP é obrigatório';
   } else if (!validateCep(values.cep)) {
-    errors.cep = 'CEP inválido. Digite sem o "-" ';
+    errors.cep = 'CEP inválido. Digite sem o "-"';
   }
-  // Cidade
   if (!validateRequired(values.cidade)) {
     errors.cidade = 'Cidade é obrigatória';
   }
-  // Rua
   if (!validateRequired(values.rua)) {
     errors.rua = 'Rua é obrigatória';
   }
-  // Estado
   if (!validateRequired(values.estado)) {
     errors.estado = 'Estado é obrigatório';
   }
-  // Número
   if (!validateRequired(values.numero)) {
     errors.numero = 'Número é obrigatório';
   } else if (!validateNumero(values.numero)) {
