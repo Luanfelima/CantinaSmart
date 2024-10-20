@@ -51,11 +51,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <NavLink href="/CadastroProduto/Produtos" label="Produto" />
           <NavLink href="/CadastroEstoque/Estoque" label="Estoque" />
           <NavLink href="/CadastroCategoria/Categorias" label="Categorias" />
-
-          <NavLink href="/CadastroFuncionario/Funcionarios" label="Funcionários" />
-          <NavLink href="/CadastroProduto/Produtos" label="Produto" />
-          <NavLink href="/CadastroEstoque/Estoque" label="Estoque" />
-          <NavLink href="/CadastroCategoria/Categorias" label="Categorias" />
         </div>
 
         <div>
