@@ -304,8 +304,7 @@ const ExampleWithProviders = () => (
 export default ExampleWithProviders;
 
 // Funções de validação
-const validateRequired = (value: any) => {
-  return value !== null && value !== undefined && !!value.length;};
+const validateRequired = (value: any) => {return value !== null && value !== undefined && !!value.length;};
 const validateMinLength = (value: string, minLength: number) => {return !!value && value.length >= minLength;};
 const validateSomenteTexto = (value: string) => {return /^[^\d]+$/.test(value);};
 const validateQuantidade = (quantidade: string) => {return /^[1-9]\d{0,2}$/.test(quantidade);}; // Regex para inteiros positivos maiores que zero, até três dígitos

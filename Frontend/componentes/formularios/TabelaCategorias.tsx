@@ -285,9 +285,7 @@ export default CadastroCategoriaWithProviders;
 // Funções de validação
 const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0;
 const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
-
-function validateCategoria(categoria: Categoria) {
-  const errors: Record<string, string | undefined> = {};
+function validateCategoria(categoria: Categoria) {const errors: Record<string, string | undefined> = {};
 
   if (!validateRequired(categoria.nome)) {
     errors.nome = 'É necessário inserir o nome da categoria';

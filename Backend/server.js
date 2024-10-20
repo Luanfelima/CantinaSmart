@@ -11,7 +11,7 @@ app.use(express.json());
 
 // CORS Configuration
 const corsOptions = {
-  origin: 'https://cantinasmart.vercel.app',
+  origin: 'https://cantinasmart.vercel.app/',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   maxAge: 3600,
@@ -149,6 +149,27 @@ function authorizeUnidade(req, res, next) {
 
     if (results.length === 0) {
       return res.status(403).json({ error: 'Acesso negado: Gestor não autorizado para esta unidade' });
+    }
+
+    next();
+  });
+}
+
+// Middleware para autorizar acesso a produtos
+function authorizeProduto(req, res, next) {
+  const { id_produto } = req.params;
+  const cpf_gestor = req.gestor.cpf_gestor;
+
+  const query = 'SELECT * FROM produto_gestor WHERE id_produto = ? AND cpf_gestor = ?';
+
+  db.query(query, [id_produto, cpf_gestor], (err, results) => {
+    if (err) {
+      console.error('Erro ao acessar o banco de dados:', err);
+      return res.status(500).json({ error: 'Erro ao acessar o banco de dados' });
+    }
+
+    if (results.length === 0) {
+      return res.status(403).json({ error: 'Acesso negado: Gestor não autorizado para este produto' });
     }
 
     next();
@@ -574,5 +595,105 @@ app.post('/refresh-token', (req, res) => {
     );
 
     res.json({ token });
+  });
+});
+// ----------------------------------- Rota de produtos -------------------------------
+app.get('/produtos', authenticateToken, (req, res) => {
+  const cpf_gestor = req.gestor.cpf_gestor;
+  
+  console.log(`Gestor CPF: ${cpf_gestor} - Solicitando produtos`);
+  
+  const query = `
+    SELECT p.* 
+    FROM produtos p
+    INNER JOIN produto_gestor pg ON p.id_produto = pg.id_produto
+    WHERE pg.cpf_gestor = ?
+  `;
+  
+  db.query(query, [cpf_gestor], (err, results) => {
+    if (err) {
+      console.error('Erro ao buscar produtos:', err);
+      return res.status(500).json({ error: err.message });
+    }
+    
+    console.log('Produtos retornados:', results);
+    res.json(results);
+  });
+});
+
+app.post('/produtos', authenticateToken, (req, res) => {
+  const cpf_gestor = req.gestor.cpf_gestor;
+  const { nome_p, categoria, preco, perecivel, descricao, unidade_medida } = req.body;
+
+  console.log('Criando produto:', req.body);
+
+  const query = 'INSERT INTO produtos (nome_p, categoria, preco, perecivel, descricao, unidade_medida) VALUES (?, ?, ?, ?, ?, ?)';
+  const values = [nome_p, categoria, preco, perecivel, descricao, unidade_medida];
+
+  db.query(query, values, (err, results) => {
+    if (err) {
+      console.error('Erro ao inserir produto:', err);
+      return res.status(500).json({ error: err.message });
+    }
+
+    const id_produto = results.insertId;
+
+    const query_pg = 'INSERT INTO produto_gestor (id_produto, cpf_gestor) VALUES (?, ?)';
+    db.query(query_pg, [id_produto, cpf_gestor], (err) => {
+      if (err) {
+        console.error('Erro ao inserir na tabela produto_gestor:', err);
+        return res.status(500).json({ error: err.message });
+      }
+
+      console.log('Produto criado e vinculado ao gestor:', id_produto);
+      res.status(201).json({ id_produto, nome_p, categoria, preco, perecivel, descricao, unidade_medida });
+    });
+  });
+});
+
+app.put('/produtos/:id_produto', authenticateToken, authorizeProduto, (req, res) => {
+  const { id_produto } = req.params;
+  const { nome_p, categoria, preco, perecivel, descricao, unidade_medida } = req.body;
+
+  const query = `
+    UPDATE produtos 
+    SET nome_p = ?, categoria = ?, preco = ?, perecivel = ?, descricao = ?, unidade_medida = ?
+    WHERE id_produto = ?
+  `;
+  const values = [nome_p, categoria, preco, perecivel, descricao, unidade_medida, id_produto];
+
+  db.query(query, values, (err) => {
+    if (err) {
+      console.error('Erro ao atualizar produto:', err);
+      return res.status(500).json({ error: err.message });
+    }
+
+    res.json({ message: 'Produto atualizado com sucesso' });
+  });
+});
+
+app.delete('/produtos/:id_produto', authenticateToken, authorizeProduto, (req, res) => {
+  const { id_produto } = req.params;
+
+  // Primeiro remove o produto da tabela `produto_gestor`
+  const deleteProdutoGestor = 'DELETE FROM produto_gestor WHERE id_produto = ?';
+
+  db.query(deleteProdutoGestor, [id_produto], (err) => {
+    if (err) {
+      console.error('Erro ao excluir da tabela produto_gestor:', err);
+      return res.status(500).json({ error: err.message });
+    }
+
+    // Depois remove o produto da tabela `produtos`
+    const deleteProduto = 'DELETE FROM produtos WHERE id_produto = ?';
+
+    db.query(deleteProduto, [id_produto], (err) => {
+      if (err) {
+        console.error('Erro ao excluir o produto:', err);
+        return res.status(500).json({ error: err.message });
+      }
+
+      res.json({ message: 'Produto removido com sucesso' });
+    });
   });
 });

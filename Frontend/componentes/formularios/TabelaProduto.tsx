@@ -1,7 +1,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
   MantineReactTable,
@@ -30,7 +30,7 @@ import {
 } from '@tanstack/react-query';
 import axios from 'axios';
 
-// Definição do tipo Produto
+// Tipo Produto
 type Produto = {
   id_produto: number;
   nome_p: string;
@@ -41,11 +41,33 @@ type Produto = {
   unidade_medida: string;
 };
 
-const Example = () => {
+const CadastroProduto = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+  const queryClient = useQueryClient();
+
+  const {
+    data: fetchedProdutos = [],
+    isError: isLoadingProdutosError,
+    isFetching: isFetchingProdutos,
+    isLoading: isLoadingProdutos,
+  } = useGetProdutos();
+
+  // Verifica erro ao carregar produtos
+  if (isLoadingProdutosError) {
+    console.error('Erro ao carregar produtos:', isLoadingProdutosError);
+    return <div>Erro ao carregar os produtos. Tente novamente mais tarde.</div>;
+  }
 
   // Definição das colunas da tabela de produtos
   const columns = useMemo<MRT_ColumnDef<Produto>[]>(() => [
+    {
+      accessorKey: 'id_produto',
+      header: 'ID Produto',
+      enableEditing: false, // Desativa a edição
+      size: 0, // Tamanho zero para ocultar
+      mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
+      mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+    },
     {
       accessorKey: 'nome_p',
       header: 'Nome do Produto',
@@ -87,7 +109,7 @@ const Example = () => {
         error: validationErrors?.perecivel,
         onFocus: () => setValidationErrors({ ...validationErrors, perecivel: undefined }),
       },
-      Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'), // Exibe "Sim" ou "Não" conforme o valor booleano
+      Cell: ({ cell }) => (cell.getValue<boolean>() ? 'Sim' : 'Não'),
     },
     {
       accessorKey: 'descricao',
@@ -109,43 +131,24 @@ const Example = () => {
     },
   ], [validationErrors]);
 
-  const queryClient = useQueryClient();
-
-  // Carregamento dos produtos via API
-  const {
-    data: fetchedProdutos = [],
-    isError: isLoadingProdutosError,
-    isFetching: isFetchingProdutos,
-    isLoading: isLoadingProdutos,
-  } = useGetProdutos();
-
-  // Mutations para criação, atualização e exclusão de produtos
+  // Mutations para criar, atualizar e excluir produtos
   const createProdutoMutation = useCreateProduto();
   const updateProdutoMutation = useUpdateProduto();
   const deleteProdutoMutation = useDeleteProduto();
 
-  // Função para criação de produto
-  const handleCreateProduto: MRT_TableOptions<Produto>['onCreatingRowSave'] = async ({
-    values,
-    exitCreatingMode,
-  }) => {
+  // Função para criar produto
+  const handleCreateProduto: MRT_TableOptions<Produto>['onCreatingRowSave'] = async ({ values, exitCreatingMode }) => {
     const newValidationErrors = validateProduto(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-
-    const newProduto = {
-      ...values,
-      perecivel: values.perecivel === 'true',
-    };
-
-    await createProdutoMutation.mutateAsync(newProduto);
+    await createProdutoMutation.mutateAsync(values);
     exitCreatingMode();
   };
 
-  // Função para salvar alterações em produto
+  // Função para salvar edição de produto
   const handleSaveProduto: MRT_TableOptions<Produto>['onEditingRowSave'] = async ({ values, table }) => {
     const newValidationErrors = validateProduto(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
@@ -153,17 +156,11 @@ const Example = () => {
       return;
     }
     setValidationErrors({});
-
-    const updatedProduto = {
-      ...values,
-      perecivel: values.perecivel === 'true' || values.perecivel === true,
-    };
-
-    await updateProdutoMutation.mutateAsync(updatedProduto);
+    await updateProdutoMutation.mutateAsync(values);
     table.setEditingRow(null);
   };
 
-  // Função para abrir modal de confirmação de exclusão
+  // Modal de confirmação para exclusão
   const openDeleteConfirmModal = (row: MRT_Row<Produto>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir este produto?',
@@ -177,7 +174,7 @@ const Example = () => {
       onConfirm: () => handleDeleteProduto(row.original.id_produto),
     });
 
-  // Função para excluir produto
+  // Função para deletar produto
   const handleDeleteProduto = async (produtoId: number) => {
     try {
       await deleteProdutoMutation.mutateAsync(produtoId);
@@ -186,14 +183,13 @@ const Example = () => {
     }
   };
 
-  // Configuração da tabela
   const table = useMantineReactTable({
     columns,
-    data: fetchedProdutos, // Dados de produtos vindos da API
+    data: fetchedProdutos,
     createDisplayMode: 'modal',
     editDisplayMode: 'modal',
     enableEditing: true,
-    getRowId: (row) => String(row.id_produto), // Usa o id_produto como identificador de linha
+    getRowId: (row) => String(row.id_produto),
     mantineToolbarAlertBannerProps: isLoadingProdutosError
       ? { color: 'red', children: 'Erro ao carregar dados' }
       : undefined,
@@ -248,24 +244,59 @@ const Example = () => {
   return <MantineReactTable table={table} />;
 };
 
-// Funções auxiliares de CRUD
+// Funções auxiliares de CRUD (Create, Read, Update, Delete)
+
+// Função para obter produtos
 function useGetProdutos() {
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const jwtToken = localStorage.getItem('token');
+      setToken(jwtToken);
+    }
+  }, []);
+
   return useQuery<Produto[]>({
     queryKey: ['produtos'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:3000/produtos');
+      if (!token) {
+        throw new Error('Token não encontrado');
+      }
+      const response = await axios.get('http://localhost:3000/produtos', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data;
     },
+    enabled: !!token,
     refetchOnWindowFocus: false,
   });
 }
 
+// Função para criar produto
 function useCreateProduto() {
   const queryClient = useQueryClient();
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const jwtToken = localStorage.getItem('token');
+      setToken(jwtToken);
+    }
+  }, []);
 
   return useMutation({
     mutationFn: async (produto: Omit<Produto, 'id_produto'>) => {
-      const response = await axios.post('http://localhost:3000/produtos', produto);
+      if (!token) {
+        throw new Error('Token não encontrado');
+      }
+      const response = await axios.post('http://localhost:3000/produtos', produto, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -274,12 +305,28 @@ function useCreateProduto() {
   });
 }
 
+// Função para atualizar produto
 function useUpdateProduto() {
   const queryClient = useQueryClient();
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const jwtToken = localStorage.getItem('token');
+      setToken(jwtToken);
+    }
+  }, []);
 
   return useMutation({
     mutationFn: async (produto: Produto) => {
-      await axios.put(`http://localhost:3000/produtos/${produto.id_produto}`, produto);
+      if (!token) {
+        throw new Error('Token não encontrado');
+      }
+      await axios.put(`http://localhost:3000/produtos/${produto.id_produto}`, produto, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
@@ -287,12 +334,28 @@ function useUpdateProduto() {
   });
 }
 
+// Função para deletar produto
 function useDeleteProduto() {
   const queryClient = useQueryClient();
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const jwtToken = localStorage.getItem('token');
+      setToken(jwtToken);
+    }
+  }, []);
 
   return useMutation({
     mutationFn: async (produtoId: number) => {
-      await axios.delete(`http://localhost:3000/produtos/${produtoId}`);
+      if (!token) {
+        throw new Error('Token não encontrado');
+      }
+      await axios.delete(`http://localhost:3000/produtos/${produtoId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
@@ -301,40 +364,23 @@ function useDeleteProduto() {
 }
 
 const queryClient = new QueryClient();
-const ExampleWithProviders = () => (
+const CadastroProdutoWithProviders = () => (
   <QueryClientProvider client={queryClient}>
     <ModalsProvider>
-      <Example />
+      <CadastroProduto />
     </ModalsProvider>
   </QueryClientProvider>
 );
 
-export default ExampleWithProviders;
+export default CadastroProdutoWithProviders;
 
 // Funções de validação
-const validateRequired = (value: any) => {
-  return value !== null && value !== undefined && value.toString().trim().length > 0;
-};
-
-const validateMinLength = (value: string, minLength: number) => {
-  return value.trim().length >= minLength;
-};
-
-const validateNomeProduto = (nome: string) => {
-  return /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3); // Nome do produto não deve conter números e deve ter no mínimo 3 caracteres
-};
-
-const validatePreco = (preco: any) => {
-  const numberPreco = Number(preco);
-  return !isNaN(numberPreco) && numberPreco >= 0; // Verifica se o preço é um número positivo
-};
-
-const validateDescricao = (descricao: string) => {
-  return validateMinLength(descricao, 4); // Descrição deve ter no mínimo 4 caracteres
-};
-
-const validateProduto = (values: Produto) => {
-  const errors: Record<string, string | undefined> = {};
+const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0;
+const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
+const validateNomeProduto = (nome: string) => /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);
+const validatePreco = (preco: any) => !isNaN(Number(preco)) && Number(preco) >= 0;
+const validateProduto = (values: Produto) => {const errors: Record<string, string | undefined> = {};
+const validateDescricao = (descricao: string) => {return validateMinLength(descricao, 4);}; // Descrição deve ter no mínimo 4 caracteres
 
   if (!validateRequired(values.nome_p)) {
     errors.nome_p = 'Nome do produto é obrigatório';
@@ -357,11 +403,10 @@ const validateProduto = (values: Produto) => {
   if (!validateRequired(values.descricao)) {
     errors.descricao = 'Descrição é obrigatória';
   } else if (!validateDescricao(values.descricao)) {
-    errors.descricao = 'Descrição deve ter no mínimo 10 caracteres';
+    errors.descricao = 'Descrição deve ter no mínimo 4 caracteres';
   }
   if (!validateRequired(values.unidade_medida)) {
     errors.unidade_medida = 'Unidade de medida é obrigatória';
   }
-
   return errors;
 };
