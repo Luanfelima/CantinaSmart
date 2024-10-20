@@ -29,8 +29,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Autocomplete
             placeholder="🔍 Pesquisa"
             data={[
-              { group: 'Dashboard', items: ['Tela Inicial'] },
-              { group: 'Unidades', items: ['Cadastrar nova unidade', 'Gerenciar estoque', 'Gerenciar fluxo de caixa'] },
+              { group: 'Dashboard', items: ['Tela Inicial'],  },
+              { group: 'Unidades', items: ['Cadastrar nova unidade'] },
               { group: 'Funcionários', items: ['Cadastrar funcionário'] },
               { group: 'Produtos', items: ['Cadastrar produto'] },
               { group: 'Estoque', items: ['Estoque'] },
@@ -45,12 +45,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <AppShell.Navbar p="md" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <div>
-          <NavLink href="/Dashboard/dashboard" label="Tela Inicial" />
-          <NavLink href="#required-for-focus" label="Unidades" childrenOffset={28} variant="subtle">
-            <NavLink href="/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes" label="Cadastrar nova unidade" />
-            <NavLink href="#required-for-focus" label="Gerenciar estoque" />
-            <NavLink label="Gerenciar fluxo de caixa" href="#required-for-focus" />
-          </NavLink>
+        <NavLink href="/Dashboard/dashboard" label="Tela Inicial" />
+          <NavLink href="/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes" label="Unidades" />
+          <NavLink href="/CadastroFuncionario/Funcionarios" label="Funcionários" />
+          <NavLink href="/CadastroProduto/Produtos" label="Produto" />
+          <NavLink href="/CadastroEstoque/Estoque" label="Estoque" />
+          <NavLink href="/CadastroCategoria/Categorias" label="Categorias" />
 
           <NavLink href="/CadastroFuncionario/Funcionarios" label="Funcionários" />
           <NavLink href="/CadastroProduto/Produtos" label="Produto" />

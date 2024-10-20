@@ -8,15 +8,15 @@ npm install node cors express next //Se necessário
 npm install jsonwebtoken //Se necessário
 npm install bcrypt //Se necessário
 
-Se continuar dando erro pode dar um npm unistall bcrypt e dps o install dele;
+Se continuar dando erro pode dar um 'npm uninstall bcrypt' e dps o install dele;
 
 rodar - node server.js
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 front end -
-npm install --force
-npm install axios --force
+npm install
+npm install axios
 
 rodar - npm run dev
 
