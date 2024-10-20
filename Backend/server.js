@@ -11,10 +11,10 @@ app.use(express.json());
 
 // CORS Configuration
 const corsOptions = {
-  origin: 'http://localhost:3001', 
+  origin: 'https://cantinasmart.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 3600, 
+  maxAge: 3600,
   credentials: true, 
 };
 
