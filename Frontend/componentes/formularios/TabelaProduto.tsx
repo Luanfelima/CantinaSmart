@@ -123,7 +123,9 @@ const CadastroProduto = () => {
     {
       accessorKey: 'unidade_medida',
       header: 'Unidade de Medida',
-      mantineEditTextInputProps: {
+      editVariant: 'select', // Torna o campo um seletor
+      mantineEditSelectProps: {
+        data: [ 'Unidade', 'Grama', 'Quilograma', 'Miligrama', 'Litro', 'Mililitro'], // Opções de Medidas
         required: true,
         error: validationErrors?.unidade_medida,
         onFocus: () => setValidationErrors({ ...validationErrors, unidade_medida: undefined }),

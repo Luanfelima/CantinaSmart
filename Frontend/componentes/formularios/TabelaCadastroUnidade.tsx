@@ -112,7 +112,8 @@ const Example = () => {
     {
       accessorKey: 'estado',
       header: 'Estado da Unidade',
-      mantineEditTextInputProps: {
+      editVariant: 'select', // Torna o campo um seletor
+      mantineEditSelectProps: {
         data: ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'ES', 'DF', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'], // Estados
         type: 'text',
         required: true,
