@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
+import { Input } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
@@ -95,6 +96,17 @@ const CadastroProduto = () => {
         error: validationErrors?.preco,
         onFocus: () => setValidationErrors({ ...validationErrors, preco: undefined }),
       },
+      // Customiza o campo para exibir "R$" como prefixo
+      Cell: ({ row }) => (
+        <Input.Wrapper label="">
+          <Input
+            value={`R$ ${String(row.getValue("preco"))}`} // Exibe "R$" como prefixo
+            readOnly // Mantém o campo sem edição, mas com estilo normal
+            styles={{input: { color: 'black', cursor: 'default', border: 'white'}, // Mantém o texto visível e desabilita a edição
+            }}
+          />
+        </Input.Wrapper>
+      )
     },
     {
       accessorKey: 'perecivel',
@@ -377,35 +389,49 @@ const CadastroProdutoWithProviders = () => (
 export default CadastroProdutoWithProviders;
 
 // Funções de validação
+const validateProduto = (values: Produto) => {const errors: Record<string, string | undefined> = {};
 const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0;
 const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
+const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
+const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
 const validateNomeProduto = (nome: string) => /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);
-const validatePreco = (preco: any) => !isNaN(Number(preco)) && Number(preco) >= 0;
-const validateProduto = (values: Produto) => {const errors: Record<string, string | undefined> = {};
+const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", ".");return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);}; // Limita a três dígitos antes do ponto decimal e troca "," por "." para que no banco não haja erros.
 const validateDescricao = (descricao: string) => {return validateMinLength(descricao, 4);}; // Descrição deve ter no mínimo 4 caracteres
 
   if (!validateRequired(values.nome_p)) {
-    errors.nome_p = 'Nome do produto é obrigatório';
+    errors.nome_p = 'Nome do produto é obrigatório';        
   } else if (!validateNomeProduto(values.nome_p)) {
     errors.nome_p = 'Nome do produto inválido';
-  }
+  } else if (!validateMaxLength(values.nome_p, 30)) {
+    errors.nome_p = 'Nome do produto inválido';
+  } else if (!validateSomenteTexto(values.nome_p)) {
+    errors.nome_p = 'Nome do produto inválido';
+  }    
   if (!validateRequired(values.categoria)) {
     errors.categoria = 'Categoria é obrigatória';
   } else if (!validateMinLength(values.categoria, 3)) {
     errors.categoria = 'Categoria inválida';
-  }
+  } else if (!validateMaxLength(values.categoria, 20)) {
+    errors.categoria = 'Categoria inválida';
+  } else if (!validateSomenteTexto(values.categoria)) {
+    errors.categoria = 'Categoria inválida';
+  }   
   if (!validateRequired(values.preco)) {
     errors.preco = 'Preço é obrigatório';
   } else if (!validatePreco(values.preco)) {
     errors.preco = 'Preço inválido';
   }
-  if (values.perecivel === null || values.perecivel === undefined) {
-    errors.perecivel = 'Campo perecível é obrigatório';
+  if (!validateRequired(values.perecivel)){
+    errors.perecivel = 'Campo obrigatório';
   }
   if (!validateRequired(values.descricao)) {
     errors.descricao = 'Descrição é obrigatória';
   } else if (!validateDescricao(values.descricao)) {
     errors.descricao = 'Descrição deve ter no mínimo 4 caracteres';
+  } else if (!validateSomenteTexto(values.descricao)) {
+    errors.descricao = 'Descrição inválida';
+  } else if (!validateMaxLength(values.descricao, 30)) {
+    errors.descricao = 'Descrição inválida';
   }
   if (!validateRequired(values.unidade_medida)) {
     errors.unidade_medida = 'Unidade de medida é obrigatória';

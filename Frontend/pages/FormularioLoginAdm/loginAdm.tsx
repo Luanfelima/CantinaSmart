@@ -13,7 +13,7 @@ const LoginFormAdm: React.FC = () => {
   };
   
   const handleBack = () => {
-    router.push("/FormularioLogin/login");
+    router.push("/FormularioLogin/login");  
   };
 
   return (

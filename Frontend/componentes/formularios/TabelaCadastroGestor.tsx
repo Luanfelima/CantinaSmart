@@ -1,7 +1,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
-import { useMemo, useState } from 'react'; // Importa hooks para gerenciamento de estado e memoização
+import { useMemo, useState, useEffect } from 'react';
 import {
   MRT_EditActionButtons,
   MantineReactTable,
@@ -9,7 +9,7 @@ import {
   type MRT_Row,
   type MRT_TableOptions,
   useMantineReactTable,
-} from 'mantine-react-table'; // Importa componentes da tabela MantineReactTable
+} from 'mantine-react-table';
 import {
   ActionIcon,
   Button,
@@ -18,112 +18,112 @@ import {
   Text,
   Title,
   Tooltip,
-} from '@mantine/core'; // Importa componentes de layout e interface do Mantine
-import { ModalsProvider, modals } from '@mantine/modals'; // Importa provedores e funções de modais do Mantine
-import { IconEdit, IconTrash } from '@tabler/icons-react'; // Importa ícones de edição e exclusão
+} from '@mantine/core';
+import { ModalsProvider, modals } from '@mantine/modals';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
 import {
   QueryClient,
   QueryClientProvider,
   useMutation,
   useQuery,
   useQueryClient,
-} from '@tanstack/react-query'; // Importa ferramentas de query e mutações do React Query
-import axios from 'axios'; // Axios para requisições HTTP
+} from '@tanstack/react-query';
+import axios from 'axios';
 
 // Define o tipo Gestor com os campos correspondentes
 type Gestor = {
   nome: string;
   sobrenome: string;
-  cpf_gestor: number;
+  matricula_gestor: number;
   email: string;
   telefone: string;
   senha: string;
 };
 
+// Função para gerar um número aleatório de 1 a 1000
+const generateRandomMatricula = () => Math.floor(Math.random() * 1000) + 1;
+
 // Componente principal de cadastro de gestores
 const CadastroGestor = () => {
-  // Estado para armazenar erros de validação
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
+  const [randomMatricula, setRandomMatricula] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Gera e define a matrícula ao inicializar o componente
+    setRandomMatricula(generateRandomMatricula());
+  }, []);
 
   // Definição das colunas da tabela de gestores
-  const columns = useMemo<MRT_ColumnDef<Gestor>[]>(
-    () => [
-      {
-        accessorKey: 'id_gestor', // Coluna para ID do gestor, desativada para edição
-        header: 'ID',
-        enableEditing: false,
-        size: 0,
-        mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta a coluna
-        mantineTableBodyCellProps: { style: { display: 'none' } },
+  const columns = useMemo<MRT_ColumnDef<Gestor>[]>(() => [
+    {
+      accessorKey: 'id_gestor',
+      header: 'ID',
+      enableEditing: false,
+      size: 0,
+      mantineTableHeadCellProps: { style: { display: 'none' } },
+      mantineTableBodyCellProps: { style: { display: 'none' } },
+    },
+    {
+      accessorKey: 'matricula_gestor',
+      header: 'Matrícula do Gestor',
+      enableEditing: false,
+      mantineEditTextInputProps: {
+        value: randomMatricula || '',
+        readOnly: true,
+        required: true,
+        error: validationErrors?.matricula_gestor,
       },
-      // Demais colunas configuradas com validação de entrada de dados
-      {
-        accessorKey: 'nome',
-        header: 'Nome',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.nome,
-          onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
-        },
+    },
+    {
+      accessorKey: 'nome',
+      header: 'Nome',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.nome,
+        onFocus: () => setValidationErrors({ ...validationErrors, nome: undefined }),
       },
-      {
-        accessorKey: 'sobrenome',
-        header: 'Sobrenome',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.sobrenome,
-          onFocus: () => setValidationErrors({ ...validationErrors, sobrenome: undefined }),
-        },
+    },
+    {
+      accessorKey: 'sobrenome',
+      header: 'Sobrenome',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.sobrenome,
+        onFocus: () => setValidationErrors({ ...validationErrors, sobrenome: undefined }),
       },
-      {
-        accessorKey: 'cpf_gestor',
-        header: 'CPF',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.cpf_gestor,
-          onFocus: () => setValidationErrors({ ...validationErrors, cpf_gestor: undefined }),
-        },
+    },
+    {
+      accessorKey: 'email',
+      header: 'E-mail',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.email,
+        onFocus: () => setValidationErrors({ ...validationErrors, email: undefined }),
       },
-      {
-        accessorKey: 'email',
-        header: 'E-mail',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.email,
-          onFocus: () => setValidationErrors({ ...validationErrors, email: undefined }),
-        },
+    },
+    {
+      accessorKey: 'telefone',
+      header: 'Telefone',
+      mantineEditTextInputProps: {
+        required: true,
+        error: validationErrors?.telefone,
+        onFocus: () => setValidationErrors({ ...validationErrors, telefone: undefined }),
       },
-      {
-        accessorKey: 'telefone',
-        header: 'Telefone',
-        mantineEditTextInputProps: {
-          required: true,
-          error: validationErrors?.telefone,
-          onFocus: () => setValidationErrors({ ...validationErrors, telefone: undefined }),
-        },
+    },
+    {
+      accessorKey: 'senha',
+      header: 'Senha',
+      mantineEditTextInputProps: {
+        type: 'password',
+        required: true,
+        error: validationErrors?.senha,
+        onFocus: () => setValidationErrors({ ...validationErrors, senha: undefined }),
       },
-      {
-        accessorKey: 'senha',
-        header: 'Senha',
-        mantineEditTextInputProps: {
-          type: 'password',
-          required: true,
-          error: validationErrors?.senha,
-          onFocus: () => setValidationErrors({ ...validationErrors, senha: undefined }),
-        },
-      },
-    ],
-    [validationErrors],
-  );
+    },
+  ], [randomMatricula, validationErrors]);
 
-  // Obtém as funções de query e mutação para trabalhar com os dados
   const queryClient = useQueryClient();
-  const {
-    data: fetchedGestor = [], // Busca os gestores existentes
-    isError: isLoadingGestorError,
-    isFetching: isFetchingGestor,
-    isLoading: isLoadingGestor,
-  } = useGetGestor();
+  const { data: fetchedGestor = [], isError: isLoadingGestorError, isFetching: isFetchingGestor, isLoading: isLoadingGestor } = useGetGestor();
 
   const createGestorMutation = useCreateGestor();
   const updateGestorMutation = useUpdateGestor();
@@ -134,29 +134,31 @@ const CadastroGestor = () => {
     values,
     exitCreatingMode,
   }) => {
-    const newValidationErrors = validateGestor(values); // Valida os dados
+    values.matricula_gestor = randomMatricula || generateRandomMatricula(); // Define a matrícula para o novo gestor
+    const newValidationErrors = validateGestor(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await createGestorMutation.mutateAsync(values); // Realiza a mutação para criar
-    exitCreatingMode(); // Sai do modo de criação
+    console.log('Criando novo gestor:', { ...values, senha: '[PROTECTED]' }); // Log do novo gestor criado
+    await createGestorMutation.mutateAsync(values);
+    setRandomMatricula(generateRandomMatricula()); // Gera nova matrícula para o próximo cadastro
+    exitCreatingMode();
   };
 
-  // Função para salvar as alterações feitas em um gestor existente
   const handleSaveGestor: MRT_TableOptions<Gestor>['onEditingRowSave'] = async ({ values, table }) => {
-    const newValidationErrors = validateGestor(values); // Valida os dados antes de salvar
+    const newValidationErrors = validateGestor(values);
     if (Object.values(newValidationErrors).some((error) => error)) {
       setValidationErrors(newValidationErrors);
       return;
     }
     setValidationErrors({});
-    await updateGestorMutation.mutateAsync(values); // Atualiza os dados do gestor
-    table.setEditingRow(null); // Sai do modo de edição
+    console.log('Atualizando gestor:', { ...values, senha: '[PROTECTED]' }); // Log da atualização do gestor
+    await updateGestorMutation.mutateAsync(values);
+    table.setEditingRow(null);
   };
 
-  // Função para confirmar a exclusão de um gestor
   const openDeleteConfirmModal = (row: MRT_Row<Gestor>) =>
     modals.openConfirmModal({
       title: 'Tem certeza que você quer excluir esse Gestor?',
@@ -167,17 +169,19 @@ const CadastroGestor = () => {
       ),
       labels: { confirm: 'Excluir', cancel: 'Cancelar' },
       confirmProps: { color: 'red' },
-      onConfirm: () => deleteGestorMutation.mutateAsync(row.original.cpf_gestor), // Deleta o gestor
+      onConfirm: () => {
+        console.log('Deletando gestor:', row.original.matricula_gestor); // Log da exclusão do gestor
+        deleteGestorMutation.mutateAsync(row.original.matricula_gestor);
+      },
     });
 
-  // Configura a tabela MantineReactTable
   const table = useMantineReactTable({
     columns,
     data: fetchedGestor,
     createDisplayMode: 'modal',
     editDisplayMode: 'modal',
     enableEditing: true,
-    getRowId: (row) => String(row.cpf_gestor), // Define a chave única de cada linha
+    getRowId: (row) => String(row.matricula_gestor),
     mantineToolbarAlertBannerProps: isLoadingGestorError
       ? { color: 'red', children: 'Erro ao carregar dados.' }
       : undefined,
@@ -219,7 +223,7 @@ const CadastroGestor = () => {
       </Flex>
     ),
     renderTopToolbarCustomActions: ({ table }) => (
-      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo Gestor</Button> // Botão para criar um novo gestor
+      <Button onClick={() => table.setCreatingRow(true)}>Cadastrar novo Gestor</Button>
     ),
     state: {
       isLoading: isLoadingGestor,
@@ -234,54 +238,50 @@ const CadastroGestor = () => {
 
 // Funções que lidam com as mutações e queries de dados usando Axios
 
-// Função para criar gestor
 function useCreateGestor() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (Gestor: Omit<Gestor, 'cpf_gestor'>) => {
-      const response = await axios.post('http://localhost:3000/gestor', Gestor); // POST para criar gestor
+    mutationFn: async (Gestor: Omit<Gestor, 'matricula_gestor'>) => {
+      const response = await axios.post('http://localhost:3000/gestor', Gestor);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['Gestor'] }); // Refaz o fetch dos dados após criação
+      queryClient.invalidateQueries({ queryKey: ['Gestor'] });
     },
   });
 }
 
-// Função para buscar gestores
 function useGetGestor() {
   return useQuery<Gestor[]>({
     queryKey: ['Gestor'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:3000/gestor'); // GET para buscar gestores
+      const response = await axios.get('http://localhost:3000/gestor');
       return response.data;
     },
     refetchOnWindowFocus: false,
   });
 }
 
-// Função para atualizar gestor
 function useUpdateGestor() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (Gestor: Gestor) => {
-      await axios.put(`http://localhost:3000/gestor/${Gestor.cpf_gestor}`, Gestor); // PUT para atualizar gestor
+      await axios.put(`http://localhost:3000/gestor/${Gestor.matricula_gestor}`, Gestor);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['Gestor'] }); // Refaz o fetch dos dados após atualização
+      queryClient.invalidateQueries({ queryKey: ['Gestor'] });
     },
   });
 }
 
-// Função para deletar gestor
 function useDeleteGestor() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (gestor_cpf: number) => {
-      await axios.delete(`http://localhost:3000/Gestor/${gestor_cpf}`); // DELETE para excluir gestor
+    mutationFn: async (matricula_gestor: number) => {
+      await axios.delete(`http://localhost:3000/gestor/${matricula_gestor}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['Gestor'] }); // Refaz o fetch dos dados após exclusão
+      queryClient.invalidateQueries({ queryKey: ['Gestor'] });
     },
   });
 }
@@ -301,33 +301,34 @@ export default CadastroGestorWithProviders;
 
 // Funções de validação de campos
 const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength;
+const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
 const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length;
-const validateNome = (nome: string) => {const regex = /^[^0-9]+$/;return regex.test(nome) && validateMinLength(nome, 4);};
-const validateSobrenome = (sobrenome: string) => {const regex = /^[^0-9]+$/;return regex.test(sobrenome) && validateMinLength(sobrenome, 4);};
-const validateCpf = (cpf_gestor: number) => {const cpfString = cpf_gestor.toString();if (cpfString.includes('.') || cpfString.includes('-')) {return false;}return /^[0-9]{11}$/.test(cpfString);};
-const validateEmail = (email: string) => {const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;return !!email.length && regex.test(email.toLowerCase());};
-const validateTelefone = (telefone: string) => {const cleanTelefone = telefone.replace(/\D/g, '');return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone);};
+const validateNome = (nome: string) => { const regex = /^[^0-9]+$/; return regex.test(nome) && validateMinLength(nome, 3); };
+const validateSobrenome = (sobrenome: string) => { const regex = /^[^0-9]+$/; return regex.test(sobrenome) && validateMinLength(sobrenome, 4); };
+const validateEmail = (email: string) => { const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/; return !!email.length && regex.test(email.toLowerCase()); };
+const validateTelefone = (telefone: string) => { const cleanTelefone = telefone.replace(/\D/g, ''); return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone); };
+const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
 
 // Função para validar todos os campos do gestor
 const validateGestor = (values: Gestor) => {
   const errors: Record<string, string | undefined> = {};
 
-  // Validações específicas para cada campo
   if (!validateRequired(values.nome)) {
     errors.nome = 'Nome é obrigatório';
   } else if (!validateNome(values.nome)) {
-    errors.nome = 'Nome deve ter no mínimo 4 caracteres e não pode conter números';
+    errors.nome = 'Nome deve ter no mínimo 3 caracteres e não pode conter números';
+  } else if (!validateMaxLength(values.nome, 20)) {
+    errors.nome = 'Nome inválido';
+  } else if (!validateSomenteTexto(values.nome)) {
+    errors.nome = 'Nome inválido';
   }
   if (!validateRequired(values.sobrenome)) {
     errors.sobrenome = 'Sobrenome é obrigatório';
   } else if (!validateSobrenome(values.sobrenome)) {
     errors.sobrenome = 'Sobrenome deve ter no mínimo 4 caracteres e não pode conter números';
-  }
-  if (!validateRequired(values.cpf_gestor)) {
-    errors.cpf_gestor = 'CPF é obrigatório';
-  } else if (!validateCpf(values.cpf_gestor)) {
-    errors.cpf_gestor = 'CPF inválido. Digite sem traços e pontos';
-  }
+  } else if (!validateSomenteTexto(values.sobrenome)) {
+    errors.sobrenome = 'Sobrenome inválido';
+  }  
   if (!validateRequired(values.email)) {
     errors.email = 'E-mail é obrigatório';
   } else if (!validateEmail(values.email)) {

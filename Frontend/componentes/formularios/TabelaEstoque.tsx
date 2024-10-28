@@ -65,7 +65,7 @@ const Example = () => {
         accessorKey: 'quantidade',
         header: 'Quantidade',
         mantineEditTextInputProps: {
-          type: 'String',
+          type: 'number',
           required: true,
           error: validationErrors?.quantidade,
           onFocus: () =>
@@ -80,18 +80,18 @@ const Example = () => {
   );
 
   // Usar hooks personalizados para operações CRUD
-  const { mutateAsync: createUser, isPending: isCreatingUser } = useCreateUser();
+  const { mutateAsync: createEstoque, isPending: isCreatingEstoque } = useCreateEstoque();
   const {
-    data: fetchedUsers = [],
-    isError: isLoadingUsersError,
-    isFetching: isFetchingUsers,
-    isLoading: isLoadingUsers,
-  } = useGetUsers();
-  const { mutateAsync: updateUser, isPending: isUpdatingUser } = useUpdateUser();
-  const { mutateAsync: deleteUser, isPending: isDeletingUser } = useDeleteUser();
+    data: fetchedEstoques = [],
+    isError: isLoadingEstoquesError,
+    isFetching: isFetchingEstoques,
+    isLoading: isLoadingEstoques,
+  } = useGetEstoques();
+  const { mutateAsync: updateEstoque, isPending: isUpdatingEstoque } = useUpdateEstoque();
+  const { mutateAsync: deleteEstoque, isPending: isDeletingEstoque } = useDeleteEstoque();
 
   // Lidar com a criação de um novo item de estoque
-  const handleCreateUser: MRT_TableOptions<Estoque>['onCreatingRowSave'] = async ({
+  const handleCreateEstoque: MRT_TableOptions<Estoque>['onCreatingRowSave'] = async ({
     values,
     exitCreatingMode,
   }) => {
@@ -101,12 +101,12 @@ const Example = () => {
       return;
     }
     setValidationErrors({});
-    await createUser(values);
+    await createEstoque(values);
     exitCreatingMode();
   };
 
   // Lidar com a atualização de um item de estoque existente
-  const handleSaveUser: MRT_TableOptions<Estoque>['onEditingRowSave'] = async ({
+  const handleSaveEstoque: MRT_TableOptions<Estoque>['onEditingRowSave'] = async ({
     values,
     table,
   }) => {
@@ -116,7 +116,7 @@ const Example = () => {
       return;
     }
     setValidationErrors({});
-    await updateUser(values);
+    await updateEstoque(values);
     table.setEditingRow(null); // Sair do modo de edição
   };
 
@@ -132,18 +132,18 @@ const Example = () => {
       ),
       labels: { confirm: 'Excluir', cancel: 'Cancelar' },
       confirmProps: { color: 'red' },
-      onConfirm: () => deleteUser(row.original.id),
+      onConfirm: () => deleteEstoque(row.original.id),
     });
 
   // Inicializar a tabela com configurações e manipuladores de eventos
   const table = useMantineReactTable({
     columns,
-    data: fetchedUsers,
+    data: fetchedEstoques,
     createDisplayMode: 'modal',
     editDisplayMode: 'modal',
     enableEditing: true,
     getRowId: (row) => row.id,
-    mantineToolbarAlertBannerProps: isLoadingUsersError
+    mantineToolbarAlertBannerProps: isLoadingEstoquesError
       ? {
           color: 'red',
           children: 'Error loading data',
@@ -155,9 +155,9 @@ const Example = () => {
       },
     },
     onCreatingRowCancel: () => setValidationErrors({}),
-    onCreatingRowSave: handleCreateUser,
+    onCreatingRowSave: handleCreateEstoque,
     onEditingRowCancel: () => setValidationErrors({}),
-    onEditingRowSave: handleSaveUser,
+    onEditingRowSave: handleSaveEstoque,
     renderCreateRowModalContent: ({ table, row, internalEditComponents }) => (
       <Stack>
         <Title order={3}>Cadastrar estoque</Title>
@@ -200,10 +200,10 @@ const Example = () => {
       </Button>
     ),
     state: {
-      isLoading: isLoadingUsers,
-      isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
-      showAlertBanner: isLoadingUsersError,
-      showProgressBars: isFetchingUsers,
+      isLoading: isLoadingEstoques,
+      isSaving: isCreatingEstoque || isUpdatingEstoque || isDeletingEstoque,
+      showAlertBanner: isLoadingEstoquesError,
+      showProgressBars: isFetchingEstoques,
     },
   });
 
@@ -212,80 +212,80 @@ const Example = () => {
 };
 
 // Hook CREATE para enviar novo item de estoque para a API
-function useCreateUser() {
+function useCreateEstoque() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (user: Estoque) => {
+    mutationFn: async (Estoque: Estoque) => {
       // Simular chamada à API
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return Promise.resolve();
     },
     // Atualização otimista no lado do cliente
-    onMutate: (newUserInfo: Estoque) => {
+    onMutate: (newEstoqueInfo: Estoque) => {
       queryClient.setQueryData(
-        ['users'],
-        (prevUsers: any) =>
+        ['Estoques'],
+        (prevEstoques: any) =>
           [
-            ...prevUsers,
+            ...prevEstoques,
             {
-              ...newUserInfo,
+              ...newEstoqueInfo,
               id: (Math.random() + 1).toString(36).substring(7),
             },
           ] as Estoque[],
       );
     },
     // Recarregar usuários após mutação (desativado para demonstração)
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Estoques'] }),
   });
 }
 
 // Hook READ para obter itens de estoque da API
-function useGetUsers() {
+function useGetEstoques() {
   return useQuery<Estoque[]>({
-    queryKey: ['users'],
+    queryKey: ['Estoques'],
     refetchOnWindowFocus: false,
   });
 }
 
 // Hook UPDATE para atualizar item de estoque na API
-function useUpdateUser() {
+function useUpdateEstoque() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (user: Estoque) => {
+    mutationFn: async (Estoque: Estoque) => {
       // Simular chamada à API
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return Promise.resolve();
     },
     // Atualização otimista no lado do cliente
-    onMutate: (newUserInfo: Estoque) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.map((prevUser: Estoque) =>
-          prevUser.id === newUserInfo.id ? newUserInfo : prevUser,
+    onMutate: (newEstoqueInfo: Estoque) => {
+      queryClient.setQueryData(['Estoques'], (prevEstoques: any) =>
+        prevEstoques?.map((prevEstoque: Estoque) =>
+          prevEstoque.id === newEstoqueInfo.id ? newEstoqueInfo : prevEstoque,
         ),
       );
     },
     // Recarregar usuários após mutação (desativado para demonstração)
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Estoques'] }),
   });
 }
 
 // Hook DELETE para excluir item de estoque na API
-function useDeleteUser() {
+function useDeleteEstoque() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (userId: string) => {
+    mutationFn: async (EstoqueId: string) => {
       // Simular chamada à API
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return Promise.resolve();
     },
     // Atualização otimista no lado do cliente
-    onMutate: (userId: string) => {
-      queryClient.setQueryData(['users'], (prevUsers: any) =>
-        prevUsers?.filter((user: Estoque) => user.id !== userId),
+    onMutate: (EstoqueId: string) => {
+      queryClient.setQueryData(['Estoques'], (prevEstoques: any) =>
+        prevEstoques?.filter((Estoque: Estoque) => Estoque.id !== EstoqueId),
       );
     },
     // Recarregar usuários após mutação (desativado para demonstração)
-    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    // onSettled: () => queryClient.invalidateQueries({ queryKey: ['Estoques'] }),
   });
 }
 
@@ -306,23 +306,26 @@ export default ExampleWithProviders;
 // Funções de validação
 const validateRequired = (value: any) => {return value !== null && value !== undefined && !!value.length;};
 const validateMinLength = (value: string, minLength: number) => {return !!value && value.length >= minLength;};
-const validateSomenteTexto = (value: string) => {return /^[^\d]+$/.test(value);};
-const validateQuantidade = (quantidade: string) => {return /^[1-9]\d{0,2}$/.test(quantidade);}; // Regex para inteiros positivos maiores que zero, até três dígitos
+const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
+const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
+const validateQuantidade = (quantidade: string) => {return /^\d{1,3}$/.test(quantidade);}; // Regex para até três dígitos
 
 // Função para validar campos do item de estoque
-function validateEstoque(user: Estoque) {
+function validateEstoque(Estoque: Estoque) {
   const errors: Record<string, string | undefined> = {};
   
-  if (!validateRequired(user.nomeProduto)) {
+  if (!validateRequired(Estoque.nomeProduto)) {
     errors.nomeProduto = 'Nome do produto é obrigatório';
-  } else if (!validateMinLength(user.nomeProduto, 2)) {
+  } else if (!validateMinLength(Estoque.nomeProduto, 2)) {
     errors.nomeProduto = 'Nome do produto inválido';
-  } else if (!validateSomenteTexto(user.nomeProduto)) {
+  } else if (!validateSomenteTexto(Estoque.nomeProduto)) {
     errors.nomeProduto = 'Nome do produto inválido';
+  } else if (!validateMaxLength(Estoque.nomeProduto, 30)) {
+    errors.nomeProduto  = 'Nome do produto inválido'; 
   }
-  if (!validateRequired(user.quantidade)) {
-    errors.quantidade = 'Quantidade obrigatória';
-  } else if (!validateQuantidade(user.quantidade)) {
+  if (!validateRequired(Estoque.quantidade)) {
+    errors.quantidade = 'Quantidade é obrigatória';
+  } else if (!validateQuantidade(Estoque.quantidade)) {
     errors.quantidade = 'Quantidade inválida';
   }
   return errors;

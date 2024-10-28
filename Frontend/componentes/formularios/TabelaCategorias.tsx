@@ -283,14 +283,27 @@ const CadastroCategoriaWithProviders = () => (
 export default CadastroCategoriaWithProviders;
 
 // Funções de validação
+function validateCategoria (categoria: Categoria) {const errors: Record<string, string | undefined> = {};
 const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0;
 const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
-function validateCategoria(categoria: Categoria) {const errors: Record<string, string | undefined> = {};
+const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
+const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
 
   if (!validateRequired(categoria.nome)) {
-    errors.nome = 'É necessário inserir o nome da categoria';
+    errors.nome = 'Nome da categoria é obrigatório';
   } else if (!validateMinLength(categoria.nome, 2)) {
-    errors.nome = 'O nome da categoria precisa ter mais do que 2 caracteres';
+    errors.nome = 'Nome inválido';
+  } else if (!validateMaxLength(categoria.nome, 30)) {
+    errors.nome = 'Nome inválido';
+  }
+  if (!validateRequired(categoria.descricao)) {
+    errors.descricao = 'Descrição é obrigatória';
+  } else if (!validateMinLength(categoria.descricao, 2)) {
+    errors.descricao = 'Descrição é inválida';
+  } else if (!validateMaxLength(categoria.descricao, 30)) {
+    errors.descricao = 'Descrição é inválida';
+  } else if (!validateSomenteTexto(categoria.descricao)) {
+    errors.descricao = 'Descrição é inválida';
   }
   return errors;
 }
