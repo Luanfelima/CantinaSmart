@@ -318,7 +318,9 @@ const validateGestor = (values: Gestor) => {
   } else if (!validateNome(values.nome)) {
     errors.nome = 'Nome deve ter no mínimo 3 caracteres e não pode conter números';
   } else if (!validateMaxLength(values.nome, 20)) {
-    errors.nome = 'Nome inválido';
+    errors.nome = 'Nome inválido, necessário ter menos de 20 caracteres';
+  } else if (!validateMinLength(values.nome, 2)) {
+    errors.nome = 'Nome inválido, necessário ter mais de 2 caracteres';
   } else if (!validateSomenteTexto(values.nome)) {
     errors.nome = 'Nome inválido';
   }

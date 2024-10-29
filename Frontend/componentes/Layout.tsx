@@ -1,11 +1,51 @@
 import React, { ReactNode } from 'react';
-import { AppShell, Burger, Group, Autocomplete, Avatar, Button, NavLink } from '@mantine/core';
+import { AppShell, Burger, Group, NavLink, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import LogoClaro from './Logo';
 
 interface LayoutProps {
   children: ReactNode;
 }
+
+const data = [
+  { label: '🏠 Página inicial', link: '/Dashboard/dashboard' },
+  { label: '🏬 Unidades', link: '/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes' },
+  { label: '💼 Funcionários', link: '/CadastroFuncionario/Funcionarios' },
+  { label: '🥦 Produtos', link: '/CadastroProduto/Produtos' },
+  { label: '📊 Estoque', link: '/CadastroEstoque/Estoque' },
+  { label: '📋 Categorias', link: '/CadastroCategoria/Categorias' },
+];
+
+export const NavbarLeft = () => {
+
+  return (
+
+    <Stack h={1000} w={280} ff={"sans-serif"} align='stretch' justify='space-between' gap={'xl'}>
+      
+      <div>
+        {data.map((item) => (
+          <NavLink
+          key={item.label}
+          href={item.link}
+          label={<span style={{ fontSize: '1.0 rem' }}>{item.label}</span>}
+          variant="subtle"
+          active
+        />
+        ))}
+      </div>
+      
+      <div>
+      <NavLink
+        href="/FormularioLogin/login"
+        label={<span style={{ fontSize: '1.0 rem' }}>❌ Sair</span>}
+        variant="subtle"
+        active
+        color='red'
+        />
+      </div>
+    </Stack>
+  );
+};
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
@@ -26,47 +66,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" />
           <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="sm" size="sm" />
           <LogoClaro />
-          <Autocomplete
-            placeholder="🔍 Pesquisa"
-            data={[
-              { group: 'Dashboard', items: ['Tela Inicial'],  },
-              { group: 'Unidades', items: ['Cadastrar nova unidade'] },
-              { group: 'Funcionários', items: ['Cadastrar funcionário'] },
-              { group: 'Produtos', items: ['Cadastrar produto'] },
-              { group: 'Estoque', items: ['Estoque'] },
-              { group: 'Categorias', items: ['Cadastrar Categorias'] },
-            ]}
-          />
-          <Button variant="transparent">
-            <Avatar variant="light" radius="lg" size="lg" color="rgba(83, 130, 224, 1)" src="PerfilUsuario" />
-          </Button>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <div>
-        <NavLink href="/Dashboard/dashboard" label="Tela Inicial" />
-          <NavLink href="/CadastroUnidadesInformacoes/CadastroUnidadesInformacoes" label="Unidades" />
-          <NavLink href="/CadastroFuncionario/Funcionarios" label="Funcionários" />
-          <NavLink href="/CadastroProduto/Produtos" label="Produto" />
-          <NavLink href="/CadastroEstoque/Estoque" label="Estoque" />
-          <NavLink href="/CadastroCategoria/Categorias" label="Categorias" />
-        </div>
-
-        <div>
-          <NavLink
-            href="/FormularioLogin/login"
-            label= {
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                <img src="/LogOff.png" alt="Voltar ao Login / LogOff" style={{ width: 24, height: 24, marginRight: 8 }}/>
-                <p>Sair</p>
-              </div>
-            }
-          />
-        </div>
+      <AppShell.Navbar p="md">
+        <NavbarLeft />
       </AppShell.Navbar>
+
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>
   );
 };
+
 export default Layout;

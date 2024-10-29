@@ -292,18 +292,18 @@ const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.tes
   if (!validateRequired(categoria.nome)) {
     errors.nome = 'Nome da categoria é obrigatório';
   } else if (!validateMinLength(categoria.nome, 2)) {
-    errors.nome = 'Nome inválido';
+    errors.nome = 'Nome inválido, necessário ter no mínimo 2 caracteres';
   } else if (!validateMaxLength(categoria.nome, 30)) {
+    errors.nome = 'Nome inválido, necessário ter menos de 30 caracteres';
+  } else if (!validateSomenteTexto(categoria.nome)) {
     errors.nome = 'Nome inválido';
   }
   if (!validateRequired(categoria.descricao)) {
     errors.descricao = 'Descrição é obrigatória';
   } else if (!validateMinLength(categoria.descricao, 2)) {
-    errors.descricao = 'Descrição é inválida';
+    errors.descricao = 'Descrição é inválida, necessário ter no mínimo 2 caracteres';
   } else if (!validateMaxLength(categoria.descricao, 30)) {
-    errors.descricao = 'Descrição é inválida';
-  } else if (!validateSomenteTexto(categoria.descricao)) {
-    errors.descricao = 'Descrição é inválida';
+    errors.descricao = 'Descrição é inválida, necessário ter menos de 30 caracteres';
   }
   return errors;
 }

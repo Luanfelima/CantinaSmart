@@ -346,12 +346,14 @@ export default ExampleWithProviders;
 // Funções de validação
 const validateNomeUnidade = (value: string) => /^[^\d]+$/.test(value);
 const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength;
-const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
-const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length;
+//const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
+const validateMaxLength = (value: any, maxLength: number) => value !== null && value !== undefined && value.toString().length <= maxLength;
+const validateRequired = (value: any) => value !== null && value !== undefined;
 const validateCep = (cep: string) => /^\d{8}$/.test(cep);
-const validateNumero = (numero: string) => /^[1-9]\d*$/.test(numero);
-const validateSomenteTexto = (value: string) => {return /^[ a-zA-ZÀ-ÿ\s]+$/.test(value);};
-const validateSemCaractere = (value: any) => {return /^[^\W_]*$/.test(value);};
+//const validateNumero = (numero: string) => /^[1-9]\d*$/.test(numero);
+const validateNumero = (numero: any) => /^[1-9]\d*$/.test(Number(numero).toString());
+const validateSomenteTexto = (value: any) => {return /^[ a-zA-ZÀ-ÿ\s]+$/.test(value);};
+const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.test(value);};
 
 // Função para validar campos da unidade
 const validateUnidade = (values: Unidade) => {const errors: Record<string, string | undefined> = {};
@@ -398,7 +400,7 @@ const validateUnidade = (values: Unidade) => {const errors: Record<string, strin
   if (!validateRequired(values.estado)) {
     errors.estado = 'Estado é obrigatório';
   } else if (!validateSomenteTexto(values.estado)) {
-    errors.rua = 'Estado inválida';
+    errors.estado = 'Estado inválida';
   }
   if (!validateRequired(values.numero)) {
     errors.numero = 'Número é obrigatório';

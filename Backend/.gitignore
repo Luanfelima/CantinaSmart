@@ -1,0 +1,2 @@
+#ignora a pasta node_modules, pois ela tem mais de 4000 modificações.
+node_modules

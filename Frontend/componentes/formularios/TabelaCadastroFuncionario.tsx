@@ -325,7 +325,7 @@ export default CadastroFuncionarioWithProviders;
 const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength;
 const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
 const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length;
-const validateNome = (nome: string) => {const regex = /^[^0-9]+$/;return regex.test(nome) && validateMinLength(nome, 4);};
+const validateNome = (nome: string) => {const regex = /^[^0-9]+$/;return regex.test(nome) && validateMinLength(nome, 3);};
 const validateEmail = (email: string) => {const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/;return !!email.length && regex.test(email.toLowerCase());};
 const validateCpf = (cpf: string) => {if (cpf.includes('.') || cpf.includes('-')) {return false;}return /^[0-9]{11}$/.test(cpf);};
 const validateTelefone = (telefone: string) => {const cleanTelefone = telefone.replace(/\D/g, '');return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone);};
@@ -338,9 +338,9 @@ const validateFuncionario = (values: Funcionario) => {
   if (!validateRequired(values.nome)) {
     errors.nome = 'Nome é obrigatório';
   } else if (!validateNome(values.nome)) {
-    errors.nome = 'Nome deve ter no mínimo 4 caracteres e não conter números';
+    errors.nome = 'Nome inválido, necessário ter mais de 3 caracteres e não deve conter números';
   } else if (!validateMaxLength(values.nome, 40)) {
-    errors.nome = 'Nome deve ter no máximo 40 caracteres';
+    errors.nome = 'Nome inválido, necessário ter menos de 40 caracteres';
   } else if (!validateSomenteTexto(values.nome)) {
     errors.nome = 'Nome inválido';
   }
@@ -358,13 +358,9 @@ const validateFuncionario = (values: Funcionario) => {
     errors.cpf = 'CPF é obrigatório';
   } else if (!validateCpf(values.cpf)) {
     errors.cpf = 'CPF inválido. Digite sem traços e pontos';
-  } else if (!validateSomenteTexto(values.cpf)) {
-    errors.cpf = 'Cpf inválido. Digite sem traços e pontos';
   }
   if (!validateRequired(values.cargo)) {
     errors.cargo = 'Cargo é obrigatório';
-  } else if (!validateSomenteTexto(values.cargo)) {
-    errors.cargo = 'Cargo inválido. Digite sem traços e pontos';
   }
   return errors;
 };
