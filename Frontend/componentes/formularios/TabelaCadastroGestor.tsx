@@ -326,11 +326,13 @@ const validateGestor = (values: Gestor) => {
   }
   if (!validateRequired(values.sobrenome)) {
     errors.sobrenome = 'Sobrenome é obrigatório';
-  } else if (!validateSobrenome(values.sobrenome)) {
+  } else if (!validateMaxLength(values.sobrenome, 40)) {
+    errors.sobrenome = 'Sobrenome inválido, necessário ter menos de 40 caracteres';
+  }  else if (!validateSobrenome(values.sobrenome)) {
     errors.sobrenome = 'Sobrenome deve ter no mínimo 4 caracteres e não pode conter números';
   } else if (!validateSomenteTexto(values.sobrenome)) {
     errors.sobrenome = 'Sobrenome inválido';
-  }  
+  } 
   if (!validateRequired(values.email)) {
     errors.email = 'E-mail é obrigatório';
   } else if (!validateEmail(values.email)) {
