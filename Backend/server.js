@@ -5,11 +5,9 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-// Express app setup
 const app = express();
-app.use(express.json());
 
-// CORS Configuration
+// Configuração do CORS
 const corsOptions = {
   origin: ['http://localhost:3001', 'https://cantinasmart.vercel.app', 'https://cantina-smart-git-master-time-cantinas.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -18,7 +16,7 @@ const corsOptions = {
   credentials: true,
 };
 
-const cors = require('cors');
+// Aplicação do middleware CORS
 app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
