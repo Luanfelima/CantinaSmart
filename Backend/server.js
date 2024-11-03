@@ -52,8 +52,7 @@ db.query('SELECT 1', (err) => {
 // Exporta o `app` para permitir testes
 module.exports = app;
 
-// Inicia o servidor apenas se o arquivo for executado diretamente
-const port = process.env.PORT || (process.env.NODE_ENV === 'development' ? 3000 : undefined);
+const port = process.env.PORT || 3000;
 
 if (!port) {
   throw new Error("A variável de ambiente PORT não está definida. Verifique a configuração do Render.");
