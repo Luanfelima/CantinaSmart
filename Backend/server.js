@@ -9,8 +9,12 @@ const app = express();
 
 // Configuração do CORS
 const corsOptions = {
-  origin: ['http://localhost:3001', 'https://cantinasmart.vercel.app', 'https://cantina-smart-git-master-time-cantinas.vercel.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: [
+    'http://localhost:3001', 
+    'https://cantinasmart.vercel.app', 
+    'https://cantina-smart-git-master-time-cantinas.vercel.app'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   maxAge: 3600,
   credentials: true,
@@ -18,14 +22,6 @@ const corsOptions = {
 
 // Aplicação do middleware CORS
 app.use(cors(corsOptions));
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3001');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
-});
 
 // Log's para o Database connection
 console.log('Tentando conectar ao banco de dados com as seguintes configurações:');
