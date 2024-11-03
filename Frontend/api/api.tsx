@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Cria a instância do Axios com a baseURL configurada a partir da variável de ambiente
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000', // Usa a URL de produção se disponível
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000', // Usa a URL de produção se disponível
 });
 
 // Interceptor de requisição para adicionar o token JWT no cabeçalho
