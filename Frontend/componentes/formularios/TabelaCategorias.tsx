@@ -209,12 +209,15 @@ const CadastroCategoria = () => {
   return <MantineReactTable table={table} />;
 };
 
-// Funções auxiliares de CRUD
+// Define a URL base do backend usando a variável de ambiente
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+// Função para buscar as categorias da API
 function useGetCategorias() {
   return useQuery<Categoria[], Error>({
     queryKey: ['categorias'],
     queryFn: async () => {
-      const response = await api.get('/categorias');
+      const response = await api.get(`${backendUrl}/categorias`); // Usa a URL do backend
       return response.data;
     },
     refetchOnWindowFocus: false,
@@ -226,7 +229,7 @@ function useCreateCategoria() {
 
   return useMutation<Categoria, Error, Omit<Categoria, 'id_categorias'>>({
     mutationFn: async (categoria) => {
-      const response = await api.post('/categorias', categoria);
+      const response = await api.post(`${backendUrl}/categorias`, categoria); // Usa a URL do backend
       return response.data;
     },
     onSuccess: () => {
@@ -243,7 +246,7 @@ function useUpdateCategoria() {
 
   return useMutation<void, Error, Categoria>({
     mutationFn: async (categoria) => {
-      await api.put(`/categorias/${categoria.id_categorias}`, categoria);
+      await api.put(`${backendUrl}/categorias/${categoria.id_categorias}`, categoria); // Usa a URL do backend
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorias'] });
@@ -259,7 +262,7 @@ function useDeleteCategoria() {
 
   return useMutation<void, Error, number>({
     mutationFn: async (categoriaId) => {
-      await api.delete(`/categorias/${categoriaId}`);
+      await api.delete(`${backendUrl}/categorias/${categoriaId}`); // Usa a URL do backend
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categorias'] });
@@ -288,22 +291,25 @@ const validateRequired = (value: any) => value !== null && value !== undefined &
 const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
 const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
 const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
+const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.test(value);};
 
   if (!validateRequired(categoria.nome)) {
-    errors.nome = 'Nome da categoria é obrigatório';
+    errors.nome = 'Nome da categoria é obrigatório.';
   } else if (!validateMinLength(categoria.nome, 2)) {
-    errors.nome = 'Nome inválido, necessário ter no mínimo 2 caracteres';
+    errors.nome = 'Nome inválido, necessário ter no mínimo 2 caracteres.';
   } else if (!validateMaxLength(categoria.nome, 30)) {
-    errors.nome = 'Nome inválido, necessário ter menos de 30 caracteres';
+    errors.nome = 'Nome inválido, necessário ter menos de 30 caracteres.';
   } else if (!validateSomenteTexto(categoria.nome)) {
-    errors.nome = 'Nome inválido';
+    errors.nome = 'Nome inválido, necessário ter somente texto.';
   }
   if (!validateRequired(categoria.descricao)) {
-    errors.descricao = 'Descrição é obrigatória';
-  } else if (!validateMinLength(categoria.descricao, 2)) {
-    errors.descricao = 'Descrição é inválida, necessário ter no mínimo 2 caracteres';
+    errors.descricao = 'Descrição é obrigatória.';
+  } else if (!validateMinLength(categoria.descricao, 3)) {
+    errors.descricao = 'Descrição inválida, necessário ter no mínimo 3 caracteres.';
   } else if (!validateMaxLength(categoria.descricao, 30)) {
-    errors.descricao = 'Descrição é inválida, necessário ter menos de 30 caracteres';
+    errors.descricao = 'Descrição inválida, necessário ter menos de 30 caracteres.';
+  } else if(!validateSemCaractere(categoria.descricao)) {
+    errors.descricao = 'Descrição inválida.'
   }
   return errors;
 }

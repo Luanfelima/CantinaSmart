@@ -236,13 +236,15 @@ const CadastroGestor = () => {
   return <MantineReactTable table={table} />;
 };
 
-// Funções que lidam com as mutações e queries de dados usando Axios
+// Define a URL base do backend usando a variável de ambiente
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+// Funções que lidam com as mutações e queries de dados usando Axios
 function useCreateGestor() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (Gestor: Omit<Gestor, 'matricula_gestor'>) => {
-      const response = await axios.post('http://localhost:3000/gestor', Gestor);
+      const response = await axios.post(`${backendUrl}/gestor`, Gestor); // Usa a URL do backend
       return response.data;
     },
     onSuccess: () => {
@@ -255,7 +257,7 @@ function useGetGestor() {
   return useQuery<Gestor[]>({
     queryKey: ['Gestor'],
     queryFn: async () => {
-      const response = await axios.get('http://localhost:3000/gestor');
+      const response = await axios.get(`${backendUrl}/gestor`); // Usa a URL do backend
       return response.data;
     },
     refetchOnWindowFocus: false,
@@ -266,7 +268,7 @@ function useUpdateGestor() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (Gestor: Gestor) => {
-      await axios.put(`http://localhost:3000/gestor/${Gestor.matricula_gestor}`, Gestor);
+      await axios.put(`${backendUrl}/gestor/${Gestor.matricula_gestor}`, Gestor); // Usa a URL do backend
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['Gestor'] });
@@ -278,7 +280,7 @@ function useDeleteGestor() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (matricula_gestor: number) => {
-      await axios.delete(`http://localhost:3000/gestor/${matricula_gestor}`);
+      await axios.delete(`${backendUrl}/gestor/${matricula_gestor}`); // Usa a URL do backend
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['Gestor'] });
@@ -332,7 +334,7 @@ const validateGestor = (values: Gestor) => {
     errors.sobrenome = 'Sobrenome deve ter no mínimo 4 caracteres e não pode conter números';
   } else if (!validateSomenteTexto(values.sobrenome)) {
     errors.sobrenome = 'Sobrenome inválido';
-  } 
+  }
   if (!validateRequired(values.email)) {
     errors.email = 'E-mail é obrigatório';
   } else if (!validateEmail(values.email)) {

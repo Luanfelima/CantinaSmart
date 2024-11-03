@@ -244,12 +244,15 @@ const CadastroFuncionario = () => {
   return <MantineReactTable table={table} />;
 };
 
+// Define a URL base do backend usando a variável de ambiente
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 // Função para buscar os funcionários
 function useGetFuncionarios() {
   return useQuery<Funcionario[], Error>({
     queryKey: ['funcionarios'],
     queryFn: async () => {
-      const response = await api.get('/funcionarios');
+      const response = await api.get(`${backendUrl}/funcionarios`); // Usa a URL do backend
       return response.data;
     },
     refetchOnWindowFocus: false, // Evita refetch quando a janela recebe foco
@@ -262,7 +265,7 @@ function useCreateFuncionario() {
 
   return useMutation<Funcionario, Error, Omit<Funcionario, 'id_func'>>({
     mutationFn: async (funcionario) => {
-      const response = await api.post('/funcionarios', funcionario);
+      const response = await api.post(`${backendUrl}/funcionarios`, funcionario); // Usa a URL do backend
       return response.data;
     },
     onSuccess: () => {
@@ -280,7 +283,7 @@ function useUpdateFuncionario() {
 
   return useMutation<void, Error, Funcionario>({
     mutationFn: async (funcionario) => {
-      await api.put(`/funcionarios/${funcionario.id_func}`, funcionario);
+      await api.put(`${backendUrl}/funcionarios/${funcionario.id_func}`, funcionario); // Usa a URL do backend
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
@@ -297,7 +300,7 @@ function useDeleteFuncionario() {
 
   return useMutation<void, Error, number>({
     mutationFn: async (funcionarioId) => {
-      await api.delete(`/funcionarios/${funcionarioId}`);
+      await api.delete(`${backendUrl}/funcionarios/${funcionarioId}`); // Usa a URL do backend
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['funcionarios'] });
@@ -307,6 +310,7 @@ function useDeleteFuncionario() {
     },
   });
 }
+
 
 // Inicializa o QueryClient para gerenciamento global de dados
 const queryClient = new QueryClient();
@@ -336,31 +340,31 @@ const validateFuncionario = (values: Funcionario) => {
   const errors: Record<string, string | undefined> = {};
 
   if (!validateRequired(values.nome)) {
-    errors.nome = 'Nome é obrigatório';
+    errors.nome = 'Nome é obrigatório.';
   } else if (!validateNome(values.nome)) {
-    errors.nome = 'Nome inválido, necessário ter mais de 3 caracteres e não deve conter números';
+    errors.nome = 'Nome inválido, necessário ter mais de 3 caracteres e não deve conter números.';
   } else if (!validateMaxLength(values.nome, 40)) {
-    errors.nome = 'Nome inválido, necessário ter menos de 40 caracteres';
+    errors.nome = 'Nome inválido, necessário ter menos de 40 caracteres.';
   } else if (!validateSomenteTexto(values.nome)) {
-    errors.nome = 'Nome inválido';
+    errors.nome = 'Nome inválido, necessário ter somente texto.';
   }
   if (!validateRequired(values.email)) {
-    errors.email = 'E-mail é obrigatório';
+    errors.email = 'E-mail é obrigatório.';
   } else if (!validateEmail(values.email)) {
-    errors.email = 'E-mail em formato inválido';
+    errors.email = 'E-mail em formato inválido.';
   } 
   if (!validateRequired(values.telefone)) {
-    errors.telefone = 'Telefone é obrigatório';
+    errors.telefone = 'Telefone é obrigatório.';
   } else if (!validateTelefone(values.telefone)) {
-    errors.telefone = 'Telefone inválido';
+    errors.telefone = 'Telefone inválido.';
   }
   if (!validateRequired(values.cpf)) {
-    errors.cpf = 'CPF é obrigatório';
+    errors.cpf = 'CPF é obrigatório.';
   } else if (!validateCpf(values.cpf)) {
-    errors.cpf = 'CPF inválido. Digite sem traços e pontos';
+    errors.cpf = 'CPF inválido. Digite sem traços e pontos.';
   }
   if (!validateRequired(values.cargo)) {
-    errors.cargo = 'Cargo é obrigatório';
+    errors.cargo = 'Cargo é obrigatório.';
   }
   return errors;
 };

@@ -315,18 +315,18 @@ function validateEstoque(Estoque: Estoque) {
   const errors: Record<string, string | undefined> = {};
   
   if (!validateRequired(Estoque.nomeProduto)) {
-    errors.nomeProduto = 'Nome do produto é obrigatório';
-  } else if (!validateMinLength(Estoque.nomeProduto, 2)) {
-    errors.nomeProduto = 'Nome do produto inválido, necessário ter no mínimo 3 caracteres';
+    errors.nomeProduto = 'Nome do produto é obrigatório.';
+  } else if (!validateMinLength(Estoque.nomeProduto, 3)) {
+    errors.nomeProduto = 'Nome do produto inválido, necessário ter no mínimo 3 caracteres.';
   } else if (!validateSomenteTexto(Estoque.nomeProduto)) {
-    errors.nomeProduto = 'Nome do produto inválido';
+    errors.nomeProduto = 'Nome do produto inválido, necessário ter somente texto.';
   } else if (!validateMaxLength(Estoque.nomeProduto, 30)) {
-    errors.nomeProduto  = 'Nome do produto inválido, necessário ter menos de 30 caracteres'; 
+    errors.nomeProduto  = 'Nome do produto inválido, necessário ter menos de 30 caracteres.'; 
   }
   if (!validateRequired(Estoque.quantidade)) {
-    errors.quantidade = 'Quantidade é obrigatória';
+    errors.quantidade = 'Quantidade é obrigatória.';
   } else if (!validateQuantidade(Estoque.quantidade)) {
-    errors.quantidade = 'Quantidade inválida';
+    errors.quantidade = 'Quantidade inválida, quantidade máxima de 999.';
   }
   return errors;
 }

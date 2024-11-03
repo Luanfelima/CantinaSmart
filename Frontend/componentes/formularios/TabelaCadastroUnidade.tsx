@@ -271,12 +271,15 @@ const Example = () => {
   return <MantineReactTable table={table} />;
 };
 
-// Funções auxiliares de CRUD
+// Define a URL base do backend usando a variável de ambiente
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
+// Hook para buscar unidades
 function useGetUnidades() {
   return useQuery<Unidade[]>({
     queryKey: ['unidades'],
     queryFn: async () => {
-      const response = await api.get('/unidades');
+      const response = await api.get(`${backendUrl}/unidades`); // Usa a URL do backend
       return response.data;
     },
     refetchOnWindowFocus: false,
@@ -288,7 +291,7 @@ function useCreateUnidade() {
 
   return useMutation({
     mutationFn: async (unidade: Omit<Unidade, 'id_unidade'>) => {
-      const response = await api.post('/unidades', unidade);
+      const response = await api.post(`${backendUrl}/unidades`, unidade); // Usa a URL do backend
       return response.data;
     },
     onSuccess: () => {
@@ -305,7 +308,7 @@ function useUpdateUnidade() {
 
   return useMutation({
     mutationFn: async (unidade: Unidade) => {
-      await api.put(`/unidades/${unidade.id_unidade}`, unidade);
+      await api.put(`${backendUrl}/unidades/${unidade.id_unidade}`, unidade); // Usa a URL do backend
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unidades'] });
@@ -321,7 +324,7 @@ function useDeleteUnidade() {
 
   return useMutation({
     mutationFn: async (unidadeId: number) => {
-      await api.delete(`/unidades/${unidadeId}`);
+      await api.delete(`${backendUrl}/unidades/${unidadeId}`); // Usa a URL do backend
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['unidades'] });
@@ -364,53 +367,53 @@ const validateUnidade = (values: Unidade) => {const errors: Record<string, strin
     errors.polo = 'Polo inválido';
   }
   if (!validateRequired(values.nome_unidade)) {
-    errors.nome_unidade = 'Nome da unidade é obrigatório';
+    errors.nome_unidade = 'Nome da unidade é obrigatório.';
   } else if (!validateNomeUnidade(values.nome_unidade)) {
-    errors.nome_unidade = 'Nome inválido';
+    errors.nome_unidade = 'Nome inválido.';
   } else if (!validateMinLength(values.nome_unidade, 2)) {
-    errors.nome_unidade = 'Nome inválido, é necessário ter mais de 2 caracteres';
+    errors.nome_unidade = 'Nome inválido, é necessário ter no minímo 2 caracteres.';
   } else if (!validateMaxLength(values.nome_unidade, 30)) {
-    errors.nome_unidade = 'Nome inválido';
+    errors.nome_unidade = 'Nome inválido, é necessário ter menos de 30 caracteres.';
   } else if (!validateSomenteTexto(values.nome_unidade)) {
-    errors.nome_unidade = 'Nome inválido';
+    errors.nome_unidade = 'Nome inválido, é necessário ter somente texto.';
   }
   if (!validateRequired(values.cep)) {
     errors.cep = 'CEP é obrigatório';
   } else if (!validateCep(values.cep)) {
-    errors.cep = 'CEP inválido. Digite sem o "-"';
+    errors.cep = 'CEP inválido. Tente digitar sem o "-".';
   }
   if (!validateRequired(values.cidade)) {
-    errors.cidade = 'Cidade é obrigatória';
+    errors.cidade = 'Cidade é obrigatória.';
   } else if (!validateSomenteTexto(values.cidade)) {
-    errors.cidade = 'Cidade inválida';
+    errors.cidade = 'Cidade inválida, necessário ter somente texto.';
   } else if (!validateMinLength(values.cidade, 3)) {
-    errors.cidade = 'Cidade inválida, necessário ter mais de 3 caracteres';
+    errors.cidade = 'Cidade inválida, necessário ter mais de 3 caracteres.';
   } else if (!validateMaxLength(values.cidade, 35)) {
-    errors.cidade = 'Cidade inválida, necessário ter no máximo de 35 caracteres';
+    errors.cidade = 'Cidade inválida, necessário ter no máximo de 35 caracteres.';
   }
   if (!validateRequired(values.rua)) {
-    errors.rua = 'Rua é obrigatória';
+    errors.rua = 'Rua é obrigatória.';
   } else if (!validateSomenteTexto(values.rua)) {
-    errors.rua = 'Rua inválida';
+    errors.rua = 'Rua inválida, é necessário ter somente texto.';
   } else if (!validateMinLength(values.rua, 3)) {
-    errors.rua = 'Rua inválida, necessário ter mais de 3 caracteres';
+    errors.rua = 'Rua inválida, necessário ter mais de 3 caracteres.';
   } else if (!validateMaxLength(values.rua, 60)) {
-    errors.rua = 'Rua inválida, necessário ter no máximo de 60 caracteres';
+    errors.rua = 'Rua inválida, necessário ter no máximo de 60 caracteres.';
   }
   if (!validateRequired(values.estado)) {
-    errors.estado = 'Estado é obrigatório';
+    errors.estado = 'Estado é obrigatório.';
   } else if (!validateSomenteTexto(values.estado)) {
-    errors.estado = 'Estado inválida';
+    errors.estado = 'Estado inválido, é necessário ter somente texto.';
   }
   if (!validateRequired(values.numero)) {
-    errors.numero = 'Número é obrigatório';
+    errors.numero = 'Número é obrigatório.';
   } else if (!validateNumero(values.numero)) {
-    errors.numero = 'Número inválido';
+    errors.numero = 'Número inválido.';
   } else if (!validateMaxLength(values.numero, 5)) {
-    errors.numero = 'Número inválido';
+    errors.numero = 'Número inválido.';
   }
   if (!validateSemCaractere(values.complemento)) {
-    errors.complemento = 'Complemento inválido';
+    errors.complemento = 'Complemento inválido.';
   }
   return errors;
 };

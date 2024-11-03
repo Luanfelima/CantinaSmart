@@ -94,6 +94,7 @@ const CadastroProduto = () => {
         type: 'number',
         required: true,
         error: validationErrors?.preco,
+        placeholder: 'R$',
         onFocus: () => setValidationErrors({ ...validationErrors, preco: undefined }),
       },
       // Customiza o campo para exibir "R$" como prefixo
@@ -260,6 +261,8 @@ const CadastroProduto = () => {
 
 // Funções auxiliares de CRUD (Create, Read, Update, Delete)
 
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 // Função para obter produtos
 function useGetProdutos() {
   const [token, setToken] = useState<string | null>(null);
@@ -277,7 +280,7 @@ function useGetProdutos() {
       if (!token) {
         throw new Error('Token não encontrado');
       }
-      const response = await axios.get('http://localhost:3000/produtos', {
+      const response = await axios.get(`${backendUrl}/produtos`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -306,7 +309,7 @@ function useCreateProduto() {
       if (!token) {
         throw new Error('Token não encontrado');
       }
-      const response = await axios.post('http://localhost:3000/produtos', produto, {
+      const response = await axios.post(`${backendUrl}/produtos`, produto, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -336,7 +339,7 @@ function useUpdateProduto() {
       if (!token) {
         throw new Error('Token não encontrado');
       }
-      await axios.put(`http://localhost:3000/produtos/${produto.id_produto}`, produto, { //Não está atualizando o campo de perecível
+      await axios.put(`${backendUrl}/produtos/${produto.id_produto}`, produto, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -365,7 +368,7 @@ function useDeleteProduto() {
       if (!token) {
         throw new Error('Token não encontrado');
       }
-      await axios.delete(`http://localhost:3000/produtos/${produtoId}`, {
+      await axios.delete(`${backendUrl}/produtos/${produtoId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -394,47 +397,50 @@ const validateRequired = (value: any) => value !== null && value !== undefined &
 const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
 const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
 const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
+const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.test(value);};
 const validateNomeProduto = (nome: string) => /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);
 const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", ".");return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);}; // Limita a três dígitos antes do ponto decimal e troca "," por "." para que no banco não haja erros.
 const validateDescricao = (descricao: string) => {return validateMinLength(descricao, 3);}; // Descrição deve ter no mínimo 4 caracteres
 
   if (!validateRequired(values.nome_p)) {
-    errors.nome_p = 'Nome do produto é obrigatório';        
-  } else if (!validateNomeProduto(values.nome_p)) {
-    errors.nome_p = 'Nome do produto inválido';
-  } else if (!validateMinLength(values.nome_p, 3)) {
-    errors.nome_p = 'Nome do produto inválido, necessário ter no mínimo 3 caracteres';
+    errors.nome_p = 'Nome do produto é obrigatório.';        
+  }  else if (!validateMinLength(values.nome_p, 3)) {
+    errors.nome_p = 'Nome do produto inválido, necessário ter no mínimo 3 caracteres.';
   } else if (!validateMaxLength(values.nome_p, 30)) {
-    errors.nome_p = 'Nome do produto inválido, necessário ter menos de 30 caracteres';
+    errors.nome_p = 'Nome do produto inválido, necessário ter menos de 30 caracteres.';
   } else if (!validateSomenteTexto(values.nome_p)) {
-    errors.nome_p = 'Nome do produto inválido';
+    errors.nome_p = 'Nome do produto inválido, necessário ter somente texto.';
+  } else if (!validateNomeProduto(values.nome_p)) {
+    errors.nome_p = 'Nome do produto inválido.';
   }    
   if (!validateRequired(values.categoria)) {
-    errors.categoria = 'Categoria é obrigatória';
+    errors.categoria = 'Categoria é obrigatória.';
   } else if (!validateMinLength(values.categoria, 3)) {
-    errors.categoria = 'Categoria inválida, necessário ter no mínimo 3 caracteres';
+    errors.categoria = 'Categoria inválida, necessário ter no mínimo 3 caracteres.';
   } else if (!validateMaxLength(values.categoria, 20)) {
-    errors.categoria = 'Categoria inválida, necessário ter menos de 20 caracteres';
+    errors.categoria = 'Categoria inválida, necessário ter menos de 20 caracteres.';
   } else if (!validateSomenteTexto(values.categoria)) {
-    errors.categoria = 'Categoria inválida';
+    errors.categoria = 'Categoria inválida, necessário ter somente texto.';
   }   
   if (!validateRequired(values.preco)) {
-    errors.preco = 'Preço é obrigatório';
+    errors.preco = 'Preço é obrigatório.';
   } else if (!validatePreco(values.preco)) {
-    errors.preco = 'Preço inválido';
+    errors.preco = 'Preço inválido, valor máximo 999.';
   }
   if (!validateRequired(values.perecivel)){
-    errors.perecivel = 'Campo obrigatório';
+    errors.perecivel = 'Campo obrigatório.';
   }
   if (!validateRequired(values.descricao)) {
-    errors.descricao = 'Descrição é obrigatória';
+    errors.descricao = 'Descrição é obrigatória.';
   } else if (!validateDescricao(values.descricao)) {
-    errors.descricao = 'Descrição invalida, necessário ter no mínimo 3 caracteres';
+    errors.descricao = 'Descrição invalida, necessário ter no mínimo 3 caracteres.';
   } else if (!validateMaxLength(values.descricao, 30)) {
-    errors.descricao = 'Descrição inválida, necessário ter menos de 30 caracteres';
+    errors.descricao = 'Descrição inválida, necessário ter menos de 30 caracteres.';
+  } else if(!validateSemCaractere(values.descricao)) {
+    errors.descricao = 'Descrição inválida, necessário ter somente caracteres.'
   }
   if (!validateRequired(values.unidade_medida)) {
-    errors.unidade_medida = 'Unidade de medida é obrigatória';
+    errors.unidade_medida = 'Unidade de medida é obrigatória.';
   }
   return errors;
 };

@@ -54,11 +54,17 @@ db.query('SELECT 1', (err) => {
 module.exports = app;
 
 // Inicia o servidor apenas se o arquivo for executado diretamente
-if (require.main === module) {
-  app.listen(3000, () => {
-    console.log('Servidor rodando em http://localhost:3000');
-  });
+const port = process.env.PORT || (process.env.NODE_ENV === 'development' ? 3000 : undefined);
+
+if (!port) {
+  throw new Error("A variável de ambiente PORT não está definida. Verifique a configuração do Render.");
 }
+
+app.listen(port, () => {
+  console.log(`Servidor rodando na porta ${port}`);
+});
+
+
 
 // Middleware para autenticação via token JWT
 function authenticateToken(req, res, next) {
