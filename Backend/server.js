@@ -7,6 +7,9 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 
+// Middleware para processar JSON no corpo das requisições
+app.use(express.json());
+
 // Configuração do CORS
 const corsOptions = {
   origin: [
@@ -23,7 +26,7 @@ const corsOptions = {
 // Aplicação do middleware CORS
 app.use(cors(corsOptions));
 
-// Log's para o Database connection
+// Log para detalhes de configuração do banco de dados
 console.log('Tentando conectar ao banco de dados com as seguintes configurações:');
 console.log('Host:', process.env.DB_HOST);
 console.log('Usuário:', process.env.DB_USER);
@@ -45,9 +48,6 @@ db.query('SELECT 1', (err) => {
   }
 });
 
-// Exporta o `app` para permitir testes
-module.exports = app;
-
 const port = process.env.PORT || 3000;
 
 if (!port) {
@@ -58,7 +58,8 @@ app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}`);
 });
 
-
+// Exporta o `app` para permitir testes
+module.exports = app;
 
 // Middleware para autenticação via token JWT
 function authenticateToken(req, res, next) {
@@ -578,6 +579,7 @@ app.delete('/gestor/:matricula_gestor', (req, res) => {
 
 // ----------------------------------- Rota de Login -----------------------------------
 
+// Rota de Login
 app.post('/login', (req, res) => {
   const { email, senha } = req.body;
 
