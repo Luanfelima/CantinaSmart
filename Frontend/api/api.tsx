@@ -1,24 +1,27 @@
 import axios from 'axios';
 
-// Cria a instância do Axios com a baseURL configurada
+// Cria a instância do Axios com a baseURL configurada a partir da variável de ambiente
 const api = axios.create({
-  baseURL: 'http://localhost:3000', // Ajuste conforme necessário
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000', // Usa a URL de produção se disponível
 });
 
 // Interceptor de requisição para adicionar o token JWT no cabeçalho
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token'); // Obtém o token do localStorage
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`; // Adiciona o token no cabeçalho Authorization
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token'); // Obtém o token do localStorage
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`; // Adiciona o token no cabeçalho Authorization
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error); // Retorna erro se houver
   }
-  return config;
-}, (error) => {
-  return Promise.reject(error); // Retorna erro se houver
-});
+);
 
 // Interceptor de resposta para lidar com token expirado e renovação
 api.interceptors.response.use(
-  response => response, // Se a resposta for bem-sucedida, simplesmente retorna
+  (response) => response, // Se a resposta for bem-sucedida, simplesmente retorna
   async (error) => {
     const originalRequest = error.config;
 
