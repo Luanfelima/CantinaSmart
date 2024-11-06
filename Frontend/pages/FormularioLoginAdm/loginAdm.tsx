@@ -29,7 +29,7 @@ const LoginFormAdm: React.FC = () => {
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder='Email do Gestor'
+              placeholder='Email do ADM'
               required
               className={classes.input}
             />
@@ -42,7 +42,7 @@ const LoginFormAdm: React.FC = () => {
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder='Senha do Gestor'
+              placeholder='Senha do ADM'
               required
               className={classes.input}
             />

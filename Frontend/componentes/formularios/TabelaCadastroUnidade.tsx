@@ -362,9 +362,9 @@ const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.t
 const validateUnidade = (values: Unidade) => {const errors: Record<string, string | undefined> = {};
 
   if (!validateRequired(values.polo)) {
-    errors.polo = 'Polo é obrigatório';
+    errors.polo = 'Polo é obrigatório.';
   } else if (!validateSomenteTexto(values.polo)) {
-    errors.polo = 'Polo inválido';
+    errors.polo = 'Polo inválido.';
   }
   if (!validateRequired(values.nome_unidade)) {
     errors.nome_unidade = 'Nome da unidade é obrigatório.';
