@@ -91,7 +91,6 @@ export function FormLogin() {
         </Button>
       </Paper>
 
-      {/* Imagem clicável no canto */}
       <div className={classes.imageContainer}>
         <Image
           src="/engrenagem.png" // Altere o caminho da imagem
