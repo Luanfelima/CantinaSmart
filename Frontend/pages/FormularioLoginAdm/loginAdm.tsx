@@ -5,6 +5,7 @@ import classes from './loginAdm.module.css';
 const LoginFormAdm: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [errors, setErrors] = useState({ email: '', password: '' });
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -14,6 +15,30 @@ const LoginFormAdm: React.FC = () => {
   
   const handleBack = () => {
     router.push("/FormularioLogin/login");  
+  };
+
+  const validateEmail = (email: string) => {
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/;
+    return !!email.length && regex.test(email.toLowerCase());
+  };
+
+  const validateForm = () => {
+    const newErrors = { email: '', password: '' };
+
+    if (!validateEmail(email)) {
+      newErrors.email = 'E-mail inválido.';
+    }
+
+    if (!email) {
+      newErrors.email = 'E-mail é obrigatório.';
+    }
+
+    if (!password) {
+      newErrors.password = 'Senha é obrigatória.';
+    }
+
+    setErrors(newErrors);
+    return !newErrors.email && !newErrors.password;
   };
 
   return (
