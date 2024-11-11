@@ -66,7 +66,7 @@ export function FormLogin() {
       const { data } = await api.post('/login', { email, senha });
       localStorage.setItem('token', data.token);
       localStorage.setItem('refreshToken', data.refreshToken);
-      localStorage.setItem('cpf_gestor', data.cpf_gestor);
+      localStorage.setItem('matricula_gestor', data.matricula_gestor);
 
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
