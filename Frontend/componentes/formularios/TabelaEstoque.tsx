@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css'; // Importar estilos do seletor de data Mantine se utilizado
 import 'mantine-react-table/styles.css'; // Importar estilos do Mantine React Table
+import { MRT_Localization_PT_BR } from 'mantine-react-table/locales/pt-BR/index.cjs';
 import { useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
@@ -137,6 +138,7 @@ const Example = () => {
 
   // Inicializar a tabela com configurações e manipuladores de eventos
   const table = useMantineReactTable({
+    localization: MRT_Localization_PT_BR,
     columns,
     data: fetchedEstoques,
     createDisplayMode: 'modal',

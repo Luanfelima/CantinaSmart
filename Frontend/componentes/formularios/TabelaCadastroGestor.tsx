@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
+import { MRT_Localization_PT_BR } from 'mantine-react-table/locales/pt-BR/index.cjs';
 import { useMemo, useState, useEffect } from 'react';
 import {
   MRT_EditActionButtons,
@@ -176,6 +177,7 @@ const CadastroGestor = () => {
     });
 
   const table = useMantineReactTable({
+    localization: MRT_Localization_PT_BR,
     columns,
     data: fetchedGestor,
     createDisplayMode: 'modal',

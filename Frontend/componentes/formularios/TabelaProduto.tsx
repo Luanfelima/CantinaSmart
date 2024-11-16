@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
+import { MRT_Localization_PT_BR } from 'mantine-react-table/locales/pt-BR/index.cjs';
 import { Input } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -199,6 +200,7 @@ const CadastroProduto = () => {
   };
 
   const table = useMantineReactTable({
+    localization: MRT_Localization_PT_BR,
     columns,
     data: fetchedProdutos,
     createDisplayMode: 'modal',

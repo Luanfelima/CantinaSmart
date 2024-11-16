@@ -1,6 +1,7 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
+import { MRT_Localization_PT_BR } from 'mantine-react-table/locales/pt-BR/index.cjs';
 import { useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
@@ -149,6 +150,7 @@ const CadastroCategoria = () => {
 
   // Configuração da tabela
   const table = useMantineReactTable({
+    localization: MRT_Localization_PT_BR,
     columns,
     data: fetchedCategorias, // Dados vindos da API
     createDisplayMode: 'modal', // Exibe modal para criação
