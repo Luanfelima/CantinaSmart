@@ -302,53 +302,53 @@ const CadastroGestorWithProviders = () => (
 export default CadastroGestorWithProviders;
 
 // Funções de validação de campos
-const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength;
-const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
-const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length;
-const validateNome = (nome: string) => { const regex = /^[^0-9]+$/; return regex.test(nome) && validateMinLength(nome, 3); };
-const validateSobrenome = (sobrenome: string) => { const regex = /^[^0-9]+$/; return regex.test(sobrenome) && validateMinLength(sobrenome, 4); };
-const validateEmail = (email: string) => { const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/; return !!email.length && regex.test(email.toLowerCase()); };
-const validateTelefone = (telefone: string) => { const cleanTelefone = telefone.replace(/\D/g, ''); return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone); };
-const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
+const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength; // Valida se o valor possui o comprimento mínimo especificado
+const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength; // Valida se o valor possui o comprimento máximo especificado
+const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length; // Verifica se o valor é obrigatório (não nulo, indefinido ou vazio)
+const validateNome = (nome: string) => { const regex = /^[^0-9]+$/; return regex.test(nome) && validateMinLength(nome, 3);}; // Permite qualquer texto sem números e Valida nomes: deve ter pelo menos 3 caracteres e não conter números
+// Valida sobrenomes: deve ter pelo menos 4 caracteres e não conter números
+const validateSobrenome = (sobrenome: string) => { const regex = /^[^0-9]+$/; return regex.test(sobrenome) && validateMinLength(sobrenome, 4);}; // Permite qualquer texto sem números
+const validateEmail = (email: string) => {const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/; return !!email.length && regex.test(email.toLowerCase());}; // Valida o formato de email com regex, permitindo letras, números e caracteres válidos
+const validateTelefone = (telefone: string) => {const cleanTelefone = telefone.replace(/\D/g, '');return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone);}; // Remove caracteres não numéricos // Valida telefone: remove caracteres não numéricos e verifica se tem 10 ou 11 dígitos
 
 // Função para validar todos os campos do gestor
 const validateGestor = (values: Gestor) => {
   const errors: Record<string, string | undefined> = {};
 
+  // Validação do nome
   if (!validateRequired(values.nome)) {
     errors.nome = 'Nome é obrigatório';
   } else if (!validateNome(values.nome)) {
-    errors.nome = 'Nome deve ter no mínimo 3 caracteres e não pode conter números';
+    errors.nome = 'Nome deve ter no mínimo 3 caracteres, sem números';
   } else if (!validateMaxLength(values.nome, 20)) {
-    errors.nome = 'Nome inválido, necessário ter menos de 20 caracteres';
-  } else if (!validateMinLength(values.nome, 2)) {
-    errors.nome = 'Nome inválido, necessário ter mais de 2 caracteres';
-  } else if (!validateSomenteTexto(values.nome)) {
-    errors.nome = 'Nome inválido';
+    errors.nome = 'Nome inválido, deve ter menos de 20 caracteres';
   }
+  // Validação do sobrenome
   if (!validateRequired(values.sobrenome)) {
     errors.sobrenome = 'Sobrenome é obrigatório';
+  } else if (!validateSobrenome(values.sobrenome)) {
+    errors.sobrenome = 'Sobrenome deve ter no mínimo 4 caracteres, sem números';
   } else if (!validateMaxLength(values.sobrenome, 40)) {
-    errors.sobrenome = 'Sobrenome inválido, necessário ter menos de 40 caracteres';
-  }  else if (!validateSobrenome(values.sobrenome)) {
-    errors.sobrenome = 'Sobrenome deve ter no mínimo 4 caracteres e não pode conter números';
-  } else if (!validateSomenteTexto(values.sobrenome)) {
-    errors.sobrenome = 'Sobrenome inválido';
+    errors.sobrenome = 'Sobrenome inválido, deve ter menos de 40 caracteres';
   }
+  // Validação do email
   if (!validateRequired(values.email)) {
     errors.email = 'E-mail é obrigatório';
   } else if (!validateEmail(values.email)) {
     errors.email = 'E-mail em formato inválido';
   }
+  // Validação do telefone
   if (!validateRequired(values.telefone)) {
     errors.telefone = 'Telefone é obrigatório';
   } else if (!validateTelefone(values.telefone)) {
-    errors.telefone = 'Telefone inválido';
+    errors.telefone = 'Telefone inválido, use formato válido com DDD';
   }
+  // Validação da senha
   if (!validateRequired(values.senha)) {
     errors.senha = 'Senha é obrigatória';
   } else if (!validateMinLength(values.senha, 8)) {
     errors.senha = 'A senha deve conter no mínimo 8 caracteres';
   }
+
   return errors;
 };

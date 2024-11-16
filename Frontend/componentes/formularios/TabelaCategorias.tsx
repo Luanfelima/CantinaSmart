@@ -285,14 +285,18 @@ const CadastroCategoriaWithProviders = () => (
 
 export default CadastroCategoriaWithProviders;
 
-// Funções de validação
-function validateCategoria (categoria: Categoria) {const errors: Record<string, string | undefined> = {};
-const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0;
-const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
-const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
-const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
-const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.test(value);};
+// Funções de validação reutilizáveis
+const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0; // Verifica se o campo está preenchido
+const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength; // Verifica comprimento mínimo
+const validateMaxLength = (value: string, maxLength: number) => value.trim().length <= maxLength; // Verifica comprimento máximo
+const validateSomenteTexto = (value: string) => /^[a-zA-ZÀ-ÿ\s]+$/.test(value); // Permite apenas texto e espaços
+const validateSemCaractere = (value: string) => /^[a-zA-ZÀ-ÿ0-9\sç,.]*$/.test(value); // Permite texto, números, espaços e ç
 
+// Validação da Categoria
+function validateCategoria(categoria: Categoria) {
+  const errors: Record<string, string | undefined> = {};
+
+  // Validação do Nome da Categoria
   if (!validateRequired(categoria.nome)) {
     errors.nome = 'Nome da categoria é obrigatório.';
   } else if (!validateMinLength(categoria.nome, 2)) {
@@ -302,14 +306,16 @@ const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.t
   } else if (!validateSomenteTexto(categoria.nome)) {
     errors.nome = 'Nome inválido, necessário ter somente texto.';
   }
+  // Validação da Descrição da Categoria
   if (!validateRequired(categoria.descricao)) {
     errors.descricao = 'Descrição é obrigatória.';
   } else if (!validateMinLength(categoria.descricao, 3)) {
     errors.descricao = 'Descrição inválida, necessário ter no mínimo 3 caracteres.';
-  } else if (!validateMaxLength(categoria.descricao, 30)) {
-    errors.descricao = 'Descrição inválida, necessário ter menos de 30 caracteres.';
-  } else if(!validateSemCaractere(categoria.descricao)) {
-    errors.descricao = 'Descrição inválida.'
+  } else if (!validateMaxLength(categoria.descricao, 80)) {
+    errors.descricao = 'Descrição inválida, necessário ter menos de 80 caracteres.';
+  } else if (!validateSemCaractere(categoria.descricao)) {
+    errors.descricao = 'Descrição inválida.';
   }
+
   return errors;
 }

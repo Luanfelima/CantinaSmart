@@ -392,27 +392,29 @@ const CadastroProdutoWithProviders = () => (
 export default CadastroProdutoWithProviders;
 
 // Funções de validação
-const validateProduto = (values: Produto) => {const errors: Record<string, string | undefined> = {};
-const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0;
-const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength;
-const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
-const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
-const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.test(value);};
-const validateNomeProduto = (nome: string) => /^[^\d]+$/.test(nome.trim()) && validateMinLength(nome, 3);
-const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", ".");return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);}; // Limita a três dígitos antes do ponto decimal e troca "," por "." para que no banco não haja erros.
-const validateDescricao = (descricao: string) => {return validateMinLength(descricao, 3);}; // Descrição deve ter no mínimo 4 caracteres
+const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0; // Verifica se o campo está preenchido.
+const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength; // Valida comprimento mínimo.
+const validateMaxLength = (value: string, maxLength: number) => value.trim().length <= maxLength; // Valida comprimento máximo.
+const validateSomenteTexto = (value: string) => /^[a-zA-ZÀ-ÿ\s]+$/.test(value); // Permite apenas texto e espaços.
+const validateSemCaractere = (value: any) => /^[a-zA-ZÀ-ÿ0-9\sç.,]*$/.test(value); // Permite texto, números, espaço, ., e ,.
+const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", "."); // Valida o preço, permitindo até três dígitos inteiros e dois decimais.
+return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);};
 
+// Validações do produto
+const validateProduto = (values: Produto) => {
+  const errors: Record<string, string | undefined> = {};
+
+  // Validação do Nome do Produto
   if (!validateRequired(values.nome_p)) {
-    errors.nome_p = 'Nome do produto é obrigatório.';        
-  }  else if (!validateMinLength(values.nome_p, 3)) {
+    errors.nome_p = 'Nome do produto é obrigatório.';
+  } else if (!validateMinLength(values.nome_p, 3)) {
     errors.nome_p = 'Nome do produto inválido, necessário ter no mínimo 3 caracteres.';
   } else if (!validateMaxLength(values.nome_p, 30)) {
     errors.nome_p = 'Nome do produto inválido, necessário ter menos de 30 caracteres.';
   } else if (!validateSomenteTexto(values.nome_p)) {
     errors.nome_p = 'Nome do produto inválido, necessário ter somente texto.';
-  } else if (!validateNomeProduto(values.nome_p)) {
-    errors.nome_p = 'Nome do produto inválido.';
-  }    
+  }
+  // Validação da Categoria
   if (!validateRequired(values.categoria)) {
     errors.categoria = 'Categoria é obrigatória.';
   } else if (!validateMinLength(values.categoria, 3)) {
@@ -421,26 +423,31 @@ const validateDescricao = (descricao: string) => {return validateMinLength(descr
     errors.categoria = 'Categoria inválida, necessário ter menos de 20 caracteres.';
   } else if (!validateSomenteTexto(values.categoria)) {
     errors.categoria = 'Categoria inválida, necessário ter somente texto.';
-  }   
+  }
+  // Validação do Preço
   if (!validateRequired(values.preco)) {
     errors.preco = 'Preço é obrigatório.';
   } else if (!validatePreco(values.preco)) {
     errors.preco = 'Preço inválido, valor máximo 999.';
   }
-  if (!validateRequired(values.perecivel)){
+  // Validação Perecível
+  if (!validateRequired(values.perecivel)) {
     errors.perecivel = 'Campo obrigatório.';
   }
+  // Validação da Descrição
   if (!validateRequired(values.descricao)) {
     errors.descricao = 'Descrição é obrigatória.';
-  } else if (!validateDescricao(values.descricao)) {
-    errors.descricao = 'Descrição invalida, necessário ter no mínimo 3 caracteres.';
+  } else if (!validateMinLength(values.descricao, 3)) {
+    errors.descricao = 'Descrição inválida, necessário ter no mínimo 3 caracteres.';
   } else if (!validateMaxLength(values.descricao, 80)) {
     errors.descricao = 'Descrição inválida, necessário ter menos de 80 caracteres.';
-  } else if(!validateSemCaractere(values.descricao)) {
-    errors.descricao = 'Descrição inválida, necessário ter somente caracteres.'
+  } else if (!validateSemCaractere(values.descricao)) {
+    errors.descricao = 'Descrição inválida, permitido apenas caracteres válidos.';
   }
+  // Validação da Unidade de Medida
   if (!validateRequired(values.unidade_medida)) {
     errors.unidade_medida = 'Unidade de medida é obrigatória.';
   }
+
   return errors;
 };

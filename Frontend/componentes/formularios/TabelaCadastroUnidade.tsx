@@ -346,43 +346,46 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-// Funções de validação
-const validateNomeUnidade = (value: string) => /^[^\d]+$/.test(value);
+// Validações Gerais
+const validateNomeUnidade = (value: string) => /^[^\d]+$/.test(value); // Apenas texto, sem números
 const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength;
-//const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
 const validateMaxLength = (value: any, maxLength: number) => value !== null && value !== undefined && value.toString().length <= maxLength;
-const validateRequired = (value: any) => value !== null && value !== undefined;
-const validateCep = (cep: string) => /^\d{8}$/.test(cep);
-//const validateNumero = (numero: string) => /^[1-9]\d*$/.test(numero);
-const validateNumero = (numero: any) => /^[1-9]\d*$/.test(Number(numero).toString());
-const validateSomenteTexto = (value: any) => {return /^[ a-zA-ZÀ-ÿ\s]+$/.test(value);};
-const validateRua = (value: any) => {return /^[a-zA-ZÀ-ÿ\s\-,]+$/.test(value);};
-const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.test(value);};
+const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0; // Atualizado para strings vazias
+const validateCep = (cep: string) => /^\d{8}$/.test(cep); // CEP de 8 dígitos
+const validateNumero = (numero: any) => /^[1-9]\d*$/.test(Number(numero).toString()); // Apenas números positivos
+const validateSomenteTexto = (value: any) => /^[ a-zA-ZÀ-ÿ\s]+$/.test(value); // Apenas texto com espaços
+const validateRua = (value: any) => /^[a-zA-ZÀ-ÿ\s\-,]+$/.test(value); // Texto, vírgulas e hífens
+const validateSemCaractere = (value: any) => /^[a-zA-ZÀ-ÿ0-9\sç]*$/.test(value); // Texto, números e espaços
 
-// Função para validar campos da unidade
-const validateUnidade = (values: Unidade) => {const errors: Record<string, string | undefined> = {};
+// Função Principal para Validação da Unidade
+const validateUnidade = (values: Unidade) => {
+  const errors: Record<string, string | undefined> = {};
 
+  // Validação do Polo
   if (!validateRequired(values.polo)) {
     errors.polo = 'Polo é obrigatório.';
   } else if (!validateSomenteTexto(values.polo)) {
     errors.polo = 'Polo inválido.';
   }
+  // Validação do Nome da Unidade
   if (!validateRequired(values.nome_unidade)) {
     errors.nome_unidade = 'Nome da unidade é obrigatório.';
   } else if (!validateNomeUnidade(values.nome_unidade)) {
     errors.nome_unidade = 'Nome inválido.';
   } else if (!validateMinLength(values.nome_unidade, 2)) {
-    errors.nome_unidade = 'Nome inválido, é necessário ter no minímo 2 caracteres.';
+    errors.nome_unidade = 'Nome inválido, é necessário ter no mínimo 2 caracteres.';
   } else if (!validateMaxLength(values.nome_unidade, 30)) {
     errors.nome_unidade = 'Nome inválido, é necessário ter menos de 30 caracteres.';
   } else if (!validateSomenteTexto(values.nome_unidade)) {
     errors.nome_unidade = 'Nome inválido, é necessário ter somente texto.';
   }
+  // Validação do CEP
   if (!validateRequired(values.cep)) {
-    errors.cep = 'CEP é obrigatório';
+    errors.cep = 'CEP é obrigatório.';
   } else if (!validateCep(values.cep)) {
     errors.cep = 'CEP inválido. Tente digitar sem o "-".';
   }
+  // Validação da Cidade
   if (!validateRequired(values.cidade)) {
     errors.cidade = 'Cidade é obrigatória.';
   } else if (!validateSomenteTexto(values.cidade)) {
@@ -390,31 +393,36 @@ const validateUnidade = (values: Unidade) => {const errors: Record<string, strin
   } else if (!validateMinLength(values.cidade, 3)) {
     errors.cidade = 'Cidade inválida, necessário ter mais de 3 caracteres.';
   } else if (!validateMaxLength(values.cidade, 35)) {
-    errors.cidade = 'Cidade inválida, necessário ter no máximo de 35 caracteres.';
+    errors.cidade = 'Cidade inválida, necessário ter no máximo 35 caracteres.';
   }
+  // Validação da Rua
   if (!validateRequired(values.rua)) {
     errors.rua = 'Rua é obrigatória.';
   } else if (!validateRua(values.rua)) {
-    errors.rua = 'Rua inválida, é necessário ter somente texto.';
+    errors.rua = 'Rua inválida, necessário conter apenas texto, vírgulas e hifens.';
   } else if (!validateMinLength(values.rua, 3)) {
     errors.rua = 'Rua inválida, necessário ter mais de 3 caracteres.';
   } else if (!validateMaxLength(values.rua, 60)) {
-    errors.rua = 'Rua inválida, necessário ter no máximo de 60 caracteres.';
+    errors.rua = 'Rua inválida, necessário ter no máximo 60 caracteres.';
   }
+  // Validação do Estado
   if (!validateRequired(values.estado)) {
     errors.estado = 'Estado é obrigatório.';
   } else if (!validateSomenteTexto(values.estado)) {
-    errors.estado = 'Estado inválido, é necessário ter somente texto.';
+    errors.estado = 'Estado inválido, necessário ter somente texto.';
   }
+  // Validação do Número
   if (!validateRequired(values.numero)) {
     errors.numero = 'Número é obrigatório.';
   } else if (!validateNumero(values.numero)) {
-    errors.numero = 'Número inválido.';
+    errors.numero = 'Número inválido, deve ser maior que 0.';
   } else if (!validateMaxLength(values.numero, 5)) {
-    errors.numero = 'Número inválido.';
+    errors.numero = 'Número inválido, deve conter no máximo 5 dígitos.';
   }
-  if (!validateSemCaractere(values.complemento)) {
+  // Validação do Complemento (opcional)
+  if (values.complemento && !validateSemCaractere(values.complemento)) {
     errors.complemento = 'Complemento inválido.';
   }
+
   return errors;
 };

@@ -303,17 +303,18 @@ const ExampleWithProviders = () => (
 
 export default ExampleWithProviders;
 
-// Funções de validação
-const validateRequired = (value: any) => {return value !== null && value !== undefined && !!value.length;};
-const validateMinLength = (value: string, minLength: number) => {return !!value && value.length >= minLength;};
-const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength;
-const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
-const validateQuantidade = (quantidade: string) => {return /^\d{1,3}$/.test(quantidade);}; // Regex para até três dígitos
+// Funções de validação reutilizáveis
+const validateRequired = (value: any) => value !== null && value !== undefined && !!value.length; // Valida se o campo é preenchido
+const validateMinLength = (value: string, minLength: number) => !!value && value.length >= minLength; // Verifica comprimento mínimo
+const validateMaxLength = (value: string, maxLength: number) => !!value && value.length <= maxLength; // Verifica comprimento máximo
+const validateSomenteTexto = (value: string) => /^[a-zA-ZÀ-ÿ\s]+$/.test(value); // Permite apenas texto com acentuação e espaços
+const validateQuantidade = (quantidade: string) => /^\d{1,3}$/.test(quantidade); // Permite números de até três dígitos
 
-// Função para validar campos do item de estoque
+// Função principal para validar estoque
 function validateEstoque(Estoque: Estoque) {
   const errors: Record<string, string | undefined> = {};
-  
+
+  // Validação do nome do produto
   if (!validateRequired(Estoque.nomeProduto)) {
     errors.nomeProduto = 'Nome do produto é obrigatório.';
   } else if (!validateMinLength(Estoque.nomeProduto, 3)) {
@@ -321,12 +322,14 @@ function validateEstoque(Estoque: Estoque) {
   } else if (!validateSomenteTexto(Estoque.nomeProduto)) {
     errors.nomeProduto = 'Nome do produto inválido, necessário ter somente texto.';
   } else if (!validateMaxLength(Estoque.nomeProduto, 30)) {
-    errors.nomeProduto  = 'Nome do produto inválido, necessário ter menos de 30 caracteres.'; 
+    errors.nomeProduto = 'Nome do produto inválido, necessário ter menos de 30 caracteres.';
   }
+  // Validação da quantidade
   if (!validateRequired(Estoque.quantidade)) {
     errors.quantidade = 'Quantidade é obrigatória.';
   } else if (!validateQuantidade(Estoque.quantidade)) {
     errors.quantidade = 'Quantidade inválida, quantidade máxima de 999.';
   }
+
   return errors;
 }
