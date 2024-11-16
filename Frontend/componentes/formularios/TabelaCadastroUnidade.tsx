@@ -356,6 +356,7 @@ const validateCep = (cep: string) => /^\d{8}$/.test(cep);
 //const validateNumero = (numero: string) => /^[1-9]\d*$/.test(numero);
 const validateNumero = (numero: any) => /^[1-9]\d*$/.test(Number(numero).toString());
 const validateSomenteTexto = (value: any) => {return /^[ a-zA-ZÀ-ÿ\s]+$/.test(value);};
+const validateRua = (value: any) => {return /^[a-zA-ZÀ-ÿ\s\-,]+$/.test(value);};
 const validateSemCaractere = (value: any) => {return /^[a-zA-ZÀ-ÿ0-9\sç]*$/.test(value);};
 
 // Função para validar campos da unidade
@@ -393,7 +394,7 @@ const validateUnidade = (values: Unidade) => {const errors: Record<string, strin
   }
   if (!validateRequired(values.rua)) {
     errors.rua = 'Rua é obrigatória.';
-  } else if (!validateSomenteTexto(values.rua)) {
+  } else if (!validateRua(values.rua)) {
     errors.rua = 'Rua inválida, é necessário ter somente texto.';
   } else if (!validateMinLength(values.rua, 3)) {
     errors.rua = 'Rua inválida, necessário ter mais de 3 caracteres.';

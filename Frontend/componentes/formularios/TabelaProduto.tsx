@@ -434,8 +434,8 @@ const validateDescricao = (descricao: string) => {return validateMinLength(descr
     errors.descricao = 'Descrição é obrigatória.';
   } else if (!validateDescricao(values.descricao)) {
     errors.descricao = 'Descrição invalida, necessário ter no mínimo 3 caracteres.';
-  } else if (!validateMaxLength(values.descricao, 30)) {
-    errors.descricao = 'Descrição inválida, necessário ter menos de 30 caracteres.';
+  } else if (!validateMaxLength(values.descricao, 80)) {
+    errors.descricao = 'Descrição inválida, necessário ter menos de 80 caracteres.';
   } else if(!validateSemCaractere(values.descricao)) {
     errors.descricao = 'Descrição inválida, necessário ter somente caracteres.'
   }
