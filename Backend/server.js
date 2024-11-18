@@ -844,3 +844,32 @@ app.post('/loginAdm', (req, res) => {
     }
   });
 });
+
+// ----------------------------------- Rota de estoque -------------------------------
+app.get('/estoque', authenticateToken, (req, res) => {
+  const matricula_gestor = req.gestor.matricula_gestor;
+
+  console.info(`Gestor Matrícula: ${matricula_gestor} - Solicitando lista de itens do estoque`);
+
+  const query = `
+    SELECT e.nome_estoque AS nome, e.quantidade_estoque AS quantidade, e.preco_custo AS preco
+    FROM estoque e
+    INNER JOIN estoque_gestor eg ON e.id_estoque = eg.id_estoque
+    WHERE eg.matricula_gestor = ?
+  `;
+
+  db.query(query, [matricula_gestor], (err, results) => {
+    if (err) {
+      console.error('[Backend] Erro ao buscar dados do estoque:', err);
+      return res.status(500).json({ error: 'Erro ao acessar o banco de dados' });
+    }
+
+    if (results.length === 0) {
+      console.warn('[Backend] Nenhum item encontrado no estoque para o gestor:', matricula_gestor);
+      return res.status(404).json({ error: 'Nenhum item encontrado no estoque' });
+    }
+
+    console.info('[Backend] Itens do estoque retornados com sucesso:', results);
+    res.json(results);
+  });
+});
