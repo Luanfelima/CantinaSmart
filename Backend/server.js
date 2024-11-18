@@ -849,27 +849,28 @@ app.post('/loginAdm', (req, res) => {
 app.get('/estoque', authenticateToken, (req, res) => {
   const matricula_gestor = req.gestor.matricula_gestor;
 
-  console.info(`Gestor Matrícula: ${matricula_gestor} - Solicitando lista de itens do estoque`);
+  console.info(`[Backend] Gestor Matrícula: ${matricula_gestor} - Solicitando estoque`);
 
   const query = `
-    SELECT e.nome_estoque AS nome, e.quantidade_estoque AS quantidade, e.preco_custo AS preco
-    FROM estoque e
-    INNER JOIN estoque_gestor eg ON e.id_estoque = eg.id_estoque
-    WHERE eg.matricula_gestor = ?
+    SELECT 
+      nome_estoque AS nome, 
+      quantidade_estoque AS quantidade, 
+      preco_custo AS preco 
+    FROM estoque
   `;
 
-  db.query(query, [matricula_gestor], (err, results) => {
+  db.query(query, (err, results) => {
     if (err) {
-      console.error('[Backend] Erro ao buscar dados do estoque:', err);
-      return res.status(500).json({ error: 'Erro ao acessar o banco de dados' });
+      console.error(`[Backend] Erro ao buscar estoque para o gestor ${matricula_gestor}:`, err);
+      return res.status(500).json({ error: 'Erro ao buscar estoque' });
     }
 
-    if (results.length === 0) {
-      console.warn('[Backend] Nenhum item encontrado no estoque para o gestor:', matricula_gestor);
-      return res.status(404).json({ error: 'Nenhum item encontrado no estoque' });
+    if (!results.length) {
+      console.warn(`[Backend] Nenhum estoque encontrado para o gestor ${matricula_gestor}`);
+      return res.status(404).json({ error: 'Nenhum estoque encontrado' });
     }
 
-    console.info('[Backend] Itens do estoque retornados com sucesso:', results);
+    console.info(`[Backend] Estoque retornado para o gestor ${matricula_gestor}:`, results);
     res.json(results);
   });
 });
