@@ -20,6 +20,7 @@ export function LogoClaro() {
             <Image 
                 src="https://i.imgur.com/itiogvI.png"
                 style={{ height: '100%', width: 'auto' }}
+                alt="Imagem com o Logo por escrito em cor azul escuro do CantinaSmart"
             />
         </Box>
     );
