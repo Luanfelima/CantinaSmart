@@ -37,6 +37,7 @@ type Produto = {
   id_produto: number;
   nome_p: string;
   categoria: string;
+  quantidade: number,
   preco: number;
   perecivel: boolean;
   descricao: string;
@@ -86,6 +87,16 @@ const CadastroProduto = () => {
         required: true,
         error: validationErrors?.categoria,
         onFocus: () => setValidationErrors({ ...validationErrors, categoria: undefined }),
+      },
+    },
+    {
+      accessorKey: 'quantidade',
+      header: 'Quantidade', 
+      mantineEditTextInputProps: {
+        type: 'number',
+        required: true,
+        error: validationErrors?.quantidade,
+        onFocus: () => setValidationErrors({ ...validationErrors, quantidade: undefined }),
       },
     },
     {
@@ -399,8 +410,8 @@ const validateMinLength = (value: string, minLength: number) => value.trim().len
 const validateMaxLength = (value: string, maxLength: number) => value.trim().length <= maxLength; // Valida comprimento máximo.
 const validateSomenteTexto = (value: string) => /^[a-zA-ZÀ-ÿ\s]+$/.test(value); // Permite apenas texto e espaços.
 const validateSemCaractere = (value: any) => /^[a-zA-ZÀ-ÿ0-9\sç.,]*$/.test(value); // Permite texto, números, espaço, ., e ,.
-const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", "."); // Valida o preço, permitindo até três dígitos inteiros e dois decimais.
-return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);};
+const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", ".");return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);}; // Valida o preço, permitindo até três dígitos inteiros e dois decimais.
+const validateQuantidade = (quantidade: number) => {const quantidadeStr = quantidade.toString();return /^[1-9]\d{0,2}$/.test(quantidadeStr);}; // Aplica a validação de números inteiros maiores que zero e até 3 dígitos
 
 // Validações do produto
 const validateProduto = (values: Produto) => {
@@ -425,6 +436,12 @@ const validateProduto = (values: Produto) => {
     errors.categoria = 'Categoria inválida, necessário ter menos de 20 caracteres.';
   } else if (!validateSomenteTexto(values.categoria)) {
     errors.categoria = 'Categoria inválida, necessário ter somente texto.';
+  }
+  // Validação da Quantidade
+  if (!validateRequired(values.quantidade)) {
+    errors.quantidade = 'Quantidade é obrigatória.';
+  } else if (!validateQuantidade(values.quantidade)) {
+    errors.quantidade = 'Quantidade inválida, necessário ser número inteiro.';
   }
   // Validação do Preço
   if (!validateRequired(values.preco)) {
