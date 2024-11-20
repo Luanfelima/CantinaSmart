@@ -13,6 +13,7 @@ const data = [
   { label: '💼 Funcionários', link: '/CadastroFuncionario/Funcionarios' },
   { label: '🥦 Produtos', link: '/CadastroProduto/Produtos' },
   { label: '📊 Estoque', link: '/CadastroEstoque/Estoque' },
+  { label: '💲 Vendas', link: '/Vendas/Vendas' },
   { label: '📋 Categorias', link: '/CadastroCategoria/Categorias' },
 ];
 
