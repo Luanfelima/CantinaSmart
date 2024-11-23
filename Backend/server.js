@@ -913,7 +913,7 @@ app.post('/vendas', authenticateToken, (req, res) => {
 
     // Calcular o valor da venda e capturar o horário
     const valorVenda = quantidade * produto.preco;
-    const horarioVenda = new Date().toISOString().replace('T', ' ').slice(0, 19); // Formato: YYYY-MM-DD HH:MM:SS
+    const horarioVenda = new Date().toLocaleString('pt-BR', {timeZone: 'America/Sao_Paulo', hour12: false,}).replace(',', '').replace(/\//g, '-'); // Ajusta o formato para DD-MM-YYYY HH:MM:SS
 
     db.getConnection((err, connection) => {
       if (err) {
