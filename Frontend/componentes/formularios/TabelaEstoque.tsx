@@ -113,14 +113,25 @@ const CadastroEstoque = () => {
 
   // Função para salvar edição de Estoque
   const handleSaveEstoque: MRT_TableOptions<Estoque>['onEditingRowSave'] = async ({ values, table }) => {
-    const newValidationErrors = validateEstoque(values);
-    if (Object.values(newValidationErrors).some((error) => error)) {
-      setValidationErrors(newValidationErrors);
-      return;
+    try {
+      // Chama o endpoint para registrar a venda
+      const response = await axios.post(`${backendUrl}/vendas`, {
+        id_produto: values.id_produto,
+        quantidade: values.quantidade,
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+  
+      console.log('Venda registrada:', response.data);
+  
+      // Atualiza as tabelas no frontend
+      queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Atualiza estoque
+      queryClient.invalidateQueries({ queryKey: ['vendas'] });   // Atualiza vendas
+      table.setEditingRow(null);
+    } catch (error) {
+      console.error('Erro ao registrar venda:', error);
+      setValidationErrors({ quantidade: 'Erro ao registrar a venda. Verifique os dados e tente novamente.' });
     }
-    setValidationErrors({});
-    await updateEstoqueMutation.mutateAsync(values);
-    table.setEditingRow(null);
   };
 
   const table = useMantineReactTable({
@@ -192,12 +203,20 @@ function useGetEstoque() {
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data;
+
+      // Mapeia os dados para ajustar o campo quantidade_produto
+      return response.data.map((produto: any) => ({
+        id_produto: produto.id_produto,
+        nome_p: produto.nome_p,
+        preco: produto.preco,
+        quantidade: produto.quantidade_produto, // Mapeia quantidade_produto para quantidade
+      }));
     },
     enabled: !!token,
     refetchOnWindowFocus: false,
   });
 }
+
 
 // Função para criar Estoque
 function useCreateEstoque() {

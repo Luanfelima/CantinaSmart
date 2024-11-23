@@ -126,15 +126,13 @@ function useGetVendas() {
   }, []);
 
   return useQuery<Vendas[]>({
-    queryKey: ['produtos'],
+    queryKey: ['vendas'],
     queryFn: async () => {
       if (!token) {
         throw new Error('Token não encontrado');
       }
-      const response = await axios.get(`${backendUrl}/produtos`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.get(`${backendUrl}/vendas`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
     },

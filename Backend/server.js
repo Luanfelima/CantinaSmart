@@ -874,3 +874,118 @@ app.get('/estoque', authenticateToken, (req, res) => {
     res.json(results);
   });
 });
+
+// ----------------------------------- Rota de vendas -------------------------------
+app.post('/vendas', authenticateToken, (req, res) => {
+  const matricula_gestor = req.gestor.matricula_gestor;
+  const { id_produto, quantidade } = req.body;
+
+  // Validar entrada
+  if (!id_produto || !quantidade || quantidade <= 0) {
+    return res.status(400).json({ error: 'Dados inválidos. Forneça um ID de produto e uma quantidade válida.' });
+  }
+
+  console.info(`[Vendas] Registrando venda - Gestor: ${matricula_gestor}, Produto: ${id_produto}, Quantidade: ${quantidade}`);
+
+  // Busca o produto
+  const getProdutoQuery = `
+    SELECT nome_p, preco, quantidade_produto 
+    FROM produtos 
+    WHERE id_produto = ? 
+  `;
+
+  db.query(getProdutoQuery, [id_produto], (err, results) => {
+    if (err) {
+      console.error('[Vendas] Erro ao buscar produto:', err);
+      return res.status(500).json({ error: 'Erro ao buscar produto.' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Produto não encontrado.' });
+    }
+
+    const produto = results[0];
+
+    // Verificar se há quantidade suficiente
+    if (produto.quantidade_produto < quantidade) {
+      return res.status(400).json({ error: 'Quantidade insuficiente em estoque.' });
+    }
+
+    // Calcular o valor da venda e capturar o horário
+    const valorVenda = quantidade * produto.preco;
+    const horarioVenda = new Date().toISOString().replace('T', ' ').slice(0, 19); // Formato: YYYY-MM-DD HH:MM:SS
+
+    db.getConnection((err, connection) => {
+      if (err) {
+        console.error('[Vendas] Erro ao iniciar transação:', err);
+        return res.status(500).json({ error: 'Erro interno ao iniciar transação.' });
+      }
+
+      connection.beginTransaction((err) => {
+        if (err) {
+          console.error('[Vendas] Erro ao iniciar transação:', err);
+          connection.release();
+          return res.status(500).json({ error: 'Erro ao iniciar transação.' });
+        }
+
+        // Inserir venda
+        const insertVendaQuery = `
+          INSERT INTO vendas (nome_produto, valor_venda, lucro_venda, data_venda) 
+          VALUES (?, ?, ?, ?)
+        `;
+        connection.query(insertVendaQuery, [produto.nome_p, valorVenda, valorVenda, horarioVenda], (err, result) => {
+          if (err) {
+            console.error('[Vendas] Erro ao registrar venda:', err);
+            return connection.rollback(() => {
+              connection.release();
+              res.status(500).json({ error: 'Erro ao registrar venda.' });
+            });
+          }
+
+          console.info(`[Vendas] Venda registrada - ID: ${result.insertId}`);
+
+          // Atualizar estoque
+          const updateProdutoQuery = `
+            UPDATE produtos 
+            SET quantidade_produto = quantidade_produto - ? 
+            WHERE id_produto = ?
+          `;
+          connection.query(updateProdutoQuery, [quantidade, id_produto], (err) => {
+            if (err) {
+              console.error('[Vendas] Erro ao atualizar estoque:', err);
+              return connection.rollback(() => {
+                connection.release();
+                res.status(500).json({ error: 'Erro ao atualizar estoque.' });
+              });
+            }
+
+            console.info('[Vendas] Estoque atualizado com sucesso.');
+
+            // Finalizar transação
+            connection.commit((err) => {
+              if (err) {
+                console.error('[Vendas] Erro ao confirmar transação:', err);
+                return connection.rollback(() => {
+                  connection.release();
+                  res.status(500).json({ error: 'Erro ao confirmar transação.' });
+                });
+              }
+
+              console.info('[Vendas] Transação concluída com sucesso.');
+              connection.release();
+              res.status(201).json({
+                message: 'Venda registrada com sucesso.',
+                venda: {
+                  id: result.insertId,
+                  nome_produto: produto.nome_p,
+                  valor_venda: valorVenda,
+                  data_venda: horarioVenda,
+                },
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+});
