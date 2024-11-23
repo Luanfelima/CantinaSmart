@@ -989,3 +989,24 @@ app.post('/vendas', authenticateToken, (req, res) => {
     });
   });
 });
+
+app.get('/vendas', authenticateToken, (req, res) => {
+  const matricula_gestor = req.gestor.matricula_gestor;
+
+  console.info(`[Vendas] Buscando vendas para o gestor: ${matricula_gestor}`);
+
+  const query = `
+    SELECT id_venda, nome_produto, valor_venda, lucro_venda, data_venda 
+    FROM vendas
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('[Vendas] Erro ao buscar vendas:', err);
+      return res.status(500).json({ error: 'Erro ao buscar vendas.' });
+    }
+
+    console.info(`[Vendas] Vendas encontradas: ${results.length}`);
+    res.status(200).json(results);
+  });
+});
