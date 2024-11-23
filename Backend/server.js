@@ -991,7 +991,7 @@ app.post('/vendas ', authenticateToken, (req, res) => {
                   id: result.insertId,
                   nome_produto: produto.nome_p,
                   valor_venda: valorVenda,
-                  data_venda: horarioVendaFormatado,
+                  data_venda: horarioVenda,
                 },
               });
             });
