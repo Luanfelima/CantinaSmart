@@ -913,19 +913,7 @@ app.post('/vendas', authenticateToken, (req, res) => {
 
     // Calcular o valor da venda e capturar o horário
     const valorVenda = quantidade * produto.preco;
-    const horarioVenda = new Intl.DateTimeFormat('pt-BR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      timeZone: 'America/Sao_Paulo',
-    }).format(new Date());
-    
-    // Ajuste final para o formato DD-MM-YYYY - HH:MM:SS
-    const [date, time] = horarioVenda.split(' ');
-    const horarioVendaFormatado = date.replace(/\//g, '-') + ' - ' + time;
+    const horarioVenda = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
 
     db.getConnection((err, connection) => {
       if (err) {
@@ -945,7 +933,7 @@ app.post('/vendas', authenticateToken, (req, res) => {
           INSERT INTO vendas (nome_produto, valor_venda, lucro_venda, data_venda) 
           VALUES (?, ?, ?, ?)
         `;
-        connection.query(insertVendaQuery, [produto.nome_p, valorVenda, valorVenda, horarioVendaFormatado], (err, result) => {
+        connection.query(insertVendaQuery, [produto.nome_p, valorVenda, valorVenda, horarioVenda], (err, result) => {
           if (err) {
             console.error('[Vendas] Erro ao registrar venda:', err);
             return connection.rollback(() => {
@@ -991,7 +979,7 @@ app.post('/vendas', authenticateToken, (req, res) => {
                   id: result.insertId,
                   nome_produto: produto.nome_p,
                   valor_venda: valorVenda,
-                  data_venda: horarioVendaFormatado,
+                  data_venda: horarioVenda,
                 },
               });
             });
