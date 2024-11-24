@@ -876,7 +876,7 @@ app.get('/estoque', authenticateToken, (req, res) => {
 });
 
 // ----------------------------------- Rota de vendas -------------------------------
-app.post('/vendas ', authenticateToken, (req, res) => {
+app.post('/vendas', authenticateToken, (req, res) => {
   const matricula_gestor = req.gestor.matricula_gestor;
   const { id_produto, quantidade } = req.body;
 
@@ -913,7 +913,9 @@ app.post('/vendas ', authenticateToken, (req, res) => {
 
     // Calcular o valor da venda e capturar o horário
     const valorVenda = quantidade * produto.preco;
-    const horarioVenda = new Date().toISOString().replace(' T ', ' ').slice(0, 19); // Formato antigo
+    const horarioVendaFormatado = new Date().toLocaleString('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+    }).replace(/\//g, '-').replace(',', ' -');
 
     db.getConnection((err, connection) => {
       if (err) {
@@ -933,7 +935,7 @@ app.post('/vendas ', authenticateToken, (req, res) => {
           INSERT INTO vendas (nome_produto, valor_venda, lucro_venda, data_venda) 
           VALUES (?, ?, ?, ?)
         `;
-        connection.query(insertVendaQuery, [produto.nome_p, valorVenda, valorVenda, horarioVenda], (err, result) => {
+        connection.query(insertVendaQuery, [produto.nome_p, valorVenda, valorVenda, horarioVendaFormatado], (err, result) => {
           if (err) {
             console.error('[Vendas] Erro ao registrar venda:', err);
             return connection.rollback(() => {
@@ -979,7 +981,7 @@ app.post('/vendas ', authenticateToken, (req, res) => {
                   id: result.insertId,
                   nome_produto: produto.nome_p,
                   valor_venda: valorVenda,
-                  data_venda: horarioVenda,
+                  data_venda: horarioVendaFormatado,
                 },
               });
             });
