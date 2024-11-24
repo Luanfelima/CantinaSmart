@@ -83,9 +83,18 @@ const Vendas = () => {
       header: 'Data da Venda',
       enableEditing: false,
       mantineEditTextInputProps: {
-        type: 'any',
-        }
-    },
+        type: 'text',
+      },
+      Cell: ({ cell }) => {
+        const rawDate = cell.getValue<string>(); // Use string aqui
+        const formattedDate = new Date(rawDate).toLocaleDateString('pt-BR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        });
+        return formattedDate;
+      },
+    }
   ], [validationErrors]);
 
   const table = useMantineReactTable({
