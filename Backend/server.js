@@ -913,9 +913,19 @@ app.post('/vendas', authenticateToken, (req, res) => {
 
     // Calcular o valor da venda e capturar o horário
     const valorVenda = quantidade * produto.preco;
-    const horarioVendaFormatado = new Date().toLocaleString('pt-BR', {
+    const horarioVenda = new Intl.DateTimeFormat('pt-BR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
       timeZone: 'America/Sao_Paulo',
-    }).replace(/\//g, '-').replace(',', ' -');
+    }).format(new Date());
+    
+    // Ajuste final para o formato DD-MM-YYYY - HH:MM:SS
+    const [date, time] = horarioVenda.split(' ');
+    const horarioVendaFormatado = date.replace(/\//g, '-') + ' - ' + time;
 
     db.getConnection((err, connection) => {
       if (err) {
