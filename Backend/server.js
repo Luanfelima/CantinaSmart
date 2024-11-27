@@ -680,7 +680,7 @@ app.get('/produtos', authenticateToken, (req, res) => {
   console.info(`Gestor Matrícula: ${matricula_gestor} - Solicitando lista de produtos`);
 
   const query = `
-    SELECT p.* 
+    SELECT p.*, p.quantidade_produto
     FROM produtos p
     INNER JOIN produto_gestor pg ON p.id_produto = pg.id_produto
     WHERE pg.matricula_gestor = ?
@@ -699,12 +699,15 @@ app.get('/produtos', authenticateToken, (req, res) => {
 
 app.post('/produtos', authenticateToken, (req, res) => {
   const matricula_gestor = req.gestor.matricula_gestor;
-  const { nome_p, categoria, preco, perecivel, descricao, unidade_medida } = req.body;
+  const { nome_p, categoria, preco, perecivel, descricao, unidade_medida, quantidade_produto } = req.body;
 
   console.info(`Gestor Matrícula: ${matricula_gestor} - Criando novo produto`, req.body);
 
-  const query = 'INSERT INTO produtos (nome_p, categoria, preco, perecivel, descricao, unidade_medida) VALUES (?, ?, ?, ?, ?, ?)';
-  const values = [nome_p, categoria, preco, perecivel, descricao, unidade_medida];
+  const query = `
+    INSERT INTO produtos (nome_p, categoria, preco, perecivel, descricao, unidade_medida, quantidade_produto) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  const values = [nome_p, categoria, preco, perecivel, descricao, unidade_medida, quantidade_produto];
 
   db.query(query, values, (err, results) => {
     if (err) {
@@ -722,23 +725,23 @@ app.post('/produtos', authenticateToken, (req, res) => {
       }
 
       console.info(`Produto criado com ID ${id_produto} e vinculado ao gestor ${matricula_gestor}`);
-      res.status(201).json({ id_produto, nome_p, categoria, preco, perecivel, descricao, unidade_medida });
+      res.status(201).json({ id_produto, nome_p, categoria, preco, perecivel, descricao, unidade_medida, quantidade_produto });
     });
   });
 });
 
 app.put('/produtos/:id_produto', authenticateToken, authorizeProduto, (req, res) => {
   const { id_produto } = req.params;
-  const { nome_p, categoria, preco, perecivel, descricao, unidade_medida } = req.body;
+  const { nome_p, categoria, preco, perecivel, descricao, unidade_medida, quantidade_produto } = req.body;
 
   console.info(`Atualizando produto ID ${id_produto} com novos dados:`, req.body);
 
   const query = `
     UPDATE produtos 
-    SET nome_p = ?, categoria = ?, preco = ?, perecivel = ?, descricao = ?, unidade_medida = ?
+    SET nome_p = ?, categoria = ?, preco = ?, perecivel = ?, descricao = ?, unidade_medida = ?, quantidade_produto = ?
     WHERE id_produto = ?
   `;
-  const values = [nome_p, categoria, preco, perecivel, descricao, unidade_medida, id_produto];
+  const values = [nome_p, categoria, preco, perecivel, descricao, unidade_medida, quantidade_produto, id_produto];
 
   db.query(query, values, (err) => {
     if (err) {
