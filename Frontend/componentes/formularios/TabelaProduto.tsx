@@ -37,7 +37,7 @@ type Produto = {
   id_produto: number;
   nome_p: string;
   categoria: string;
-  quantidade: number,
+  quantidade_produto: number,
   preco: number;
   perecivel: boolean;
   descricao: string;
@@ -90,13 +90,13 @@ const CadastroProduto = () => {
       },
     },
     {
-      accessorKey: 'quantidade',
-      header: 'Quantidade', 
+      accessorKey: 'quantidade_produto',
+      header: 'Quantidade',
       mantineEditTextInputProps: {
         type: 'number',
         required: true,
-        error: validationErrors?.quantidade,
-        onFocus: () => setValidationErrors({ ...validationErrors, quantidade: undefined }),
+        error: validationErrors?.quantidade_produto,
+        onFocus: () => setValidationErrors({ ...validationErrors, quantidade_produto: undefined }),
       },
     },
     {
@@ -411,7 +411,7 @@ const validateMaxLength = (value: string, maxLength: number) => value.trim().len
 const validateSomenteTexto = (value: string) => /^[a-zA-ZÀ-ÿ\s]+$/.test(value); // Permite apenas texto e espaços.
 const validateSemCaractere = (value: any) => /^[a-zA-ZÀ-ÿ0-9\sç.,]*$/.test(value); // Permite texto, números, espaço, ., e ,.
 const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", ".");return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);}; // Valida o preço, permitindo até três dígitos inteiros e dois decimais.
-const validateQuantidade = (quantidade: number) => {const quantidadeStr = quantidade.toString();return /^[1-9]\d{0,2}$/.test(quantidadeStr);}; // Aplica a validação de números inteiros maiores que zero e até 3 dígitos
+const validateQuantidade = (quantidade_produto: number) => {const quantidadeStr = quantidade_produto.toString();return /^[1-9]\d{0,2}$/.test(quantidadeStr);}; // Aplica a validação de números inteiros maiores que zero e até 3 dígitos
 
 // Validações do produto
 const validateProduto = (values: Produto) => {
@@ -438,9 +438,9 @@ const validateProduto = (values: Produto) => {
     errors.categoria = 'Categoria inválida, necessário ter somente texto.';
   }
   // Validação da Quantidade
-  if (!validateRequired(values.quantidade)) {
+  if (!validateRequired(values.quantidade_produto)) {
     errors.quantidade = 'Quantidade é obrigatória.';
-  } else if (!validateQuantidade(values.quantidade)) {
+  } else if (!validateQuantidade(values.quantidade_produto)) {
     errors.quantidade = 'Quantidade inválida, necessário ser número inteiro.';
   }
   // Validação do Preço

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   MantineReactTable,
   type MRT_ColumnDef,
+  MRT_Row,
   useMantineReactTable,
 } from 'mantine-react-table';
 import { ModalsProvider } from '@mantine/modals';
@@ -17,6 +18,11 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import axios from 'axios';
+
+import { jsPDF } from 'jspdf'; //or use your library of choice here
+import autoTable from 'jspdf-autotable';
+import { Box, Button } from '@mantine/core';
+import { IconDownload } from '@tabler/icons-react';
 
 // Tipo Vendas
 type Vendas = {
@@ -97,6 +103,19 @@ const Vendas = () => {
     }
   ], [validationErrors]);
 
+  const handleExportRows = (rows: MRT_Row<Vendas>[]) => {
+    const doc = new jsPDF();
+    const tableData = rows.map((row) => Object.values(row.original));
+    const tableHeaders = columns.map((c) => c.header);
+
+    autoTable(doc, {
+      head: [tableHeaders],
+      body: tableData,
+    });
+
+    doc.save('vendas.pdf');
+  };
+
   const table = useMantineReactTable({
     localization: MRT_Localization_PT_BR,
     columns,
@@ -107,6 +126,34 @@ const Vendas = () => {
       ? { color: 'red', children: 'Erro ao carregar dados' }
       : undefined,
     mantineTableContainerProps: { style: { minHeight: '500px' } },
+    renderTopToolbarCustomActions: ({ table }) => (
+      <Box style={{ display: 'flex', gap: '16px', padding: '8px', flexWrap: 'wrap' }}>
+        <Button
+          disabled={table.getPrePaginationRowModel().rows.length === 0}
+          onClick={() => handleExportRows(table.getPrePaginationRowModel().rows)}
+          leftSection={<IconDownload />}
+          variant="filled"
+        >
+          Exportar Todas
+        </Button>
+        <Button
+          disabled={table.getRowModel().rows.length === 0}
+          onClick={() => handleExportRows(table.getRowModel().rows)}
+          leftSection={<IconDownload />}
+          variant="filled"
+        >
+          Exportar Página
+        </Button>
+        <Button
+          disabled={!table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()}
+          onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+          leftSection={<IconDownload />}
+          variant="filled"
+        >
+          Exportar Selecionadas
+        </Button>
+      </Box>
+    ),
     
     state: {
       isLoading: isLoadingVendas,
@@ -264,3 +311,7 @@ const validateVendas = (values: Vendas) => {
 
   return errors;
 };
+
+function handleExportRows(rows: MRT_Row<Vendas>[]): void {
+  throw new Error('Function not implemented.');
+}
