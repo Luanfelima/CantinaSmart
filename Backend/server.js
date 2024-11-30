@@ -1003,8 +1003,8 @@ app.get('/vendas', authenticateToken, (req, res) => {
   console.info(`[Vendas] Buscando vendas para o gestor: ${matricula_gestor}`);
 
   const query = `
-    SELECT id_venda, nome_produto, valor_venda, lucro_venda, data_venda 
-    FROM vendas
+    SELECT id_venda, nome_produto, valor_venda, lucro_venda, data_venda, quantidade_vendas
+    FROM vendas;
   `;
 
   db.query(query, (err, results) => {
@@ -1017,4 +1017,3 @@ app.get('/vendas', authenticateToken, (req, res) => {
     res.status(200).json(results);
   });
 });
-
