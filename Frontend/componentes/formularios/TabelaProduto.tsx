@@ -83,7 +83,9 @@ const CadastroProduto = () => {
     {
       accessorKey: 'categoria',
       header: 'Categoria',
-      mantineEditTextInputProps: {
+      editVariant: 'select',
+      mantineEditSelectProps: {
+        data: [ 'Bebidas', 'Salgados', 'Lanches', 'Doces', 'PFs', 'Diversos'],  
         required: true,
         error: validationErrors?.categoria,
         onFocus: () => setValidationErrors({ ...validationErrors, categoria: undefined }),
@@ -430,8 +432,8 @@ const validateProduto = (values: Produto) => {
   // Validação da Categoria
   if (!validateRequired(values.categoria)) {
     errors.categoria = 'Categoria é obrigatória.';
-  } else if (!validateMinLength(values.categoria, 3)) {
-    errors.categoria = 'Categoria inválida, necessário ter no mínimo 3 caracteres.';
+  } else if (!validateMinLength(values.categoria, 2)) {
+    errors.categoria = 'Categoria inválida, necessário ter no mínimo 2 caracteres.';
   } else if (!validateMaxLength(values.categoria, 20)) {
     errors.categoria = 'Categoria inválida, necessário ter menos de 20 caracteres.';
   } else if (!validateSomenteTexto(values.categoria)) {
