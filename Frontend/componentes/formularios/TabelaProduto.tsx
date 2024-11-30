@@ -458,8 +458,8 @@ const validateProduto = (values: Produto) => {
     errors.descricao = 'Descrição é obrigatória.';
   } else if (!validateMinLength(values.descricao, 3)) {
     errors.descricao = 'Descrição inválida, necessário ter no mínimo 3 caracteres.';
-  } else if (!validateMaxLength(values.descricao, 80)) {
-    errors.descricao = 'Descrição inválida, necessário ter menos de 80 caracteres.';
+  } else if (!validateMaxLength(values.descricao, 120)) {
+    errors.descricao = 'Descrição inválida, necessário ter menos de 120 caracteres.';
   } else if (!validateSemCaractere(values.descricao)) {
     errors.descricao = 'Descrição inválida, permitido apenas caracteres válidos.';
   }
