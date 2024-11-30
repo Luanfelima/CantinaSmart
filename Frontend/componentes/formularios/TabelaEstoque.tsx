@@ -114,19 +114,24 @@ const CadastroEstoque = () => {
   // Função para salvar edição de Estoque
   const handleSaveEstoque: MRT_TableOptions<Estoque>['onEditingRowSave'] = async ({ values, table }) => {
     try {
-      // Chama o endpoint para registrar a venda
+      const valorVenda = values.valor_venda;
+      if (!valorVenda || valorVenda <= 0) {
+        setValidationErrors({ valor_venda: 'Valor de venda inválido. Insira um valor válido.' });
+        return;
+      }
+  
       const response = await axios.post(`${backendUrl}/vendas`, {
         id_produto: values.id_produto,
         quantidade: values.quantidade,
+        valorVenda,
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
   
       console.log('Venda registrada:', response.data);
   
-      // Atualiza as tabelas no frontend
-      queryClient.invalidateQueries({ queryKey: ['produtos'] }); // Atualiza estoque
-      queryClient.invalidateQueries({ queryKey: ['vendas'] });   // Atualiza vendas
+      queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      queryClient.invalidateQueries({ queryKey: ['vendas'] });
       table.setEditingRow(null);
     } catch (error) {
       console.error('Erro ao registrar venda:', error);
@@ -152,6 +157,14 @@ const CadastroEstoque = () => {
       <Stack>
         <Title order={3}>Registrar venda</Title>
         {internalEditComponents}
+        <Input
+          type="number"
+          required
+          placeholder="Digite aqui o Valor da Venda"
+          onChange={(event) =>
+            row._valuesCache.valor_venda = parseFloat(event.target.value) || 0
+          }
+        />
         <Flex justify="flex-end" mt="xl">
           <MRT_EditActionButtons variant="text" table={table} row={row} />
         </Flex>
