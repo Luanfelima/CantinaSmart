@@ -85,7 +85,7 @@ const CadastroProduto = () => {
       header: 'Categoria',
       editVariant: 'select',
       mantineEditSelectProps: {
-        data: [ 'Bebidas', 'Salgados', 'Lanches', 'Doces', 'PFs', 'Diversos'],  
+        data: [ 'Bebidas', 'Salgados', 'Lanches', 'Doces', 'PF', 'Diversos'],  
         required: true,
         error: validationErrors?.categoria,
         onFocus: () => setValidationErrors({ ...validationErrors, categoria: undefined }),
