@@ -295,23 +295,7 @@ const CadastroVendasWithProviders = () => (
 );
 
 export default CadastroVendasWithProviders;
-/*
-// Funções de validação
-const validateRequired = (value: any) => value !== null && value !== undefined && value.toString().trim().length > 0; // Verifica se o campo está preenchido.
-const validateMinLength = (value: string, minLength: number) => value.trim().length >= minLength; // Valida comprimento mínimo.
-const validateMaxLength = (value: string, maxLength: number) => value.trim().length <= maxLength; // Valida comprimento máximo.
-const validateSomenteTexto = (value: string) => /^[a-zA-ZÀ-ÿ\s]+$/.test(value); // Permite apenas texto e espaços.
-const validateSemCaractere = (value: any) => /^[a-zA-ZÀ-ÿ0-9\sç.,]*$/.test(value); // Permite texto, números, espaço, ., e ,.
-const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", ".");return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);}; // Valida o preço, permitindo até três dígitos inteiros e dois decimais.
-const validateQuantidade = (quantidade: number) => {const quantidadeStr = quantidade.toString();return /^[1-9]\d{0,2}$/.test(quantidadeStr);}; // Aplica a validação de números inteiros maiores que zero e até 3 dígitos
-*/
-
-const validateVendas = (values: Vendas) => {
-  const errors: Record<string, string | undefined> = {};
-
-  return errors;
-};
 
 function handleExportRows(rows: MRT_Row<Vendas>[]): void {
-  throw new Error('Function not implemented.');
+  throw new Error('Função não implementada.');
 }
