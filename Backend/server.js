@@ -890,7 +890,6 @@ app.post('/vendas', authenticateToken, (req, res) => {
 
   console.info(`[Vendas] Registrando venda - Gestor: ${matricula_gestor}, Produto: ${id_produto}, Quantidade: ${quantidade}, Valor Venda: ${valorVenda}`);
 
-  // Query para buscar o produto
   const getProdutoQuery = `
     SELECT nome_p, preco, quantidade_produto 
     FROM produtos 
@@ -915,7 +914,7 @@ app.post('/vendas', authenticateToken, (req, res) => {
     }
 
     // Cálculos necessários
-    const valorTotalVenda = valorVenda * quantidade; // Total da venda
+    const valorTotalVenda = valorVenda; // O valor digitado pelo usuário representa o total
     const custoTotal = produto.preco * quantidade; // Custo total (baseado no preço de custo do produto)
     const lucroVenda = valorTotalVenda - custoTotal; // Lucro = Valor Total da Venda - Preço de Custo
     const horarioVenda = new Date().toISOString().split('T')[0]; // Data no formato YYYY-MM-DD
@@ -978,7 +977,6 @@ app.post('/vendas', authenticateToken, (req, res) => {
                 });
               }
 
-              console.info('[Vendas] Transação concluída com sucesso.');
               connection.release();
               res.status(201).json({
                 message: 'Venda registrada com sucesso.',
@@ -997,3 +995,25 @@ app.post('/vendas', authenticateToken, (req, res) => {
     });
   });
 });
+
+app.get('/vendas', authenticateToken, (req, res) => {
+  const matricula_gestor = req.gestor.matricula_gestor;
+
+  console.info(`[Vendas] Buscando vendas para o gestor: ${matricula_gestor}`);
+
+  const query = `
+    SELECT id_venda, nome_produto, valor_venda, lucro_venda, data_venda 
+    FROM vendas
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('[Vendas] Erro ao buscar vendas:', err);
+      return res.status(500).json({ error: 'Erro ao buscar vendas.' });
+    }
+
+    console.info(`[Vendas] Vendas encontradas: ${results.length}`);
+    res.status(200).json(results);
+  });
+});
+
