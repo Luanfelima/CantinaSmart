@@ -334,7 +334,7 @@ const validateRequired = (value: any) => value !== null && value !== undefined &
 const validateNome = (nome: string) => {const regex = /^[^0-9]+$/;return regex.test(nome) && validateMinLength(nome, 3);};
 const validateEmail = (email: string) => {const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{3,}$/;return !!email.length && regex.test(email.toLowerCase());};
 const validateCpf = (cpf: string) => {if (cpf.includes('.') || cpf.includes('-')) {return false;}return /^[0-9]{11}$/.test(cpf);};
-const validateTelefone = (telefone: string) => {const cleanTelefone = telefone.replace(/\D/g, '');return !!cleanTelefone.length && /^[0-9]{10,11}$/.test(cleanTelefone);};
+const validateTelefone = (telefone: string) => {const cleanTelefone = telefone.replace(/\D/g, '');return !!cleanTelefone.length && /^[0-9]{11}$/.test(cleanTelefone);};
 const validateSomenteTexto = (value: string) => {return /^[a-zA-ZÀ-ÿ\s]+$/.test(value);};
 
 // Função que valida todos os campos do funcionário
