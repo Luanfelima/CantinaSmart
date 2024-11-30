@@ -18,7 +18,7 @@ export function LogoClaro() {
     return (
         <Box component="a" href={homePageUrl} style={{ display: 'inline-block', width: 'auto', height: '100%'}}>
             <Image 
-                src="https://i.imgur.com/itiogvI.png"
+                src="https://imgur.com/J7lkzH5.png"
                 style={{ height: '100%', width: 'auto' }}
                 alt="Imagem com o Logo por escrito em cor azul escuro do CantinaSmart"
             />
