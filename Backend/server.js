@@ -880,17 +880,17 @@ app.get('/estoque', authenticateToken, (req, res) => {
 
 // ----------------------------------- Rota de vendas -------------------------------
 app.post('/vendas', authenticateToken, (req, res) => {
-  const matricula_gestor = req.gestor.matricula_gestor;
-  const { id_produto, quantidade } = req.body;
+  const matricula_gestor = req.gestor.matricula_gestor; // Identifica o gestor autenticado
+  const { id_produto, quantidade, valorVenda } = req.body;
 
-  // Validar entrada
-  if (!id_produto || !quantidade || quantidade <= 0) {
-    return res.status(400).json({ error: 'Dados inválidos. Forneça um ID de produto e uma quantidade válida.' });
+  // Validações iniciais
+  if (!id_produto || !quantidade || quantidade <= 0 || !valorVenda || valorVenda <= 0) {
+    return res.status(400).json({ error: 'Dados inválidos. Forneça ID do produto, quantidade e valor de venda válidos.' });
   }
 
-  console.info(`[Vendas] Registrando venda - Gestor: ${matricula_gestor}, Produto: ${id_produto}, Quantidade: ${quantidade}`);
+  console.info(`[Vendas] Registrando venda - Gestor: ${matricula_gestor}, Produto: ${id_produto}, Quantidade: ${quantidade}, Valor Venda: ${valorVenda}`);
 
-  // Busca o produto
+  // Query para buscar o produto
   const getProdutoQuery = `
     SELECT nome_p, preco, quantidade_produto 
     FROM produtos 
@@ -909,14 +909,16 @@ app.post('/vendas', authenticateToken, (req, res) => {
 
     const produto = results[0];
 
-    // Verificar se há quantidade suficiente
+    // Verifica se há quantidade suficiente no estoque
     if (produto.quantidade_produto < quantidade) {
       return res.status(400).json({ error: 'Quantidade insuficiente em estoque.' });
     }
 
-    // Calcular o valor da venda e capturar o horário
-    const valorVenda = quantidade * produto.preco;
-    const horarioVenda = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+    // Cálculos necessários
+    const valorTotalVenda = valorVenda * quantidade; // Total da venda
+    const custoTotal = produto.preco * quantidade; // Custo total (baseado no preço de custo do produto)
+    const lucroVenda = valorTotalVenda - custoTotal; // Lucro = Valor Total da Venda - Preço de Custo
+    const horarioVenda = new Date().toISOString().split('T')[0]; // Data no formato YYYY-MM-DD
 
     db.getConnection((err, connection) => {
       if (err) {
@@ -931,12 +933,13 @@ app.post('/vendas', authenticateToken, (req, res) => {
           return res.status(500).json({ error: 'Erro ao iniciar transação.' });
         }
 
-        // Inserir venda
+        // Inserir a venda na tabela
         const insertVendaQuery = `
           INSERT INTO vendas (nome_produto, valor_venda, lucro_venda, data_venda) 
           VALUES (?, ?, ?, ?)
         `;
-        connection.query(insertVendaQuery, [produto.nome_p, valorVenda, valorVenda, horarioVenda], (err, result) => {
+
+        connection.query(insertVendaQuery, [produto.nome_p, valorTotalVenda, lucroVenda, horarioVenda], (err, result) => {
           if (err) {
             console.error('[Vendas] Erro ao registrar venda:', err);
             return connection.rollback(() => {
@@ -947,12 +950,13 @@ app.post('/vendas', authenticateToken, (req, res) => {
 
           console.info(`[Vendas] Venda registrada - ID: ${result.insertId}`);
 
-          // Atualizar estoque
+          // Atualizar a quantidade no estoque
           const updateProdutoQuery = `
             UPDATE produtos 
             SET quantidade_produto = quantidade_produto - ? 
             WHERE id_produto = ?
           `;
+
           connection.query(updateProdutoQuery, [quantidade, id_produto], (err) => {
             if (err) {
               console.error('[Vendas] Erro ao atualizar estoque:', err);
@@ -964,7 +968,7 @@ app.post('/vendas', authenticateToken, (req, res) => {
 
             console.info('[Vendas] Estoque atualizado com sucesso.');
 
-            // Finalizar transação
+            // Finaliza a transação
             connection.commit((err) => {
               if (err) {
                 console.error('[Vendas] Erro ao confirmar transação:', err);
@@ -981,7 +985,8 @@ app.post('/vendas', authenticateToken, (req, res) => {
                 venda: {
                   id: result.insertId,
                   nome_produto: produto.nome_p,
-                  valor_venda: valorVenda,
+                  valor_venda: valorTotalVenda,
+                  lucro_venda: lucroVenda,
                   data_venda: horarioVenda,
                 },
               });
@@ -990,26 +995,5 @@ app.post('/vendas', authenticateToken, (req, res) => {
         });
       });
     });
-  });
-});
-
-app.get('/vendas', authenticateToken, (req, res) => {
-  const matricula_gestor = req.gestor.matricula_gestor;
-
-  console.info(`[Vendas] Buscando vendas para o gestor: ${matricula_gestor}`);
-
-  const query = `
-    SELECT id_venda, nome_produto, valor_venda, lucro_venda, data_venda 
-    FROM vendas
-  `;
-
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error('[Vendas] Erro ao buscar vendas:', err);
-      return res.status(500).json({ error: 'Erro ao buscar vendas.' });
-    }
-
-    console.info(`[Vendas] Vendas encontradas: ${results.length}`);
-    res.status(200).json(results);
   });
 });
