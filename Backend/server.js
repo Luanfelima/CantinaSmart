@@ -934,11 +934,11 @@ app.post('/vendas', authenticateToken, (req, res) => {
 
         // Inserir a venda na tabela
         const insertVendaQuery = `
-          INSERT INTO vendas (nome_produto, valor_venda, lucro_venda, data_venda) 
-          VALUES (?, ?, ?, ?)
+          INSERT INTO vendas (nome_produto, valor_venda, lucro_venda, data_venda, quantidade_vendas) 
+          VALUES (?, ?, ?, ?, ?)
         `;
 
-        connection.query(insertVendaQuery, [produto.nome_p, valorTotalVenda, lucroVenda, horarioVenda], (err, result) => {
+        connection.query(insertVendaQuery, [produto.nome_p, valorTotalVenda, lucroVenda, horarioVenda, quantidade], (err, result) => {
           if (err) {
             console.error('[Vendas] Erro ao registrar venda:', err);
             return connection.rollback(() => {
@@ -986,6 +986,7 @@ app.post('/vendas', authenticateToken, (req, res) => {
                   valor_venda: valorTotalVenda,
                   lucro_venda: lucroVenda,
                   data_venda: horarioVenda,
+                  quantidade_vendas: quantidade,
                 },
               });
             });
