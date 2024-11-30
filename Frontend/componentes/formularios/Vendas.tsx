@@ -13,24 +13,23 @@ import { ModalsProvider } from '@mantine/modals';
 import {
   QueryClient,
   QueryClientProvider,
-  useMutation,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import axios from 'axios';
-
-import { jsPDF } from 'jspdf'; //or use your library of choice here
-import autoTable from 'jspdf-autotable';
 import { Box, Button } from '@mantine/core';
 import { IconDownload } from '@tabler/icons-react';
+import { jsPDF } from 'jspdf'; // Para exportar PDF
+import autoTable from 'jspdf-autotable';
 
 // Tipo Vendas
 type Vendas = {
   id_venda: number;
   nome_produto: string;
   valor_venda: number;
-  lucro_venda: number,
-  data_venda: any;  
+  lucro_venda: number;
+  data_venda: string;
+  quantidade_vendas: number;
 };
 
 const Vendas = () => {
@@ -64,35 +63,33 @@ const Vendas = () => {
       accessorKey: 'nome_produto',
       header: 'Nome do produto',
       enableEditing: false,
-      mantineEditTextInputProps: {
-        type: 'text',
-      },
+      mantineEditTextInputProps: { type: 'text' },
+    },
+    {
+      accessorKey: 'quantidade_vendas',
+      header: 'Quantidade Vendida',
+      enableEditing: false,
+      mantineEditTextInputProps: { type: 'number' },
     },
     {
       accessorKey: 'valor_venda',
       header: 'Valor da Venda',
       enableEditing: false,
-      mantineEditTextInputProps: {
-        type: 'number',
-      },
+      mantineEditTextInputProps: { type: 'number' },
     },
     {
       accessorKey: 'lucro_venda',
       header: 'Lucro da Venda',
       enableEditing: false,
-      mantineEditTextInputProps: {
-        type: 'number',
-      },
+      mantineEditTextInputProps: { type: 'number' },
     },
     {
       accessorKey: 'data_venda',
       header: 'Data da Venda',
       enableEditing: false,
-      mantineEditTextInputProps: {
-        type: 'text',
-      },
+      mantineEditTextInputProps: { type: 'text' },
       Cell: ({ cell }) => {
-        const rawDate = cell.getValue<string>(); // Use string aqui
+        const rawDate = cell.getValue<string>();
         const formattedDate = new Date(rawDate).toLocaleDateString('pt-BR', {
           year: 'numeric',
           month: '2-digit',
@@ -100,7 +97,7 @@ const Vendas = () => {
         });
         return formattedDate;
       },
-    }
+    },
   ], [validationErrors]);
 
   const handleExportRows = (rows: MRT_Row<Vendas>[]) => {
@@ -154,7 +151,6 @@ const Vendas = () => {
         </Button>
       </Box>
     ),
-    
     state: {
       isLoading: isLoadingVendas,
       isSaving: false,
@@ -170,7 +166,6 @@ const Vendas = () => {
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-// Função para obter produtos
 function useGetVendas() {
   const [token, setToken] = useState<string | null>(null);
 
@@ -197,94 +192,6 @@ function useGetVendas() {
   });
 }
 
-// Função para criar produto
-function useCreateVendas() {
-  const queryClient = useQueryClient();
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const jwtToken = localStorage.getItem('token');
-      setToken(jwtToken);
-    }
-  }, []);
-
-  return useMutation({
-    mutationFn: async (vendas: Omit<Vendas, 'id_venda'>) => {
-      if (!token) {
-        throw new Error('Token não encontrado');
-      }
-      const response = await axios.post(`${backendUrl}/vendas`, vendas, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vendas'] });
-    },
-  });
-}
-
-// Função para atualizar Vendas
-function useUpdateVendas() {
-  const queryClient = useQueryClient();
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const jwtToken = localStorage.getItem('token');
-      setToken(jwtToken);
-    }
-  }, []);
-
-  return useMutation({
-    mutationFn: async (vendas: Vendas) => {
-      if (!token) {
-        throw new Error('Token não encontrado');
-      }
-      await axios.put(`${backendUrl}/vendas/${vendas.id_venda}`, vendas, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vendas'] });
-    },
-  });
-}
-
-// Função para deletar Vendas
-function useDeleteVendas() {
-  const queryClient = useQueryClient();
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const jwtToken = localStorage.getItem('token');
-      setToken(jwtToken);
-    }
-  }, []);
-
-  return useMutation({
-    mutationFn: async (produtoId: number) => {
-      if (!token) {
-        throw new Error('Token não encontrado');
-      }
-      await axios.delete(`${backendUrl}/produtos/${produtoId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['produtos'] });
-    },
-  });
-}
-
 const queryClient = new QueryClient();
 const CadastroVendasWithProviders = () => (
   <QueryClientProvider client={queryClient}>
@@ -295,7 +202,3 @@ const CadastroVendasWithProviders = () => (
 );
 
 export default CadastroVendasWithProviders;
-
-function handleExportRows(rows: MRT_Row<Vendas>[]): void {
-  throw new Error('Função não implementada.');
-}
