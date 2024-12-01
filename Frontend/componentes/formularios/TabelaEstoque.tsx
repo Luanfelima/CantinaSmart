@@ -2,7 +2,7 @@ import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 import 'mantine-react-table/styles.css';
 import { MRT_Localization_PT_BR } from 'mantine-react-table/locales/pt-BR/index.cjs';
-import { Input } from '@mantine/core';
+import { Alert, Input } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import {
   MRT_EditActionButtons,
@@ -20,7 +20,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { ModalsProvider, } from '@mantine/modals';
-import { IconAlertCircle, IconAlertTriangle, IconCheck, IconCurrencyReal } from '@tabler/icons-react';
+import { IconAlertCircle, IconAlertTriangle, IconCheck, IconCurrencyReal, IconInfoCircle } from '@tabler/icons-react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -42,6 +42,7 @@ type Estoque = {
 const CadastroEstoque = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string | undefined>>({});
   const queryClient = useQueryClient();
+  const [showAlert, setShowAlert] = useState(true);
 
   const {
     data: fetchedEstoque = [],
@@ -49,6 +50,11 @@ const CadastroEstoque = () => {
     isFetching: isFetchingEstoque,
     isLoading: isLoadingEstoque,
   } = useGetEstoque();
+
+  const hasCriticalStock = useMemo(() => 
+    fetchedEstoque.some(item => item.quantidade <= item.nivel_critico), 
+    [fetchedEstoque]
+  );
 
   // Verifica erro ao carregar Estoque
   if (isLoadingEstoqueError) {
@@ -115,7 +121,7 @@ const CadastroEstoque = () => {
             </Input.Wrapper>
           );
         },
-      },      
+      },
     {
       accessorKey: 'nivel_critico',
       header: 'Nível Crítico',
@@ -155,41 +161,41 @@ const CadastroEstoque = () => {
 
   // Função para salvar edição de Estoque
   const handleSaveEstoque: MRT_TableOptions<Estoque>['onEditingRowSave'] = async ({ values, table }) => {
-  try {
-    // Validações dos campos
-    if (!values.quantidade || values.quantidade <= 0) {
-      setValidationErrors({ quantidade: 'Quantidade inválida. Insira um número maior que zero.' });
-      return;
-    }
-
-    if (!values.valor_venda || values.valor_venda <= 0) {
-      setValidationErrors({ valor_venda: 'Valor de venda inválido. Insira um valor válido.' });
-      return;
-    }
-
-    // Faz o POST para o backend
-    await axios.post(
-      `${backendUrl}/vendas`,
-      {
-        id_produto: values.id_produto,
-        quantidade: values.quantidade,
-        valorVenda: values.valor_venda,
-      },
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    try {
+      // Validações dos campos
+      if (!values.quantidade || values.quantidade <= 0) {
+        setValidationErrors({ quantidade: 'Quantidade inválida. Insira um número maior que zero.' });
+        return;
       }
-    );
+  
+      if (!values.valor_venda || values.valor_venda <= 0) {
+        setValidationErrors({ valor_venda: 'Valor de venda inválido. Insira um valor válido.' });
+        return;
+      }
+  
+      // Faz o POST para o backend
+      await axios.post(
+        `${backendUrl}/vendas`,
+        {
+          id_produto: values.id_produto,
+          quantidade: values.quantidade,
+          valorVenda: values.valor_venda,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
 
-    // Atualize o estado local ou refetch dos dados
-    await queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      // Atualize o estado local ou refetch dos dados
+      await queryClient.invalidateQueries({ queryKey: ['produtos'] });
 
-    // Fecha o modal de edição
-    table.setEditingRow(null);
-  } catch (error) {
-    console.error('Erro ao registrar venda:', error);
-    setValidationErrors({ quantidade: 'Erro ao registrar a venda. Verifique os dados e tente novamente.' });
-  }
-};
+      // Fecha o modal de edição
+      table.setEditingRow(null);
+    } catch (error) {
+      console.error('Erro ao registrar venda:', error);
+      setValidationErrors({ quantidade: 'Erro ao registrar a venda. Verifique os dados e tente novamente.' });
+    }
+  };
   
   const table = useMantineReactTable({
     localization: MRT_Localization_PT_BR,
@@ -239,7 +245,24 @@ const CadastroEstoque = () => {
     },
   });
 
-  return <MantineReactTable table={table} />;
+  return (
+    <>
+      {hasCriticalStock && showAlert && (
+        <Alert
+          variant="filled"
+          color="red"
+          radius="md"
+          withCloseButton
+          title="Alerta de criticidade no estoque"
+          icon={<IconInfoCircle />}
+          onClose={() => setShowAlert(false)} // Fecha o alerta ao clicar no botão de fechar
+        >
+          Um ou mais itens do estoque estão em nível crítico
+        </Alert>
+      )}
+      <MantineReactTable table={table} />
+    </>
+  );
 };
 
 // Funções auxiliares de CRUD (Create, Read, Update, Delete)
