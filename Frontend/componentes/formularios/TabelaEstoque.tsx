@@ -155,38 +155,41 @@ const CadastroEstoque = () => {
 
   // Função para salvar edição de Estoque
   const handleSaveEstoque: MRT_TableOptions<Estoque>['onEditingRowSave'] = async ({ values, table }) => {
-    try {
-      // Validações dos campos
-      if (!values.quantidade || values.quantidade <= 0) {
-        setValidationErrors({ quantidade: 'Quantidade inválida. Insira um número maior que zero.' });
-        return;
-      }
-  
-      if (!values.valor_venda || values.valor_venda <= 0) {
-        setValidationErrors({ valor_venda: 'Valor de venda inválido. Insira um valor válido.' });
-        return;
-      }
-  
-      // Faz o POST para o backend
-      await axios.post(
-        `${backendUrl}/vendas`,
-        {
-          id_produto: values.id_produto,
-          quantidade: values.quantidade,
-          valorVenda: values.valor_venda,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        }
-      );
-  
-      // Fecha o modal de edição
-      table.setEditingRow(null);
-    } catch (error) {
-      console.error('Erro ao registrar venda:', error);
-      setValidationErrors({ quantidade: 'Erro ao registrar a venda. Verifique os dados e tente novamente.' });
+  try {
+    // Validações dos campos
+    if (!values.quantidade || values.quantidade <= 0) {
+      setValidationErrors({ quantidade: 'Quantidade inválida. Insira um número maior que zero.' });
+      return;
     }
-  };
+
+    if (!values.valor_venda || values.valor_venda <= 0) {
+      setValidationErrors({ valor_venda: 'Valor de venda inválido. Insira um valor válido.' });
+      return;
+    }
+
+    // Faz o POST para o backend
+    await axios.post(
+      `${backendUrl}/vendas`,
+      {
+        id_produto: values.id_produto,
+        quantidade: values.quantidade,
+        valorVenda: values.valor_venda,
+      },
+      {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      }
+    );
+
+    // Atualize o estado local ou refetch dos dados
+    await queryClient.invalidateQueries({ queryKey: ['produtos'] });
+
+    // Fecha o modal de edição
+    table.setEditingRow(null);
+  } catch (error) {
+    console.error('Erro ao registrar venda:', error);
+    setValidationErrors({ quantidade: 'Erro ao registrar a venda. Verifique os dados e tente novamente.' });
+  }
+};
   
   const table = useMantineReactTable({
     localization: MRT_Localization_PT_BR,
