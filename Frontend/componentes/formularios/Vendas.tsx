@@ -17,7 +17,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import axios from 'axios';
-import { Box, Button } from '@mantine/core';
+import { Box, Button, Input } from '@mantine/core';
 import { IconDownload } from '@tabler/icons-react';
 import { jsPDF } from 'jspdf'; // Para exportar PDF
 import autoTable from 'jspdf-autotable';
@@ -76,12 +76,24 @@ const Vendas = () => {
       header: 'Valor da Venda',
       enableEditing: false,
       mantineEditTextInputProps: { type: 'number' },
-    },
-    {
-      accessorKey: 'lucro_venda',
-      header: 'Lucro da Venda',
-      enableEditing: false,
-      mantineEditTextInputProps: { type: 'number' },
+      Cell: ({ row }) => {
+        const valorVenda = Number(row.getValue('valor_venda')) || 0;
+        return (
+          <Input.Wrapper label="">
+            <Input
+              value={`R$ ${valorVenda.toFixed(2).replace('.', ',')}`} // Formata como moeda brasileira
+              readOnly
+              styles={{
+                input: {
+                  color: 'black',
+                  cursor: 'default',
+                  border: 'white',
+                },
+              }}
+            />
+          </Input.Wrapper>
+        );
+      },
     },
     {
       accessorKey: 'data_venda',
@@ -96,6 +108,30 @@ const Vendas = () => {
           day: '2-digit',
         });
         return formattedDate;
+      },
+    },
+    {
+      accessorKey: 'lucro_venda',
+      header: 'Lucro da Venda',
+      enableEditing: false,
+      mantineEditTextInputProps: { type: 'number' },
+      Cell: ({ row }) => {
+        const lucroVenda = Number(row.getValue('lucro_venda')) || 0;
+        return (
+          <Input.Wrapper label="">
+            <Input
+              value={`R$ ${lucroVenda.toFixed(2).replace('.', ',')}`} // Formata como moeda brasileira
+              readOnly
+              styles={{
+                input: {
+                  color: 'black',
+                  cursor: 'default',
+                  border: 'white',
+                },
+              }}
+            />
+          </Input.Wrapper>
+        );
       },
     },
   ], [validationErrors]);

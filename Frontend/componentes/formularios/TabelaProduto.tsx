@@ -123,18 +123,27 @@ const CadastroProduto = () => {
         onFocus: () => setValidationErrors({ ...validationErrors, preco: undefined }),
       },
       // Customiza o campo para exibir "R$" como prefixo
-      Cell: ({ row }) => (
-        <Input.Wrapper label="">
-          <Input
-            value={`R$ ${String(row.getValue("preco"))}`} // Exibe "R$" como prefixo
-            readOnly // Mantém o campo sem edição, mas com estilo normal
-            styles={{input: { color: 'black', cursor: 'default', border: 'white'}, // Mantém o texto visível e desabilita a edição
-            }}
-          />
-        </Input.Wrapper>
-      )
+      Cell: ({ row }) => {
+        // Realiza o casting explícito para garantir o tipo correto
+        const preco = Number(row.getValue('preco')) || 0;
+        return (
+          <Input.Wrapper label="">
+            <Input
+              value={`R$ ${preco.toFixed(2).replace('.', ',')}`} // Formata o valor como moeda brasileira
+              readOnly // Mantém o campo sem edição
+              styles={{
+                input: {
+                  color: 'black',
+                  cursor: 'default',
+                  border: 'white', // Estiliza o campo
+                },
+              }}
+            />
+          </Input.Wrapper>
+        );
+      },
     },
-{
+    {
       accessorKey: 'perecivel',
       header: 'Perecível',
       editVariant: 'select',
