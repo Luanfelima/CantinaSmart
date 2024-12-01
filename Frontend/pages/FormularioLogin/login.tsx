@@ -7,9 +7,12 @@ import {
   Container,
   Group,
   Button,
+  LoadingOverlay,
+  Box,
 } from '@mantine/core';
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
+import { useDisclosure } from '@mantine/hooks';
 import Image from 'next/image';
 import classes from './login.module.css';
 import api from '../../api/api';
@@ -19,10 +22,10 @@ export function FormLogin() {
   const [senha, setSenha] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({ email: '', senha: '' });
+  const [visible, { open, close }] = useDisclosure(false); // Controle do LoadingOverlay
   const router = useRouter();
 
   useEffect(() => {
-    // Carregar email e senha do localStorage se "Lembrar-me" estiver marcado
     const savedEmail = localStorage.getItem('rememberedEmail');
     const savedSenha = localStorage.getItem('rememberedSenha');
     const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
@@ -50,7 +53,6 @@ export function FormLogin() {
       newErrors.email = 'E-mail é obrigatório.';
     }
 
-
     if (!senha) {
       newErrors.senha = 'Senha é obrigatória.';
     }
@@ -61,6 +63,8 @@ export function FormLogin() {
 
   const handleLogin = async () => {
     if (!validateForm()) return;
+
+    open(); // Exibe o overlay de loading
 
     try {
       const { data } = await api.post('/login', { email, senha });
@@ -80,13 +84,13 @@ export function FormLogin() {
 
       router.push('/Dashboard/dashboard');
     } catch (error: any) {
-      if (error.response) {
-
-        } if (error.response.status === 401) {
-          alert('Falha na Autenticação.');
-        } else {
+      if (error.response && error.response.status === 401) {
+        alert('Falha na Autenticação.');
+      } else {
         alert('Erro de conexão. Verifique sua rede e tente novamente.');
       }
+    } finally {
+      close(); // Esconde o overlay de loading
     }
   };
 
@@ -99,35 +103,38 @@ export function FormLogin() {
       <Title ta="center" className={classes.title}>
         Cantinas Smart
       </Title>
-      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-        <TextInput
-          label="Email"
-          placeholder=" email@example.com"
-          required
-          value={email}
-          onChange={(event) => setEmail(event.currentTarget.value)}
-          error={errors.email}
-        />
-        <PasswordInput
-          label="Senha"
-          placeholder="Sua senha"
-          required
-          mt="md"
-          value={senha}
-          onChange={(event) => setSenha(event.currentTarget.value)}
-          error={errors.senha}
-        />
-        <Group justify="space-between" mt="lg">
-          <Checkbox
-            label="Lembrar-me"
-            checked={rememberMe}
-            onChange={(event) => setRememberMe(event.currentTarget.checked)}
+      <Box pos="relative"> {/* Container para o LoadingOverlay */}
+        <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+        <Paper withBorder shadow="md" p={30} mt={30} radius="md">
+          <TextInput
+            label="Email"
+            placeholder="email@example.com"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.currentTarget.value)}
+            error={errors.email}
           />
-        </Group>
-        <Button onClick={handleLogin} fullWidth mt="xl">
-          Login
-        </Button>
-      </Paper>
+          <PasswordInput
+            label="Senha"
+            placeholder="Sua senha"
+            required
+            mt="md"
+            value={senha}
+            onChange={(event) => setSenha(event.currentTarget.value)}
+            error={errors.senha}
+          />
+          <Group justify="space-between" mt="lg">
+            <Checkbox
+              label="Lembrar-me"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.currentTarget.checked)}
+            />
+          </Group>
+          <Button onClick={handleLogin} fullWidth mt="xl">
+            Login
+          </Button>
+        </Paper>
+      </Box>
 
       {/* Imagem clicável no canto */}
       <div className={classes.imageContainer}>
