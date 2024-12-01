@@ -37,7 +37,8 @@ type Produto = {
   id_produto: number;
   nome_p: string;
   categoria: string;
-  quantidade_produto: number,
+  quantidade_produto: number;
+  nivel_critico: number;
   preco: number;
   perecivel: boolean;
   descricao: string;
@@ -66,10 +67,10 @@ const CadastroProduto = () => {
     {
       accessorKey: 'id_produto',
       header: 'ID Produto',
-      enableEditing: false, // Desativa a edição
-      size: 0, // Tamanho zero para ocultar
-      mantineTableHeadCellProps: { style: { display: 'none' } }, // Oculta no cabeçalho
-      mantineTableBodyCellProps: { style: { display: 'none' } }, // Oculta no corpo
+      enableEditing: false,
+      size: 0,
+      mantineTableHeadCellProps: { style: { display: 'none' } },
+      mantineTableBodyCellProps: { style: { display: 'none' } },
     },
     {
       accessorKey: 'nome_p',
@@ -102,6 +103,16 @@ const CadastroProduto = () => {
       },
     },
     {
+      accessorKey: 'nivel_critico',
+      header: 'Nível Crítico',
+      mantineEditTextInputProps: {
+        type: 'number',
+        required: true,
+        error: validationErrors?.nivel_critico,
+        onFocus: () => setValidationErrors({ ...validationErrors, nivel_critico: undefined }),
+      },
+    },
+    {
       accessorKey: 'preco',
       header: 'Preço',
       mantineEditTextInputProps: {
@@ -123,7 +134,7 @@ const CadastroProduto = () => {
         </Input.Wrapper>
       )
     },
-    {
+{
       accessorKey: 'perecivel',
       header: 'Perecível',
       editVariant: 'select',
@@ -300,7 +311,19 @@ function useGetProdutos() {
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data;
+
+      // Inclua o campo nivel_critico no mapeamento
+      return response.data.map((produto: any) => ({
+        id_produto: produto.id_produto,
+        nome_p: produto.nome_p,
+        categoria: produto.categoria,
+        preco: produto.preco,
+        perecivel: produto.perecivel,
+        descricao: produto.descricao,
+        unidade_medida: produto.unidade_medida,
+        quantidade_produto: produto.quantidade_produto,
+        nivel_critico: produto.nivel_critico, // Incluindo o nivel_critico
+      }));
     },
     enabled: !!token,
     refetchOnWindowFocus: false,
@@ -414,6 +437,7 @@ const validateSomenteTexto = (value: string) => /^[a-zA-ZÀ-ÿ\s]+$/.test(value)
 const validateSemCaractere = (value: any) => /^[a-zA-ZÀ-ÿ0-9\sç.,]*$/.test(value); // Permite texto, números, espaço, ., e ,.
 const validatePreco = (preco: number) => {const precoStr = preco.toString().replace(",", ".");return !isNaN(Number(precoStr)) && Number(precoStr) >= 0 && /^(\d{1,3})(\.\d{1,2})?$/.test(precoStr);}; // Valida o preço, permitindo até três dígitos inteiros e dois decimais.
 const validateQuantidade = (quantidade_produto: number) => {const quantidadeStr = quantidade_produto.toString();return /^[1-9]\d{0,2}$/.test(quantidadeStr);}; // Aplica a validação de números inteiros maiores que zero e até 3 dígitos
+const validateCritico = (nivel_critico: number) => {const criticoStr = nivel_critico.toString();return /^[1-9]\d{0,2}$/.test(criticoStr);}; // Aplica a validação de números inteiros maiores que zero e até 3 dígitos
 
 // Validações do produto
 const validateProduto = (values: Produto) => {
@@ -438,12 +462,18 @@ const validateProduto = (values: Produto) => {
     errors.categoria = 'Categoria inválida, necessário ter menos de 20 caracteres.';
   } else if (!validateSomenteTexto(values.categoria)) {
     errors.categoria = 'Categoria inválida, necessário ter somente texto.';
-  }
+  } 
   // Validação da Quantidade
   if (!validateRequired(values.quantidade_produto)) {
-    errors.quantidade = 'Quantidade é obrigatória.';
-  } else if (!validateQuantidade(values.quantidade_produto)) {
-    errors.quantidade = 'Quantidade inválida, necessário ser número inteiro.';
+    errors.quantidade_produto = 'Quantidade é obrigatória.';
+  } else if (!validateCritico(values.quantidade_produto)) {
+    errors.quantidade_produto = 'Quantidade inválida, necessário ser número inteiro, valor máximo 999.';
+  }
+  // Validação do Nível Crítico
+  if (!validateRequired(values.nivel_critico)) {
+    errors.nivel_critico = 'Nível Crítico é obrigatório.';
+  } else if (!validateCritico(values.nivel_critico)) {
+    errors.nivel_critico = 'Nível Crítico inválido, necessário ser número inteiro, valor máximo 999.';
   }
   // Validação do Preço
   if (!validateRequired(values.preco)) {
@@ -469,6 +499,5 @@ const validateProduto = (values: Produto) => {
   if (!validateRequired(values.unidade_medida)) {
     errors.unidade_medida = 'Unidade de medida é obrigatória.';
   }
-
   return errors;
 };

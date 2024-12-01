@@ -20,7 +20,7 @@ import {
   Tooltip,
 } from '@mantine/core';
 import { ModalsProvider, } from '@mantine/modals';
-import { IconCurrencyReal } from '@tabler/icons-react';
+import { IconAlertCircle, IconAlertTriangle, IconCheck, IconCurrencyReal } from '@tabler/icons-react';
 import {
   QueryClient,
   QueryClientProvider,
@@ -32,6 +32,7 @@ import axios from 'axios';
 
 // Tipo Estoque
 type Estoque = {
+  nivel_critico: number;
   id_produto: number;
   nome_p: string;
   quantidade: number;
@@ -106,6 +107,38 @@ const CadastroEstoque = () => {
         </Input.Wrapper>
       )
     },
+    {
+      accessorKey: 'nivel_critico',
+      header: 'Nível Crítico',
+      enableEditing: false, // Desativa a edição no modal
+      Cell: ({ row }) => {
+        const quantidade = row.original.quantidade;
+        const nivelCritico = row.original.nivel_critico;
+  
+        // Lógica para determinar o ícone e a cor
+        let icon = <IconCheck color="green" />;
+        let tooltip = "Estoque em nível aceitável";
+  
+        if (quantidade <= nivelCritico) {
+          icon = <IconAlertCircle color="red" />;
+          tooltip = "Estoque em nível crítico!";
+        } else if (quantidade <= nivelCritico * 2) {
+          icon = <IconAlertTriangle color="orange" />;
+          tooltip = "Estoque próximo ao nível crítico!";
+        }
+  
+        return (
+          <Flex align="center" gap="sm">
+            <Tooltip label={tooltip}>
+              <ActionIcon variant="transparent">{icon}</ActionIcon>
+            </Tooltip>
+          </Flex>
+        );
+      },
+      mantineEditTextInputProps: {
+        style: { display: 'none' }, // Garante que não aparece no modal
+      },
+    },
   ], [validationErrors]);
 
   // Mutations para criar, atualizar e excluir Estoque
@@ -114,31 +147,38 @@ const CadastroEstoque = () => {
   // Função para salvar edição de Estoque
   const handleSaveEstoque: MRT_TableOptions<Estoque>['onEditingRowSave'] = async ({ values, table }) => {
     try {
-      const valorVenda = values.valor_venda;
-      if (!valorVenda || valorVenda <= 0) {
+      // Validações dos campos
+      if (!values.quantidade || values.quantidade <= 0) {
+        setValidationErrors({ quantidade: 'Quantidade inválida. Insira um número maior que zero.' });
+        return;
+      }
+  
+      if (!values.valor_venda || values.valor_venda <= 0) {
         setValidationErrors({ valor_venda: 'Valor de venda inválido. Insira um valor válido.' });
         return;
       }
   
-      const response = await axios.post(`${backendUrl}/vendas`, {
-        id_produto: values.id_produto,
-        quantidade: values.quantidade,
-        valorVenda,
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-      });
+      // Faz o POST para o backend
+      await axios.post(
+        `${backendUrl}/vendas`,
+        {
+          id_produto: values.id_produto,
+          quantidade: values.quantidade,
+          valorVenda: values.valor_venda,
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
   
-      console.log('Venda registrada:', response.data);
-  
-      queryClient.invalidateQueries({ queryKey: ['produtos'] });
-      queryClient.invalidateQueries({ queryKey: ['vendas'] });
+      // Fecha o modal de edição
       table.setEditingRow(null);
     } catch (error) {
       console.error('Erro ao registrar venda:', error);
       setValidationErrors({ quantidade: 'Erro ao registrar a venda. Verifique os dados e tente novamente.' });
     }
   };
-
+  
   const table = useMantineReactTable({
     localization: MRT_Localization_PT_BR,
     columns,
@@ -217,12 +257,13 @@ function useGetEstoque() {
         },
       });
 
-      // Mapeia os dados para ajustar o campo quantidade_produto
+      // Inclua o campo nivel_critico no mapeamento
       return response.data.map((produto: any) => ({
         id_produto: produto.id_produto,
         nome_p: produto.nome_p,
         preco: produto.preco,
         quantidade: produto.quantidade_produto, // Mapeia quantidade_produto para quantidade
+        nivel_critico: produto.nivel_critico,   // Inclui o nivel_critico
       }));
     },
     enabled: !!token,
