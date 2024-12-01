@@ -257,7 +257,7 @@ const CadastroEstoque = () => {
           icon={<IconInfoCircle />}
           onClose={() => setShowAlert(false)} // Fecha o alerta ao clicar no botão de fechar
         >
-          Um ou mais itens do estoque estão em nível crítico
+          Um ou mais itens do estoque estão em nível crítico!
         </Alert>
       )}
       <MantineReactTable table={table} />
